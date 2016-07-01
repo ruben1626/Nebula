@@ -327,7 +327,7 @@ exports.commands = {
 		if (avatarid in avatarTable) {
 			avatar = avatarTable[avatarid];
 		} else {
-			avatar = parseInt(avatarid);
+			avatar = parseInt(avatarid, 10);
 		}
 		if (typeof avatar === 'number' && (!avatar || avatar > 294 || avatar < 1)) {
 			if (!parts[1]) {
@@ -2021,7 +2021,7 @@ exports.commands = {
 		if (!this.canTalk()) return this.errorReply("You cannot do this while unable to talk.");
 		if (!this.can('editroom', null, room)) return false;
 
-		let targetInt = parseInt(target);
+		let targetInt = parseInt(target, 10);
 		if (target === 'off' || target === 'disable' || target === 'false') {
 			if (!room.slowchat) return this.errorReply("Slow chat is already disabled in this room.");
 			room.slowchat = false;
@@ -2358,7 +2358,7 @@ exports.commands = {
 
 		// Let's check the number of lines to retrieve or if it's a word instead
 		if (!target.match('[^0-9]')) {
-			lines = parseInt(target || 20);
+			lines = parseInt(target || 20, 10);
 			if (lines > 100) lines = 100;
 		}
 		let wordSearch = (!lines || lines < 0);
@@ -2877,25 +2877,25 @@ exports.commands = {
 		}
 		function getPokemon(input) {
 			if (/^[0-9]+$/.test(input)) {
-				return '.pokemon[' + (parseInt(input) - 1) + ']';
+				return '.pokemon[' + (parseInt(input, 10) - 1) + ']';
 			}
 			return ".pokemon.find(p => p.speciesid==='" + toId(targets[1]) + "')";
 		}
 		switch (cmd) {
 		case 'hp':
 		case 'h':
-			room.battle.send('eval', "let p=" + getPlayer(targets[0]) + getPokemon(targets[1]) + ";p.sethp(" + parseInt(targets[2]) + ");if (p.isActive)battle.add('-damage',p,p.getHealth);");
+			room.battle.send('eval', "let p=" + getPlayer(targets[0]) + getPokemon(targets[1]) + ";p.sethp(" + parseInt(targets[2], 10) + ");if (p.isActive)battle.add('-damage',p,p.getHealth);");
 			break;
 		case 'status':
 		case 's':
 			room.battle.send('eval', "let pl=" + getPlayer(targets[0]) + ";let p=pl" + getPokemon(targets[1]) + ";p.setStatus('" + toId(targets[2]) + "');if (!p.isActive){battle.add('','please ignore the above');battle.add('-status',pl.active[0],pl.active[0].status,'[silent]');}");
 			break;
 		case 'pp':
-			room.battle.send('eval', "let pl=" + getPlayer(targets[0]) + ";let p=pl" + getPokemon(targets[1]) + ";p.moveset[p.moves.indexOf('" + toId(targets[2]) + "')].pp = " + parseInt(targets[3]));
+			room.battle.send('eval', "let pl=" + getPlayer(targets[0]) + ";let p=pl" + getPokemon(targets[1]) + ";p.moveset[p.moves.indexOf('" + toId(targets[2]) + "')].pp = " + parseInt(targets[3], 10));
 			break;
 		case 'boost':
 		case 'b':
-			room.battle.send('eval', "let p=" + getPlayer(targets[0]) + getPokemon(targets[1]) + ";battle.boost({" + toId(targets[2]) + ":" + parseInt(targets[3]) + "},p)");
+			room.battle.send('eval', "let p=" + getPlayer(targets[0]) + getPokemon(targets[1]) + ";battle.boost({" + toId(targets[2]) + ":" + parseInt(targets[3], 10) + "},p)");
 			break;
 		case 'volatile':
 		case 'v':
@@ -2969,7 +2969,7 @@ exports.commands = {
 		if (!room.game) return this.errorReply("This room doesn't have an active game.");
 		if (!room.game.choose) return this.errorReply("This game doesn't support /choose");
 
-		room.game.choose(user, 'switch ' + parseInt(target));
+		room.game.choose(user, 'switch ' + parseInt(target, 10));
 	},
 
 	team: function (target, room, user) {
@@ -3341,7 +3341,7 @@ exports.commands = {
 			commaIndex = target.indexOf(',');
 			targetRegistered = target;
 			if (commaIndex >= 0) {
-				targetRegistered = !!parseInt(target.substr(0, commaIndex));
+				targetRegistered = !!parseInt(target.substr(0, commaIndex), 10);
 				targetToken = target.substr(commaIndex + 1);
 			}
 		}

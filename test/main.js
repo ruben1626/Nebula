@@ -100,6 +100,7 @@ before('initialization', function (done) {
 			'lastbattle.txt': '0',
 		},
 	};
+	mock.currentSandbox = fsSandbox;
 
 	// Node's module loading system should be backed up by the real file system.
 	Module.__resolveFilename__ = Module._resolveFilename;
@@ -136,7 +137,7 @@ before('initialization', function (done) {
 
 	// `watchFile` is unsupported and throws with mock-fs
 	Object.defineProperty(fs, 'watchFile', {
-		get: function () {return noop;},
+		get: function () {return noop},
 		set: noop,
 	});
 	mock(fsSandbox);

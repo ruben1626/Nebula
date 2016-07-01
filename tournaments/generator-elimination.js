@@ -18,7 +18,7 @@ module.exports = (() => {
 		if (typeof maxSubtrees === 'string' && maxSubtrees.toLowerCase() === 'infinity') {
 			maxSubtrees = Infinity;
 		} else if (typeof maxSubtrees !== 'number') {
-			maxSubtrees = parseInt(maxSubtrees);
+			maxSubtrees = parseInt(maxSubtrees, 10);
 		}
 		if (!maxSubtrees || maxSubtrees < 1) maxSubtrees = 1;
 

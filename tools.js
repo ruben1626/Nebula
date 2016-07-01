@@ -21,17 +21,28 @@ const path = require('path');
 require('css.escape');
 // shim Object.values
 if (!Object.values) {
-	Object.values = function (object) {
-		let values = [];
-		for (let k in object) values.push(object[k]);
-		return values;
-	};
+	Object.defineProperty(Object, 'values', { // eslint-disable-line no-extend-native
+		writable: true, configurable: true,
+		value: function (object) {
+			return Object.keys(object).map(key => object[key]);
+		},
+	});
+}
+// shim Object.entries
+if (!Object.entries) {
+	Object.defineProperty(Object, 'entries', { // eslint-disable-line no-extend-native
+		writable: true, configurable: true,
+		value: function (object) {
+			return Object.keys(object).map(key => [key, object[key]]);
+		},
+	});
 }
 // shim Array.prototype.includes
 if (!Array.prototype.includes) {
 	Object.defineProperty(Array.prototype, 'includes', { // eslint-disable-line no-extend-native
 		writable: true, configurable: true,
 		value: function (object) {
+			if (object !== object) return this.some(elem => elem !== elem); // eslint-disable-line no-self-compare
 			return this.indexOf(object) !== -1;
 		},
 	});
@@ -86,7 +97,7 @@ module.exports = (() => {
 	function tryRequire(filePath) {
 		try {
 			let ret = require(filePath);
-			if (!ret || typeof ret !== 'object') return new TypeError("" + filePath + " must export an object except `null`, or it should be removed");
+			if (!ret || typeof ret !== 'object') return new TypeError("" + filePath + " debe exportar un objeto excepto `null`, o debe ser removido");
 			return ret;
 		} catch (e) {
 			return e;
@@ -1016,7 +1027,7 @@ module.exports = (() => {
 			// level
 			j = buf.indexOf('|', i);
 			if (j < 0) return;
-			if (i !== j) set.level = parseInt(buf.substring(i, j));
+			if (i !== j) set.level = parseInt(buf.substring(i, j), 10);
 			i = j + 1;
 
 			// happiness

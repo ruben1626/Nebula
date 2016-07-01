@@ -4513,7 +4513,7 @@ Battle = (() => {
 		if (!side.currentRequest) return;
 
 		// Make sure the decision is for the right request.
-		if ((rqid !== undefined) && (parseInt(rqid) !== this.rqid)) {
+		if ((rqid !== undefined) && (parseInt(rqid, 10) !== this.rqid)) {
 			return;
 		}
 
@@ -4578,7 +4578,7 @@ Battle = (() => {
 			case 'move': {
 				let targetLoc = 0;
 				if (/\s\-?[1-3]$/.test(data)) {
-					targetLoc = parseInt(data.slice(-2));
+					targetLoc = parseInt(data.slice(-2), 10);
 					data = data.slice(0, data.lastIndexOf(' '));
 				}
 				let willMega = data.endsWith(' mega');

@@ -44,7 +44,7 @@ class Ladder {
 					return resolve(1000);
 				}
 
-				let mmr = parseInt(data);
+				let mmr = parseInt(data, 10);
 				if (isNaN(mmr)) return resolve(1000);
 				if (user.userid !== userid) return reject(new Error("Expired rating"));
 

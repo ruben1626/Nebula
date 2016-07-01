@@ -309,7 +309,7 @@ class Validator {
 					let validFatherExists = false;
 					for (let i = 0; i < lsetData.sources.length; i++) {
 						if (lsetData.sources[i].charAt(1) === 'S' || lsetData.sources[i].charAt(1) === 'D') continue;
-						let eggGen = parseInt(lsetData.sources[i].charAt(0));
+						let eggGen = parseInt(lsetData.sources[i].charAt(0), 10);
 						if (lsetData.sources[i].charAt(1) !== 'E' || eggGen === 6) {
 							// (There is a way to obtain this pokemon without past-gen breeding.)
 							// In theory, limitedEgg should not exist in this case.
@@ -371,7 +371,7 @@ class Validator {
 					let eventData = null;
 					let splitSource = source.substr(2).split(' ');
 					let eventTemplate = tools.getTemplate(splitSource[1]);
-					if (eventTemplate.eventPokemon) eventData = eventTemplate.eventPokemon[parseInt(splitSource[0])];
+					if (eventTemplate.eventPokemon) eventData = eventTemplate.eventPokemon[parseInt(splitSource[0], 10)];
 					if (eventData) {
 						if (eventData.level && set.level < eventData.level) {
 							problems.push(name + " must be at least level " + eventData.level + " because it has a move only available from a specific event.");
@@ -620,7 +620,7 @@ class Validator {
 					let learned = lset[i];
 					let learnedGen = learned.charAt(0);
 					if (noPastGen && learnedGen !== '6') continue;
-					if (noFutureGen && parseInt(learnedGen) > tools.gen) continue;
+					if (noFutureGen && parseInt(learnedGen, 10) > tools.gen) continue;
 
 					// redundant
 					if (learnedGen <= sourcesBefore) continue;
@@ -639,7 +639,7 @@ class Validator {
 					}
 					if (learned.substr(0, 2) in {'4L':1, '5L':1, '6L':1}) {
 						// gen 4-6 level-up moves
-						if (level >= parseInt(learned.substr(2))) {
+						if (level >= parseInt(learned.substr(2), 10)) {
 							// we're past the required level to learn it
 							return false;
 						}
@@ -653,7 +653,7 @@ class Validator {
 						}
 					}
 					if (learned.charAt(1) in {L:1, M:1, T:1}) {
-						if (parseInt(learnedGen) === tools.gen) {
+						if (parseInt(learnedGen, 10) === tools.gen) {
 							// current-gen TM or tutor moves:
 							//   always available
 							return false;
@@ -661,7 +661,7 @@ class Validator {
 						// past-gen level-up, TM, or tutor moves:
 						//   available as long as the source gen was or was before this gen
 						limit1 = false;
-						sourcesBefore = Math.max(sourcesBefore, parseInt(learnedGen));
+						sourcesBefore = Math.max(sourcesBefore, parseInt(learnedGen, 10));
 						limitedEgg = false;
 					} else if (learned.charAt(1) === 'E') {
 						// egg moves:
@@ -688,7 +688,7 @@ class Validator {
 							// can't inherit from CAP pokemon
 							if (dexEntry.isNonstandard) continue;
 							// can't breed mons from future gens
-							if (dexEntry.gen > parseInt(learnedGen)) continue;
+							if (dexEntry.gen > parseInt(learnedGen, 10)) continue;
 							// father must be male
 							if (dexEntry.gender === 'N' || dexEntry.gender === 'F') continue;
 							// can't inherit from dex entries with no learnsets
@@ -805,7 +805,7 @@ class Validator {
 				if (!sources) sources = [];
 				for (let i = 0, len = lsetData.sources.length; i < len; i++) {
 					let learned = lsetData.sources[i];
-					if (parseInt(learned.charAt(0)) <= sourcesBefore) {
+					if (parseInt(learned.charAt(0), 10) <= sourcesBefore) {
 						sources.push(learned);
 					}
 				}
@@ -815,7 +815,7 @@ class Validator {
 				if (!lsetData.sources) lsetData.sources = [];
 				for (let i = 0, len = sources.length; i < len; i++) {
 					let learned = sources[i];
-					let sourceGen = parseInt(learned.charAt(0));
+					let sourceGen = parseInt(learned.charAt(0), 10);
 					if (sourceGen <= lsetData.sourcesBefore && sourceGen > sourcesBefore) {
 						lsetData.sources.push(learned);
 					}
