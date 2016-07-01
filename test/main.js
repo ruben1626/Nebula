@@ -94,7 +94,6 @@ before('initialization', function (done) {
 	// And using a sandbox is safer anyway.
 	const fsSandbox = {
 		'config': {},
-		'chat-plugins': getDirTypedContentsSync('chat-plugins', 'file'),
 		'mods': getDirTypedContentsSync('mods', 'dir'),
 		'logs': {
 			'chat': {}, 'ladderip': {}, 'modlog': {}, 'repl': {},

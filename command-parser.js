@@ -63,16 +63,6 @@ exports.multiLinePattern = {
 let baseCommands = exports.baseCommands = require('./commands.js').commands;
 let commands = exports.commands = Object.assign({}, baseCommands);
 
-// Install plug-in commands
-
-// info always goes first so other plugins can shadow it
-Object.assign(commands, require('./chat-plugins/info.js').commands);
-
-for (let file of fs.readdirSync(path.resolve(__dirname, 'chat-plugins'))) {
-	if (file.substr(-3) !== '.js' || file === 'info.js') continue;
-	Object.assign(commands, require('./chat-plugins/' + file).commands);
-}
-
 /*********************************************************
  * Modlog
  *********************************************************/
