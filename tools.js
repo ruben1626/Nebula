@@ -13,9 +13,12 @@
 
 'use strict';
 
+require('sugar');
+
 const fs = require('fs');
 const path = require('path');
 
+require('css.escape');
 // shim Object.values
 if (!Object.values) {
 	Object.values = function (object) {
