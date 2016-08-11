@@ -23,8 +23,22 @@ if (cluster.isMaster) {
 
 	let workers = exports.workers = {};
 
+	const PublicPromise = require('./plugins/utils/promise-public');
+	let customTasks = new Map();
+
 	let spawnWorker = exports.spawnWorker = function () {
-		let worker = cluster.fork({PSPORT: Config.port, PSBINDADDR: Config.bindaddress || '', PSNOSSL: Config.ssl ? 0 : 1});
+		let localhostPort = 0;
+		if (Config.localhost) {
+			localhostPort = parseInt(Config.localhost, 10);
+			if (isNaN(localhostPort)) localhostPort = 0;
+		}
+		let worker = cluster.fork({
+			PSPORT: Config.port,
+			PSBINDADDR: Config.bindaddress || '',
+			PSNOSSL: Config.ssl ? 0 : 1,
+			PSLOCALHOST: localhostPort,
+			PSSTATICSERVER: Config.staticserver || '',
+		});
 		let id = worker.id;
 		workers[id] = worker;
 		worker.on('message', data => {
@@ -34,7 +48,8 @@ if (cluster.isMaster) {
 				// *socketid, ip
 				// connect
 				let nlPos = data.indexOf('\n');
-				Users.socketConnect(worker, id, data.substr(1, nlPos - 1), data.substr(nlPos + 1));
+				let nlPos2 = data.indexOf('\n', nlPos + 1);
+				Users.socketConnect(worker, id, data.slice(1, nlPos), data.slice(nlPos + 1, nlPos2), data.slice(nlPos2 + 1));
 				break;
 			}
 
@@ -50,6 +65,64 @@ if (cluster.isMaster) {
 				// message
 				let nlPos = data.indexOf('\n');
 				Users.socketReceive(worker, id, data.substr(1, nlPos - 1), data.substr(nlPos + 1));
+				break;
+			}
+
+			case '$': {
+				if (data === '$exit') return process.exit();
+				if (data === '$reload') {
+					for (let id in workers) {
+						workers[id].send('$Servers[\'log\'].reloadAuth()');
+					}
+				}
+				break;
+			}
+
+			case '@': {
+				// Worker requests work for the master process
+				//
+				// @namespace|identifier?\nparameters
+				// Store the worker id in a variable.
+				//
+				// If no identifier is provided: try to execute the task.
+				//
+				// Otherwise, if an identifier is given:
+				// Promise the execution of the task.
+				// **Then**, send to the worker the result, passing the task identifying-data.
+				// **Catch** any error, passing it to the worker, together with the task-identifying-data.
+
+				let pipeLoc = data.indexOf('|');
+				let nlLoc = data.indexOf('\n');
+				let namespace = data.slice(1, pipeLoc);
+				let identifier = pipeLoc >= 0 ? data.slice(pipeLoc + 1, nlLoc) : '';
+				let result = data.slice(nlLoc + 1);
+				Plugins.eventEmitter.emit('Message', worker, namespace, identifier, result).flush();
+				break;
+			}
+
+			case '%': {
+				// Worker reports back
+				//
+				// %namespace|identifier?\nparameters
+				// Store the worker id in a variable.
+				//
+				// If no identifier is provided: try to execute the task.
+				//
+				// Otherwise, if an identifier is given:
+				// Promise the execution of the task.
+				// **Then**, send to the worker the result, passing the task identifying-data.
+				// **Catch** any error, passing it to the worker, together with the task-identifying-data.
+
+				let nlLoc = data.indexOf('\n');
+				let prefix = data.slice(0, nlLoc);
+				let result = data.slice(nlLoc + 1);
+
+				if (!customTasks.has(prefix)) {
+					require('./crashlogger.js')(new Error("Invalid task " + JSON.stringify(prefix) + "`. Valid tasks: " + JSON.stringify(Array.from(customTasks.keys()))));
+					break;
+				}
+
+				customTasks.get(prefix).subPromises.get(worker.id).resolve(result);
 				break;
 			}
 
@@ -81,10 +154,10 @@ if (cluster.isMaster) {
 		spawnWorker();
 	});
 
-	exports.listen = function (port, bindAddress, workerCount) {
+	exports.listen = function (port, bindAddress, workerCount, customOptions) {
 		if (port !== undefined && !isNaN(port)) {
 			Config.port = port;
-			Config.ssl = null;
+			// Config.ssl = null;
 		} else {
 			port = Config.port;
 			// Autoconfigure the app when running in cloud hosting environments:
@@ -99,6 +172,10 @@ if (cluster.isMaster) {
 		}
 		if (workerCount === undefined) {
 			workerCount = (Config.workers !== undefined ? Config.workers : 1);
+		}
+		if (customOptions) {
+			if (customOptions.devPort) Config.localhost = customOptions.devPort;
+			if (customOptions.staticPath) Config.staticserver = customOptions.staticPath;
 		}
 		for (let i = 0; i < workerCount; i++) {
 			spawnWorker();
@@ -139,11 +216,23 @@ if (cluster.isMaster) {
 		worker.send('!' + socketid);
 	};
 
-	exports.channelBroadcast = function (channelid, message) {
-		for (let workerid in workers) {
-			workers[workerid].send('#' + channelid + '\n' + message);
+	let mergedChannels = exports.mergedChannels = new Map();
+
+	exports.channelBroadcast = (() => {
+		function isJoinMessage(message) {
+			if (message.charAt(0) !== '>') return message.startsWith('|J|') || message.startsWith('|L|');
+			let nlIndex = message.indexOf('\n');
+			if (nlIndex < 0) return false;
+			let joinType = message.substr(nlIndex + 1, 3);
+			return joinType === '|J|' || joinType === '|L|';
 		}
-	};
+		return function (channelid, message) {
+			if (mergedChannels.has(channelid) && !isJoinMessage(message)) return exports.channelBroadcastShared(channelid, message);
+			for (let workerid in workers) {
+				workers[workerid].send('#' + channelid + '\n' + message);
+			}
+		};
+	})();
 	exports.channelSend = function (worker, channelid, message) {
 		worker.send('#' + channelid + '\n' + message);
 	};
@@ -153,7 +242,6 @@ if (cluster.isMaster) {
 	exports.channelRemove = function (worker, channelid, socketid) {
 		worker.send('-' + channelid + '\n' + socketid);
 	};
-
 	exports.subchannelBroadcast = function (channelid, message) {
 		for (let workerid in workers) {
 			workers[workerid].send(':' + channelid + '\n' + message);
@@ -162,12 +250,69 @@ if (cluster.isMaster) {
 	exports.subchannelMove = function (worker, channelid, subchannelid, socketid) {
 		worker.send('.' + channelid + '\n' + subchannelid + '\n' + socketid);
 	};
+
+	exports.channelBroadcastShared = (() => {
+		function replaceMessage(message, sourceChannel, targetChannel) {
+			if (sourceChannel === targetChannel) return message;
+			if (sourceChannel === 'lobby') return '>' + targetChannel + '\n' + message;
+			if (targetChannel === 'lobby') return message.slice(7);
+			return '>' + targetChannel + '\n' + message.slice(2 + sourceChannel.length);
+		}
+		return function (channelid, message) {
+			let channelList = mergedChannels.get(channelid);
+			for (let workerid in workers) {
+				for (let i = 0; i < channelList.length; i++) {
+					workers[workerid].send('#' + channelList[i] + '\n' + replaceMessage(message, channelid, channelList[i]));
+				}
+			}
+		};
+	})();
+	exports.mergeChannels = function (channelList) {
+		for (let i = 0; i < channelList.length; i++) {
+			mergedChannels.set(channelList[i], channelList);
+		}
+	};
+	exports.unmergeChannels = function (channelList) {
+		for (let i = 0; i < channelList.length; i++) {
+			mergedChannels.delete(channelList[i]);
+		}
+	};
+
+	exports.commandBroadcast = function (namespace, message, identifier) {
+		identifier = identifier ? '' + identifier : '';
+		let prefix = '%' + namespace + (identifier ? '|' + identifier : '') + '\n';
+
+		let anySent = false;
+		for (let workerid in workers) {
+			workers[workerid].send(prefix + message);
+			anySent = true;
+		}
+		if (!identifier || !anySent) return Promise.resolve(null);
+
+		const promiseIds = Object.keys(workers).map(s => Number(s));
+		const subPromises = new Array(promiseIds.length).fill(0).map(() => new PublicPromise());
+
+		const batchPromise = PublicPromise.all(subPromises);
+		const promiseWrapper = batchPromise.then(function (values) {
+			customTasks.delete(prefix.slice(0, -1));
+			return Promise.resolve(values);
+		});
+
+		promiseWrapper.resolve = batchPromise.resolve; // already bound
+		promiseWrapper.reject = batchPromise.reject; // already bound
+		promiseWrapper.subPromises = new Map(promiseIds.map((id, index) => [id, subPromises[index]]));
+
+		customTasks.set(prefix.slice(0, -1), promiseWrapper);
+		return promiseWrapper;
+	};
 } else {
 	// is worker
 
 	if (process.env.PSPORT) Config.port = +process.env.PSPORT;
 	if (process.env.PSBINDADDR) Config.bindaddress = process.env.PSBINDADDR;
 	if (+process.env.PSNOSSL) Config.ssl = null;
+	if (+process.env.PSLOCALHOST) Config.localhost = true;
+	if (process.env.PSSTATICSERVER) Config.staticserver = process.env.PSSTATICSERVER;
 
 	// ofe is optional
 	// if installed, it will heap dump if the process runs out of memory
@@ -182,7 +327,25 @@ if (cluster.isMaster) {
 
 	// It's optional if you don't need these features.
 
+	const http = require('http');
+	const https = require('https');
+
+	require('sugar');
+
 	global.Dnsbl = require('./dnsbl.js');
+	global.Tools = require('./tools');
+
+	global.toId = function (text) {
+		if (text && text.id) {
+			text = text.id;
+		} else if (text && text.userid) {
+			text = text.userid;
+		}
+		if (typeof text !== 'string' && typeof text !== 'number') return '';
+		return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
+	};
+
+	global.Servers = {};
 
 	if (Config.crashguard) {
 		// graceful crash
@@ -191,49 +354,165 @@ if (cluster.isMaster) {
 		});
 	}
 
-	let app = require('http').createServer();
+	/*********************************************************
+	 * Instalar plugins
+	 *********************************************************/
+
+	const PublicPromise = require('./plugins/utils/promise-public');
+	const object_merge = require('./plugins/utils/object-merge');
+
+	let customTasks = new Map();
+
+	process.request = function (namespace, message, identifier) {
+		identifier = identifier ? '' + identifier : '';
+		let prefix = '@' + namespace + (identifier ? '|' + identifier : '') + '\n';
+
+		process.send(prefix + message);
+		if (identifier) {
+			let promise = new PublicPromise().then(function (value) {
+				customTasks.delete(prefix.slice(0, -1));
+				return Promise.resolve(value);
+			});
+			customTasks.set(prefix.slice(0, -1), promise);
+			return promise;
+		} else {
+			return Promise.resolve(null);
+		}
+	};
+
+	function loadPlugins() { // eslint-disable-line no-inner-declarations
+		global.Plugins = require('./plugins');
+
+		Plugins.init();
+		Plugins.eventEmitter.setMaxListeners(Object.size(Plugins.plugins));
+
+		Plugins.forEach(plugin => {
+			if (typeof plugin.init === 'function') {
+				plugin.init();
+			}
+			if (typeof plugin.loadData === 'function') {
+				plugin.loadData();
+			}
+			if (plugin.globalScope) {
+				global[typeof plugin.globalScope === 'string' ? plugin.globalScope : plugin.id] = plugin;
+			}
+		});
+	}
+
+	function reloadPlugins() { // eslint-disable-line
+		 const pluginCache = {
+			dynamic: {},
+			dataLoaded: {},
+			version: {},
+		};
+
+		Plugins.forEach(plugin => {
+			if (!plugin || typeof plugin !== 'object' && typeof plugin !== 'function') return;
+
+			const id = plugin.id;
+			if (typeof plugin.deinit === 'function') {
+				plugin.deinit();
+			}
+			if (plugin === global[plugin.globalScope]) {
+				delete global[plugin.globalScope];
+			}
+			if (typeof plugin.dynamic === 'object') {
+				pluginCache.dynamic[id] = plugin.dynamic;
+			}
+			pluginCache.dataLoaded[id] = !!plugin.dataLoaded;
+			pluginCache.version[id] = plugin.version;
+		});
+		delete global.Plugins;
+		global.Plugins = Tools.reloadModule('./plugins');
+
+		Plugins.init();
+		Plugins.eventEmitter.setMaxListeners(Object.size(Plugins.plugins));
+
+		Plugins.forEach(plugin => {
+			if (!plugin || typeof plugin !== 'object' && typeof plugin !== 'function') {
+				Plugins.eventEmitter.emit('error', new Error("Plugin inválido.")).flush();
+			}
+			const id = plugin.id;
+
+			if (typeof plugin.init === 'function') {
+				plugin.init(pluginCache.version[id], pluginCache.dynamic[id]);
+			}
+
+			if (pluginCache.dynamic[id]) {
+				object_merge(plugin.dynamic, pluginCache.dynamic[id], true);
+			}
+
+			if (typeof plugin.loadData === 'function' && !pluginCache.dataLoaded[id]) {
+				plugin.loadData(pluginCache.version[id]);
+			} else {
+				plugin.dataLoaded = pluginCache.dataLoaded[id];
+			}
+			if (plugin.globalScope) {
+				global[typeof plugin.globalScope === 'string' ? plugin.globalScope : id] = plugin;
+			}
+		});
+	}
+
+	loadPlugins();
+
+	let app = Servers['app'] = http.createServer();
 	let appssl;
 	if (Config.ssl) {
-		appssl = require('https').createServer(Config.ssl.options);
+		appssl = Servers['appssl'] = https.createServer(Config.ssl.options);
 	}
-	try {
-		let nodestatic = require('node-static');
-		let cssserver = new nodestatic.Server('./config');
-		let avatarserver = new nodestatic.Server('./config/avatars');
-		let staticserver = new nodestatic.Server('./srv');
-		let staticRequestHandler = (request, response) => {
-			// console.log("static rq: " + request.socket.remoteAddress + ":" + request.socket.remotePort + " -> " + request.socket.localAddress + ":" + request.socket.localPort + " - " + request.method + " " + request.url + " " + request.httpVersion + " - " + request.rawHeaders.join('|'));
-			request.resume();
-			request.addListener('end', () => {
-				if (Config.customhttpresponse &&
-						Config.customhttpresponse(request, response)) {
-					return;
+	const nodestatic = (() => {
+		try	{
+			require.resolve('node-static');
+		} catch (err) {
+			console.error(err.code === 'MODULE_NOT_FOUND' ? "No se pudo iniciar node-static - Utiliza `npm install` si deseas utilizarlo" : err.stack);
+		}
+		try {
+			return require('node-static');
+		} catch (err) {
+			console.error(err.stack);
+		}
+	})();
+
+	let cssserver, avatarserver, staticserver;
+	if (nodestatic) {
+		cssserver = Servers['css-static'] = new nodestatic.Server('./config');
+		avatarserver = Servers['avatar-static'] = new nodestatic.Server('./config/avatars');
+		staticserver = Servers['static-static'] = new nodestatic.Server(Config.staticserver || './srv');
+
+		let staticRequestHandler = function (request, response) {
+			if (Config.customhttpresponse) {
+				for (let urlStart in Config.customhttpresponse) {
+					if (request.url.startsWith(urlStart) && Config.customhttpresponse[urlStart](request, response)) {
+						return;
+					}
 				}
+			}
+			request.resume();
+			request.on('end', function () {
 				let server;
-				if (request.url === '/custom.css') {
+				if (this.url === '/custom.css') {
 					server = cssserver;
-				} else if (request.url.substr(0, 9) === '/avatars/') {
-					request.url = request.url.substr(8);
+				} else if (this.url.substr(0, 9) === '/avatars/') {
+					this.url = this.url.substr(8);
 					server = avatarserver;
 				} else {
-					if (/^\/([A-Za-z0-9][A-Za-z0-9-]*)\/?$/.test(request.url)) {
-						request.url = '/';
+					if (/^\/([A-Za-z0-9][A-Za-z0-9-]*)\/?$/.test(this.url)) {
+						this.url = '/';
 					}
 					server = staticserver;
 				}
-				server.serve(request, response, (e, res) => {
+				server.serve(this, response, (e, res) => {
 					if (e && (e.status === 404)) {
-						staticserver.serveFile('404.html', 404, {}, request, response);
+						staticserver.serveFile('404.html', 404, {}, this, response);
 					}
 				});
 			});
 		};
+
 		app.on('request', staticRequestHandler);
 		if (appssl) {
 			appssl.on('request', staticRequestHandler);
 		}
-	} catch (e) {
-		console.log('Could not start node-static - try `npm install` if you want to use it');
 	}
 
 	// SockJS server
@@ -243,10 +522,10 @@ if (cluster.isMaster) {
 
 	let sockjs = require('sockjs');
 
-	let server = sockjs.createServer({
-		sockjs_url: "//play.pokemonshowdown.com/js/lib/sockjs-0.3.min.js",
+	let server = Servers['sockjs'] = sockjs.createServer({
+		sockjs_url: '//play.pokemonshowdown.com/js/lib/sockjs-0.3.min.js',
 		log: (severity, message) => {
-			if (severity === 'error') console.log('ERROR: ' + message);
+			if (severity === 'error') console.log("ERROR: " + message);
 		},
 		prefix: '/showdown',
 	});
@@ -286,6 +565,33 @@ if (cluster.isMaster) {
 		let subchannel = null, subchannelid = '';
 
 		switch (data.charAt(0)) {
+		case '%': {
+			// Master requests work
+			let nlLoc = data.indexOf('\n');
+			let prefix = data.slice(1, nlLoc);
+			let pipeLoc = prefix.indexOf('|');
+
+			let namespace = pipeLoc >= 0 ? prefix.slice(0, pipeLoc) : prefix;
+			let identifier = pipeLoc >= 0 ? prefix.slice(pipeLoc + 1) : '';
+			let result = data.slice(nlLoc + 1);
+			Plugins.eventEmitter.emit('Message', process, namespace, identifier, result).flush();
+			break;
+		}
+
+		case '@': {
+			// Master reporting back!
+			let nlLoc = data.indexOf('\n');
+			let prefix = data.slice(0, nlLoc);
+			let result = data.slice(nlLoc + 1);
+
+			if (!customTasks.has(prefix)) {
+				require('./crashlogger.js')(new Error("Invalid task " + JSON.stringify(prefix) + "`. Valid tasks: " + Array.from(customTasks.keys())));
+				break;
+			}
+			customTasks.get(prefix).resolve(result);
+			break;
+		}
+
 		case '$': // $code
 			eval(data.substr(1));
 			break;
@@ -437,6 +743,8 @@ if (cluster.isMaster) {
 				socket.end();
 			} catch (e) {}
 			return;
+		} else if (socket.remoteAddress.startsWith('::ffff:')) {
+			socket.remoteAddress = socket.remoteAddress.slice(7);
 		}
 		let socketid = socket.id = (++socketCounter);
 
@@ -454,17 +762,11 @@ if (cluster.isMaster) {
 			}
 		}
 
-		process.send('*' + socketid + '\n' + socket.remoteAddress);
+		process.send('*' + socketid + '\n' + socket.remoteAddress.replace(/\n/g, '') + '\n' + (socket.headers['user-agent'] || ''));
 
 		socket.on('data', message => {
 			// drop empty messages (DDoS?)
 			if (!message) return;
-			// drop messages over 100KB
-			if (message.length > 100000) {
-				console.log("Dropping client message " + (message.length / 1024) + " KB...");
-				console.log(message.slice(0, 160));
-				return;
-			}
 			// drop legacy JSON messages
 			if (typeof message !== 'string' || message.charAt(0) === '{') return;
 			// drop blank messages (DDoS?)
@@ -483,17 +785,18 @@ if (cluster.isMaster) {
 		});
 	});
 	server.installHandlers(app, {});
-	if (!Config.bindaddress) Config.bindaddress = '0.0.0.0';
-	app.listen(Config.port, Config.bindaddress);
-	console.log('Worker ' + cluster.worker.id + ' now listening on ' + Config.bindaddress + ':' + Config.port);
+	if (Config.bindaddress === '0.0.0.0') Config.bindaddress = undefined;
+	app.listen(Config.port, Config.bindaddress || undefined);
+	console.log("Trabajador ahora escuchando en " + (Config.bindaddress || "*") + ":" + Config.port);
 
 	if (appssl) {
 		server.installHandlers(appssl, {});
-		appssl.listen(Config.ssl.port, Config.bindaddress);
-		console.log('Worker ' + cluster.worker.id + ' now listening for SSL on port ' + Config.ssl.port);
+		appssl.listen(Config.ssl.port);
+		console.log("Trabajador ahora escuchando de forma segura en el puerto " + Config.ssl.port);
 	}
 
-	console.log('Test your server at http://' + (Config.bindaddress === '0.0.0.0' ? 'localhost' : Config.bindaddress) + ':' + Config.port);
+	console.log("Prueba el servidor en http://" + (Config.bindaddress || "localhost") + ":" + Config.port);
 
-	require('./repl.js').start('sockets-', cluster.worker.id + '-' + process.pid, cmd => eval(cmd));
+	//require('./repl.js').start('sockets-', cluster.worker.id + '-' + process.pid, cmd => eval(cmd));
+//}
 }

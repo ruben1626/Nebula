@@ -84,6 +84,9 @@ try {
 	global.Config = require('./config/config.js');
 }
 
+let cliConfig = require.main === module ? require('./cli')(process.argv.slice(2)) : null;
+Object.assign(Config, cliConfig);
+
 if (Config.watchconfig) {
 	fs.watchFile(path.resolve(__dirname, 'config/config.js'), (curr, prev) => {
 		if (curr.mtime <= prev.mtime) return;
@@ -199,20 +202,15 @@ if (Config.crashguard) {
  * Start networking processes to be connected to
  *********************************************************/
 
-global.Sockets = require('./sockets.js');
+global.Sockets = require(Config.socketspath || './sockets.js');
 
-exports.listen = function (port, bindAddress, workerCount) {
-	Sockets.listen(port, bindAddress, workerCount);
-};
+exports.listen = Sockets.listen.bind(Sockets);
 
 if (require.main === module) {
-	// if running with node app.js, set up the server directly
-	// (otherwise, wait for app.listen())
-	let port;
-	if (process.argv[2]) {
-		port = parseInt(process.argv[2]); // eslint-disable-line radix
-	}
-	Sockets.listen(port);
+	Sockets.listen(Config.port, undefined, undefined, {
+		devPort: Config.localhost,
+		staticPath: Config.staticserver,
+	});
 }
 
 /*********************************************************

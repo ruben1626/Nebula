@@ -18,7 +18,7 @@ const crypto = require('crypto');
 const ProcessManager = require('./process-manager');
 
 const PM = exports.PM = new ProcessManager({
-	maxProcesses: 1,
+	maxProcesses: 0,
 	execFile: 'verifier.js',
 	onMessageUpstream: function (message) {
 		// Protocol:
