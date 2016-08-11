@@ -19,6 +19,8 @@ const fs = require('fs');
 const path = require('path');
 
 require('css.escape');
+const htmlUtils = require('./plugins/utils/html-utils');
+
 // shim Object.values
 if (!Object.values) {
 	Object.defineProperty(Object, 'values', { // eslint-disable-line no-extend-native
@@ -309,6 +311,16 @@ module.exports = (() => {
 			if (!template.baseSpecies) template.baseSpecies = name;
 			if (!template.forme) template.forme = '';
 			if (!template.formeLetter) template.formeLetter = '';
+			if (!template.formeid) {
+				let formeid = '';
+				if (template.baseSpecies !== name) {
+					formeid = '-' + toId(template.forme);
+					if (formeid === '-megax') formeid = '-mega-x';
+					if (formeid === '-megay') formeid = '-mega-y';
+				}
+				template.formeid = formeid;
+			}
+			if (!template.spriteid) template.spriteid = toId(template.baseSpecies) + template.formeid;
 			if (!template.spriteid) template.spriteid = toId(template.baseSpecies) + (template.baseSpecies !== name ? '-' + toId(template.forme) : '');
 			if (!template.prevo) template.prevo = '';
 			if (!template.evos) template.evos = [];
@@ -728,11 +740,6 @@ module.exports = (() => {
 		return num;
 	};
 
-	Tools.prototype.escapeHTML = function (str) {
-		if (!str) return '';
-		return ('' + str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');
-	};
-
 	Tools.prototype.toTimeStamp = function (date, options) {
 		// Return a timestamp in the form {yyyy}-{MM}-{dd} {hh}:{mm}:{ss}.
 		// Optionally reports hours in mod-12 format.
@@ -759,6 +766,395 @@ module.exports = (() => {
 		}
 		return parts.slice(positiveIndex).reverse().map((value, index) => value ? value + " " + unitNames[index] + (value > 1 ? "s" : "") : "").reverse().join(" ").trim();
 	};
+
+	Tools.prototype.escapeHTML = function (str) {
+		if (!str) return '';
+		return ('' + str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');
+	};
+
+	Tools.prototype._getSecureDomainsData = (function () {
+		const DOMAINS_DATA = [
+			{domain: 'i.imgur.com', excludeSub: true},
+			{domain: 'i.gyazo.com', excludeSub: true},
+			{domain: 'puu.sh', excludeSub: true},
+			{domain: 'd.pr', excludeSub: true},
+			{domain: 'play.pokemonshowdown.com', excludeSub: true},
+			{domain: 'play.pandorashowdown.net', excludeSub: true},
+			{domain: 'wikia.nocookie.net', excludeMain: true},
+			{domain: 'bp.blogspot.com', excludeMain: true},
+			{domain: 'deviantart.net', excludeMain: true},
+			{domain: 'media.tumblr.com'},
+			{domain: 'pokefans.net'},
+		].map(domainData => {
+			if (!domainData.main) domainData.main = {};
+			if (!domainData.subDomains) domainData.subDomains = {};
+
+			if (domainData.excludeSub) domainData.subDomains.excluded = true;
+			if (domainData.excludeMain) domainData.main.excluded = true;
+
+			if (domainData.main.downGrades) domainData.main.excluded = true;
+			if (domainData.subDomains.downGrades) domainData.subDomains.excluded = true;
+
+			domainData.source = domainData.domain.replace(/\./g, '\\.');
+			return domainData;
+		});
+
+		return function () {
+			return DOMAINS_DATA;
+		};
+	})();
+
+	Tools.prototype.getSecureDomains = (function () {
+		const DOMAINS_DATA = Tools.prototype._getSecureDomainsData();
+
+		const map = new Map();
+		DOMAINS_DATA.forEach(entry => map.set(entry.domain, entry));
+
+		return function () {
+			return map;
+		};
+	})();
+
+	Tools.prototype._secureURI = (function () {
+		const DOMAINS = Tools.prototype._getSecureDomainsData();
+
+		const DOMAIN_SUPPORTS_HTTPS = (function () {
+			const FULL_DOMAIN = DOMAINS.filter(domainData => !domainData.main.excluded).map(domainData => domainData.source);
+			const SUB_DOMAINS = DOMAINS.filter(domainData => !domainData.subDomains.excluded).map(domainData => domainData.source);
+
+			const TEST_REGEX = new RegExp(
+				'^(?:' +
+					'(?:' + FULL_DOMAIN.map(domain => '(?:' + domain + ')').join('|') + ')' +
+					'|' +
+					'(?:[^\.]+\.(' +
+						'(?:' + SUB_DOMAINS.map(domain => '(?:' + domain + ')').join('|') + ')' +
+					'))' +
+				')$'
+			);
+
+			return TEST_REGEX.test.bind(TEST_REGEX);
+		})();
+
+		const DOMAIN_DOWNGRADES_HTTPS = (function () {
+			const FULL_DOMAIN = DOMAINS.filter(domainData => domainData.main.downGrades).map(domainData => domainData.source);
+			const SUB_DOMAINS = DOMAINS.filter(domainData => domainData.subDomains.downGrades).map(domainData => domainData.source);
+
+			const TEST_REGEX = new RegExp(
+				'^(?:' +
+					'(?:' + FULL_DOMAIN.map(domain => '(?:' + domain + ')').join('|') + ')' +
+					'|' +
+					'(?:[^\.]+\.(' +
+						'(?:' + SUB_DOMAINS.map(domain => '(?:' + domain + ')').join('|') + ')' +
+					'))' +
+				')$'
+			);
+			return TEST_REGEX.test.bind(TEST_REGEX);
+		})();
+
+		return function (urlData) {
+			urlData.credentials_ = null;
+
+			if (!urlData.scheme_ && !urlData.domain_ && !urlData.query_ && !urlData.fragment_ && !urlData.paramCache && !urlData.port_) {
+				if (urlData.path_ && urlData.path_.startsWith('')) return urlData;
+			}
+
+			if (urlData.domain_ === 'play.pandorashowdown.net') {
+				// CloudFlare
+				if (urlData.path_) urlData.path_ = urlData.path_.replace(/^\/resources\/(?!hotlink-ok\/)/, '/resources/hotlink-ok/');
+			} else if (urlData.domain_ === 'pandora.xiaotai.org') {
+				urlData.scheme_ = 'https';
+				if (urlData.port_ === '5000') urlData.port_ = '5443';
+			} else if (!urlData.scheme_ && !urlData.domain_ && !urlData.query_ && !urlData.fragment_ && !urlData.paramCache && !urlData.port_) {
+				// Relative URI
+				if (urlData.path_ && urlData.path_.startsWith('/')) return urlData;
+			}
+
+			if ((!urlData.scheme_ || urlData.scheme_ === 'http') && DOMAIN_SUPPORTS_HTTPS(urlData.domain_)) {
+				urlData.scheme_ = 'https';
+			}  else if ((urlData.scheme === 'https' || !urlData.scheme_) && DOMAIN_DOWNGRADES_HTTPS(urlData.domain_)) {
+				urlData.scheme_ = 'http';
+			}
+			return urlData;
+		};
+	})();
+
+	Tools.prototype.secureURI = function (uri, whiteList) {
+		const urlData = htmlUtils.URI.parse(uri);
+		if (!urlData || !urlData.domain_) return '';
+		if (whiteList && !whiteList.has(urlData.domain_)) return '';
+		return this._secureURI(urlData).toString();
+	};
+
+	Tools.prototype.laxSecureURI = function (uri, whiteList) {
+		uri = uri.trim();
+		if (!uri.startsWith('//') && /^https?\:\/\/[a-z0-9-.]+(?:\:[0-9]+)?(?:\/(?:[^\s]*[^\s?.,])?)?|[a-z0-9.]+\@[a-z0-9.]+\.[a-z0-9]{2,3}|(?:[a-z0-9](?:[a-z0-9-\.]*[a-z0-9])?\.(?:com|org|net|edu|us|jp)(?:\:[0-9]+)?|qmark\.tk)(?:(?:\/(?:[^\s]*[^\s?.,])?)?)$/i.test(uri)) {
+			// Make the URI fully-qualified if it isn't (assume HTTP)
+			uri = uri.replace(/^([a-z]*[^a-z:])/g, 'http://$1');
+		}
+		return this.secureURI(uri);
+	};
+
+	Tools.prototype.linkify = function (message, whiteList) {
+		return message.replace(/https?\:\/\/[a-z0-9-.]+(?:\:[0-9]+)?(?:\/(?:[^\s]*[^\s?.,])?)?|[a-z0-9.]+\@[a-z0-9.]+\.[a-z0-9]{2,3}|(?:[a-z0-9](?:[a-z0-9-\.]*[a-z0-9])?\.(?:com|org|net|edu|us|jp)(?:\:[0-9]+)?|qmark\.tk)(?:(?:\/(?:[^\s]*[^\s?.,])?)?)\b/ig, uri => {
+			if (/[a-z0-9.]+\@[a-z0-9.]+\.[a-z0-9]{2,3}/ig.test(uri)) {
+				return '<a href="mailto:' + this.escapeHTML(uri) + '">' + this.escapeHTML(uri) + '</a>';
+			}
+			// Insert http:// before URIs without a URI scheme specified.
+			const qualifiedURI = uri.replace(/^([a-z]*[^a-z:])/g, 'http://$1');
+			const securedURI = this.secureURI(qualifiedURI, whiteList);
+			if (!securedURI) return this.escapeHTML(uri);
+			return '<a href="' + this.escapeHTML(securedURI) + '">' + this.escapeHTML(uri) + '</a>';
+		});
+	};
+
+	Tools.prototype.sanitizeHTML = (function () {
+		const caja = htmlUtils.caja;
+
+		function createReservedValuesSrc(exceptions) {
+			return (
+				'^(' + [
+					// Disallow all commands except for a very specific subset
+					'\(\/|\!)' + '(?!(' + (
+						[].concat(
+							['warlog', 'clan', 'clanauth', 'rules', 'tourhof', 'shop', 'roomauth'].map(cmd => cmd + '|' + cmd + ' ([^ \n\r\f]+)')
+						).concat(
+							['join canaldeeventos']
+						).concat(
+							['[a-z]+ help']
+						).concat(
+							exceptions || []
+						).join('|')
+					) + ')$)' + '.*',
+				].join('|') + ')$'
+			);
+		}
+
+		function createReservedTokensSrc(exceptions) {
+			return (
+				'^(' + [
+					'ps-room', 'pm-window', 'pm-window-.*',
+					'pm-log-add', 'chat-log-add',
+					'chat-message-.*',
+					'inner',
+					'autofocus',
+					'username',
+					'parseCommand',
+					'x-enriched',
+				].filter(elem => {
+					return !exceptions || !exceptions.has(elem);
+				}).join('|') + ')$'
+			);
+		}
+
+		const defaultReservedValuesSrc = createReservedValuesSrc();
+		const defaultReservedTokensSrc = createReservedTokensSrc();
+
+		// Create cache for reserved value/token regular expresions and register defaults.
+		const reservedValues = new Map([[defaultReservedValuesSrc, new RegExp(defaultReservedValuesSrc)]]);
+		const reservedTokens = new Map([[defaultReservedTokensSrc, new RegExp(defaultReservedTokensSrc)]]);
+
+		const naiveUriRewriter = Tools.prototype._secureURI;
+
+		const nmTokenPolicy = (tokenList, tokenExceptions) => {
+			const effReservedSrc = tokenExceptions ? createReservedTokensSrc(tokenExceptions) : defaultReservedTokensSrc;
+			const effReserved = (reservedTokens.has(effReservedSrc) ? reservedTokens : reservedTokens.set(effReservedSrc, new RegExp(effReservedSrc))).get(effReservedSrc);
+			return tokenList.split(' ').filter(token => !effReserved.test(token)).join(' ');
+		};
+
+		const parseLegacyDimension = dimension => {
+			const numericalPart = dimension.match(/^\d+/);
+			if (!numericalPart) return '';
+			if (numericalPart[0].length === dimension.length) return dimension + 'px';
+			if (numericalPart[0] + '%' === dimension) return dimension;
+			return '';
+		};
+
+		const tagPolicy = (tagName, attribs, options) => {
+			const valueExceptions = options.exceptValues;
+			const tokenExceptions = Array.isArray(options.exceptTokens) ? new Set(options.exceptTokens) : options.exceptTokens;
+
+			const effReservedSrc = valueExceptions ? createReservedValuesSrc(valueExceptions) : defaultReservedValuesSrc;
+			const effReserved = (reservedValues.has(effReservedSrc) ? reservedValues : reservedValues.set(effReservedSrc, new RegExp(effReservedSrc))).get(effReservedSrc);
+
+			const styleAttrs = new Map();
+
+			// Initialize index of the value for "style" attribute.
+			// !! Once found, make sure to decrease it each time attributes are deleted !!
+			let styleValueIndex = -1;
+			let hasLegacyOnlyAttribute = false; // if true, we don't convert to modern tags
+
+			for (let i = attribs.length - 2; i >= 0; i -= 2) {
+				switch (attribs[i]) {
+				case 'value':
+					if (effReserved.test(attribs[i + 1].trim())) {
+						attribs.splice(i, 2);
+						styleValueIndex -= 2;
+					}
+					break;
+
+				case 'style':
+					styleValueIndex = i + 1;
+					break;
+
+				case 'height': case 'width': {
+					if (tagName !== 'img' && tagName !== 'object') break;
+					let dimension = parseLegacyDimension(attribs[i + 1].trim());
+					if (dimension) {
+						styleAttrs.set(attribs[i], dimension);
+						attribs.splice(i, 2);
+						styleValueIndex -= 2;
+					} else {
+						hasLegacyOnlyAttribute = true;
+					}
+					break;
+				}
+
+				case 'hspace': case 'vspace': {
+					if (tagName !== 'img' && tagName !== 'object') break;
+					let dimension = parseLegacyDimension(attribs[i + 1].trim());
+					if (dimension) {
+						styleAttrs.set(attribs[i] === 'vspace' ? 'margin-top' : 'margin-left', dimension);
+						styleAttrs.set(attribs[i] === 'vspace' ? 'margin-bottom' : 'margin-right', dimension);
+						attribs.splice(i, 2);
+						styleValueIndex -= 2;
+					} else {
+						hasLegacyOnlyAttribute = true;
+					}
+					break;
+				}
+
+				case 'color': case 'face': {
+					// <font color="${value}"></font>	style="color:${value}"
+					// <font face="${value}"></font>	style="font-family:${value}"
+					if (tagName !== 'font') break;
+					let cssProperty = attribs[i] === 'color' ? 'color' : 'font-family';
+					styleAttrs.set(cssProperty, attribs[i + 1].trim());
+					attribs.splice(i, 2);
+					styleValueIndex -= 2;
+					break;
+				}
+
+				case 'size': {
+					// <hr size="${value}" />			<hr style="height:${value}(px|%)" />
+					// <font size="${value}"></font>	<span style="font-size:${value}px"></span>
+					if (tagName !== 'font' && tagName !== 'hr') break;
+					let dimension = parseLegacyDimension(attribs[i + 1].trim());
+					if (dimension) {
+						if (tagName === 'font' && !dimension.endsWith('px')) {
+							hasLegacyOnlyAttribute = true;
+							break;
+						}
+						let cssProperty = tagName === 'font' ? 'font-size' : 'height';
+						styleAttrs.set(cssProperty, dimension);
+						attribs.splice(i, 2);
+						styleValueIndex -= 2;
+					} else {
+						hasLegacyOnlyAttribute = true;
+					}
+					break;
+				}
+
+				case 'bgcolor':
+					styleAttrs.set('background-color', attribs[i + 1].trim());
+					attribs.splice(i, 2);
+					styleValueIndex -= 2;
+					break;
+
+				case 'align': {
+					let value = attribs[i + 1].trim();
+					if (value === 'top' || value === 'bottom' || value === 'middle' || value === 'absmiddle') {
+						if (value === 'absmiddle') value = 'middle';
+						styleAttrs.set('vertical-align', value);
+					} else if (value === 'center' || value === 'right' || value === 'left') {
+						if (tagName === 'table' || tagName === 'hr') {
+							let cssProperty = 'float';
+							if (value === 'center') {
+								cssProperty = 'margin';
+								value = 'auto';
+							}
+							styleAttrs.set(cssProperty, value);
+						} else if (tagName === 'p' || /^h[1-6]$/.test(tagName)) {
+							styleAttrs.set('text-align', attribs[i + 1].trim());
+						} else if (tagName === 'img' || tagName === 'input' || tagName === 'object' || tagName === 'iframe') {
+							if (value === 'center') break;
+							styleAttrs.set('float', attribs[i + 1].trim());
+						} else {
+							hasLegacyOnlyAttribute = true;
+							break;
+						}
+					} else {
+						hasLegacyOnlyAttribute = true;
+						break;
+					}
+					attribs.splice(i, 2);
+					styleValueIndex -= 2;
+					break;
+				}
+
+				case 'valign': {
+					let value = attribs[i + 1].trim();
+					if (value === 'absmiddle') value = 'middle';
+					styleAttrs.set('vertical-align', value);
+					attribs.splice(i, 2);
+					styleValueIndex -= 2;
+					break;
+				}
+
+				default:
+					break;
+				}
+			}
+
+			switch (tagName) {
+			case 's': case 'strike':
+				if (!hasLegacyOnlyAttribute) tagName = 'span';
+				styleAttrs.set('text-decoration', 'line-through');
+				break;
+			case 'u':
+				if (!hasLegacyOnlyAttribute) tagName = 'span';
+				styleAttrs.set('text-decoration', 'underline');
+				break;
+			case 'big': case 'small':
+				styleAttrs.set('font-size', tagName === 'big' ? 'larger' : 'smaller');
+				if (!hasLegacyOnlyAttribute) tagName = 'span';
+				break;
+			case 'b':
+				if (!hasLegacyOnlyAttribute) tagName = 'strong';
+				break;
+			case 'i':
+				if (!hasLegacyOnlyAttribute) tagName = 'em';
+				break;
+			case 'font':
+				if (!hasLegacyOnlyAttribute) tagName = 'span';
+				break;
+			default:
+				break;
+			}
+
+			if (styleAttrs.size) {
+				if (styleValueIndex < 1) {
+					// We never found the style attribute. Create it with our modern style rules.
+					styleValueIndex = attribs.length + 1;
+					attribs.push('style', Array.from(styleAttrs).map(entry => entry[0] + ": " + CSS.escape(entry[1])).join("; "));
+				} else if (styleAttrs.size) {
+					// Append modernized style rules to the `style` attribute.
+					// Don't check for duplicates and/or invalid syntax. It really doesn't matter.
+					attribs[styleValueIndex] += '; ' + Array.from(styleAttrs).map(entry => entry[0] + ": " + CSS.escape(entry[1])).join("; ");
+				}
+			}
+
+			return {
+				'tagName': tagName,
+				'attribs': caja.sanitizeAttribs(tagName, attribs, naiveUriRewriter, tokenList => nmTokenPolicy(tokenList, tokenExceptions)),
+			};
+		};
+
+		return function (str, options) {
+			str = Tools.prototype.getString(str);
+			str = caja.sanitizeWithPolicy(str, (tagName, attribs) => tagPolicy(tagName, attribs, options || {}));
+			return htmlUtils.modernize(str, ['center', 'div']);
+		};
+	})();
 
 	Tools.prototype.dataSearch = function (target, searchIn, isInexact) {
 		if (!target) {
@@ -832,6 +1228,116 @@ module.exports = (() => {
 		}
 
 		return false;
+	};
+
+	Tools.prototype.checkRegister = function (userid, requireDate, callback) {
+		if (typeof requireDate === 'function') {
+			callback = requireDate;
+			requireDate = false;
+		}
+		if (!userid || userid.length > 18) return setImmediate(callback, new Error("Invalid user ID."));
+		if (!requireDate) {
+			let user = Users.getExact(userid);
+			if (user && user.registered === 'play.pokemonshowdown.com') return setImmediate(callback, false, true);
+		}
+
+		const https = require('https');
+
+		const options = {
+			host: 'pokemonshowdown.com',
+			port: 443,
+			path: '/users/' + userid + '.json',
+		};
+
+		const req = https.request(options, function (res) {
+			let content = '';
+			res.setEncoding('utf8');
+			res.on('data', function (chunk) {
+				content += chunk;
+				if (!content.includes('<b>Warning</b>')) return;
+				LoginServer.down = true;
+				req.abort();
+			}).on('end', function () {
+				if (req.aborted) return callback(new Error("Login Server is down"));
+				try {
+					let userData = JSON.parse(content);
+					if (typeof userData.registertime !== 'number' || isNaN(userData.registertime) || userData.registertime < 0) return callback(new Error("Corrupted data"));
+					if (!userData.registertime) return callback(null, false);
+					return callback(null, new Date(userData.registertime * 1000));
+				} catch (e) {
+					return callback(e);
+				}
+			});
+		}).on('error', function (err) {
+			this.abort();
+		}).end();
+	};
+
+	Tools.prototype.uncacheTree = function (rootPath) {
+		const uncachedPaths = new Set();
+
+		let uncache = [require.resolve(rootPath)];
+		const rootModule = require.cache[uncache[0]];
+		if (!rootModule) return null;
+
+		do {
+			let newuncache = [];
+			for (let i = 0; i < uncache.length; ++i) {
+				if (uncachedPaths.has(uncache[i])) continue;
+				if (!(uncache[i] in require.cache)) {
+					console.log(`Unexpectedly not cached! ${uncache[i]}`);
+					continue;
+				}
+				let childrenNames = require.cache[uncache[i]].children
+					.filter(cachedModule => !cachedModule.id.includes('node_modules') && !cachedModule.id.endsWith('.node'))
+					.map(cachedModule => cachedModule.filename);
+				newuncache.push.apply(newuncache, childrenNames);
+				delete require.cache[uncache[i]];
+				uncachedPaths.add(uncache[i]);
+			}
+			uncache = newuncache;
+		} while (uncache.length > 0);
+
+		return rootModule;
+	};
+
+	Tools.prototype.reloadModule = function (modulePath) {
+		const oldModule = this.uncacheTree(modulePath);
+		if (!oldModule) return require(modulePath);
+		const parentModule = oldModule.parent || require.main;
+		return parentModule.require(modulePath);
+	};
+
+	Tools.prototype.DataSaver = function (path, getData) {
+		let writing = false;
+		let writePending = false; // whether or not a new write is pending
+		let finishWriting = function () {
+			writing = false;
+			if (writePending) {
+				writePending = false;
+				saver(); // eslint-disable-line no-use-before-define
+			}
+		};
+		let saver = function () {
+			if (writing) {
+				writePending = true;
+				return;
+			}
+			writing = true;
+			let data = getData();
+			fs.writeFile(path + '.0', data, function () {
+				// rename is atomic on POSIX, but will throw an error on Windows
+				fs.rename(path + '.0', path, function (err) {
+					if (err) {
+						// This should only happen on Windows.
+						fs.writeFile(path, data, finishWriting);
+						return;
+					}
+					finishWriting();
+				});
+			});
+		};
+		return saver;
 	};
 
 	Tools.prototype.packTeam = function (team) {
@@ -1163,6 +1669,7 @@ module.exports = (() => {
 			let id = toId(format.name);
 			if (!id) throw new RangeError("Format #" + (i + 1) + " must have a name with alphanumeric characters");
 			if (this.data.Formats[id]) throw new Error("Format #" + (i + 1) + " has a duplicate ID: `" + id + "`");
+			format.id = id;
 			format.effectType = 'Format';
 			if (format.challengeShow === undefined) format.challengeShow = true;
 			if (format.searchShow === undefined) format.searchShow = true;
