@@ -99,6 +99,9 @@ before('initialization', function (done) {
 			'chat': {}, 'ladderip': {}, 'modlog': {}, 'repl': {},
 			'lastbattle.txt': '0',
 		},
+		'plugins': {
+			'index.yaml': '[]',
+		},
 	};
 	mock.currentSandbox = fsSandbox;
 

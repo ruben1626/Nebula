@@ -102,6 +102,53 @@ if (Config.watchconfig) {
  * Set up most of our globals
  *********************************************************/
 
+global.splint = function (target, separator, length) {
+	if (!separator) separator = ',';
+
+	let cmdArr = [];
+	if (length > 0) {
+		let sepIndex = -1;
+		for (let count = 0; ; count++) { // jscs:ignore disallowSpaceBeforeSemicolon
+			sepIndex = target.indexOf(separator);
+			if (count + 1 === length) {
+				cmdArr.push(target);
+				break;
+			} else if (sepIndex === -1) {
+				cmdArr.push(target);
+				break;
+			} else {
+				cmdArr.push(target.to(sepIndex));
+				target = target.from(sepIndex + 1);
+			}
+		}
+	} else if (length < 0) {
+		let sepIndex = -1;
+		for (let count = length; ; count++) { // jscs:ignore disallowSpaceBeforeSemicolon
+			sepIndex = target.lastIndexOf(separator);
+			if (count === -1) {
+				cmdArr.unshift(target);
+				break;
+			} else if (sepIndex === -1) {
+				cmdArr.unshift(target);
+				break;
+			} else {
+				cmdArr.unshift(target.from(sepIndex + 1));
+				target = target.to(sepIndex);
+			}
+		}
+	} else {
+		cmdArr = target.split(separator);
+	}
+	return cmdArr.map('trim');
+};
+
+global.toUserName = function (userid) {
+	let user = Users.getExact(userid);
+	if (user) return user.name;
+	if (Users.usergroups[userid]) return Users.usergroups[userid].slice(1).trim();
+	return userid;
+};
+
 global.Monitor = require('./monitor.js');
 
 global.Tools = require('./tools.js');
@@ -178,6 +225,31 @@ Rooms.global.formatListText = Rooms.global.getFormatListText();
 
 global.TeamValidator = require('./team-validator.js');
 TeamValidator.PM.spawn();
+
+/*********************************************************
+ * Instalar plugins
+ *********************************************************/
+global.Plugins = require('./plugins');
+
+Plugins.init();
+Plugins.eventEmitter.setMaxListeners(Object.size(Plugins.plugins));
+
+Plugins.forEach(function (plugin) {
+	if (plugin.commands && typeof plugin.commands === 'object') {
+		Object.merge(CommandParser.commands, plugin.commands, true);
+	}
+	if (typeof plugin.init === 'function') {
+		plugin.init();
+	}
+	if (typeof plugin.loadData === 'function') {
+		plugin.loadData();
+	}
+	if (plugin.globalScope) {
+		global[typeof plugin.globalScope === 'string' ? plugin.globalScope : plugin.id] = plugin;
+	}
+});
+
+Tools.includeMods();
 
 /*********************************************************
  * Start up the REPL server
