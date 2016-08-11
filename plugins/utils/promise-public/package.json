@@ -1,0 +1,14 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Promise-Public",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "promise-public.js",
+  "scripts": {},
+  "author": {
+    "name": "Leonardo Ivo Julca Salazar",
+    "email": "ivojulca@hotmail.com"
+  },
+  "private": true
+}

@@ -1,0 +1,14 @@
+{
+  "name": "JSON-Set",
+  "version": "0.1",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "json-set.js",
+  "scripts": {},
+  "author": {
+    "name": "Leonardo Ivo Julca Salazar",
+    "email": "ivojulca@hotmail.com"
+  },
+  "private": true
+}
