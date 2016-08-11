@@ -9,6 +9,12 @@
 *.gz
 *.tmp
 
+# Git Portable
+/dev/
+/etc/
+/mingw64/
+/usr/
+
 .gitmodules
 .env
 .eslintcache

@@ -17,3 +17,8 @@ mod-tools/chat-formatter.js
 dev-tools/eslint/curly-return.js
 /data/
 pandora-cliente/
+/node-modules/
+/dev/
+/etc/
+/mingw64/
+/usr/

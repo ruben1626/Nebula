@@ -200,7 +200,7 @@ if (cluster.isMaster) {
 		let nodestatic = require('node-static');
 		let cssserver = new nodestatic.Server('./config');
 		let avatarserver = new nodestatic.Server('./config/avatars');
-		let staticserver = new nodestatic.Server('./static');
+		let staticserver = new nodestatic.Server('./srv');
 		let staticRequestHandler = (request, response) => {
 			// console.log("static rq: " + request.socket.remoteAddress + ":" + request.socket.remotePort + " -> " + request.socket.localAddress + ":" + request.socket.localPort + " - " + request.method + " " + request.url + " " + request.httpVersion + " - " + request.rawHeaders.join('|'));
 			request.resume();
