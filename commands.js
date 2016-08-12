@@ -2254,7 +2254,7 @@ exports.commands = {
 	banwords: 'banword',
 	banword: {
 		add: function (target, room, user) {
-			if (!target) return this.parse('/help banword');
+			if (!target || target === ' ') return this.parse('/help banword');
 			if (!user.can('declare', null, room)) return;
 
 			if (!room.banwords) room.banwords = [];
@@ -2467,7 +2467,7 @@ exports.commands = {
 		});
 	},
 	modloghelp: ["/modlog [roomid|all], [n] - Roomid defaults to current room.",
-		"If n is a number or omitted, display the last n lines of the moderator log. Defaults to 15.",
+		"If n is a number or omitted, display the last n lines of the moderator log. Defaults to 20.",
 		"If n is not a number, search the moderator log for 'n' on room's log [roomid]. If you set [all] as [roomid], searches for 'n' on all rooms's logs. Requires: % @ * # & ~"],
 
 	/*********************************************************
