@@ -43,7 +43,7 @@ class Color {
 	toString(encoding) {
 		encoding = encoding ? encoding.toLowerCase() : 'hex';
 		switch (encoding) {
-		case 'hex': return `#${[this.red, this.green, this.blue].map(qty => qty.toString(16).pad(2).toUpperCase(), '0').join('')}`;
+		case 'hex': return `#${[this.red, this.green, this.blue].map(qty => qty.toString(16).toUpperCase().pad(2, '0')).join('')}`;
 		case 'rgb': return `rgb(${this.red}, ${this.green}, ${this.blue})`;
 		case 'rgba': return `rgba(${this.red}, ${this.green}, ${this.blue}, ${this.alpha})`;
 		case 'hsl': return `hsl(${this.hue}°, ${this.saturation}%, ${this.luminosity}%)`;
