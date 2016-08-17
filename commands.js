@@ -2712,7 +2712,7 @@ exports.commands = {
 	},
 	crashfixedhelp: ["/crashfixed - Ends the active lockdown caused by a crash without the need of a restart. Requires: ~"],
 
-	'memusage': 'memoryusage',
+	memusage: 'memoryusage',
 	memoryusage: function (target) {
 		if (!this.can('hotpatch')) return false;
 		let memUsage = process.memoryUsage();
@@ -3218,7 +3218,7 @@ exports.commands = {
 				}
 				roomList[i] = roomData;
 			}
-			if (!targetUser.roomCount['global']) roomList = false;
+			if (!targetUser.connected) roomList = false;
 			let userdetails = {
 				userid: targetUser.userid,
 				avatar: targetUser.avatar,
