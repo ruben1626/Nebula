@@ -17,6 +17,7 @@ const REPORT_USER_STATS_INTERVAL = 10 * 60 * 1000;
 const PERIODIC_MATCH_INTERVAL = 60 * 1000;
 
 const fs = require('fs');
+const path = require('path');
 
 let Rooms = module.exports = getRoom;
 
@@ -306,6 +307,19 @@ let Room = (() => {
 		}
 		return successUserid;
 	};
+	Room.prototype.modlog = function (text) {
+		if (!this.modlogStream) return;
+		this.modlogStream.write('[' + (new Date().toJSON()) + '] (' + this.id + ') ' + text + '\n');
+	};
+	Room.prototype.sendModCommand = function (data) {
+		for (let i in this.users) {
+			let user = this.users[i];
+			// hardcoded for performance reasons (this is an inner loop)
+			if (user.isStaff || (this.auth && (this.auth[user.userid] || '+') !== '+')) {
+				user.sendTo(this, data);
+			}
+		}
+	};
 
 	return Room;
 })();
@@ -370,13 +384,7 @@ let GlobalRoom = (() => {
 		// this function is complex in order to avoid several race conditions
 		this.writeNumRooms = (() => {
 			let writing = false;
-			let lastBattle;	// last lastBattle to be written to file
-			let finishWriting = () => {
-				writing = false;
-				if (lastBattle < this.lastBattle) {
-					this.writeNumRooms();
-				}
-			};
+			let lastBattle = -1;	// last lastBattle to be written to file
 			return () => {
 				if (writing) return;
 
@@ -386,14 +394,11 @@ let GlobalRoom = (() => {
 
 				writing = true;
 				fs.writeFile('logs/lastbattle.txt.0', '' + lastBattle, () => {
-					// rename is atomic on POSIX, but will throw an error on Windows
-					fs.rename('logs/lastbattle.txt.0', 'logs/lastbattle.txt', err => {
-						if (err) {
-							// This should only happen on Windows.
-							fs.writeFile('logs/lastbattle.txt', '' + lastBattle, finishWriting);
-							return;
+					fs.rename('logs/lastbattle.txt.0', 'logs/lastbattle.txt', () => {
+						writing = false;
+						if (lastBattle < this.lastBattle) {
+							process.nextTick(() => this.writeNumRooms());
 						}
-						finishWriting();
 					});
 				});
 			};
@@ -401,30 +406,26 @@ let GlobalRoom = (() => {
 
 		this.writeChatRoomData = (() => {
 			let writing = false;
-			let writePending = false; // whether or not a new write is pending
-			let finishWriting = () => {
-				writing = false;
-				if (writePending) {
-					writePending = false;
-					this.writeChatRoomData();
-				}
-			};
+			let writePending = false;
 			return () => {
 				if (writing) {
 					writePending = true;
 					return;
 				}
 				writing = true;
-				let data = JSON.stringify(this.chatRoomData).replace(/\{"title"\:/g, '\n{"title":').replace(/\]$/, '\n]');
+
+				let data = JSON.stringify(this.chatRoomData)
+					.replace(/\{"title"\:/g, '\n{"title":')
+					.replace(/\]$/, '\n]');
+
 				fs.writeFile('config/chatrooms.json.0', data, () => {
-					// rename is atomic on POSIX, but will throw an error on Windows
-					fs.rename('config/chatrooms.json.0', 'config/chatrooms.json', err => {
-						if (err) {
-							// This should only happen on Windows.
-							fs.writeFile('config/chatrooms.json', data, finishWriting);
-							return;
+					data = null;
+					fs.rename('config/chatrooms.json.0', 'config/chatrooms.json', () => {
+						writing = false;
+						if (writePending) {
+							writePending = false;
+							process.nextTick(() => this.writeChatRoomData());
 						}
-						finishWriting();
 					});
 				});
 			};
@@ -445,6 +446,9 @@ let GlobalRoom = (() => {
 			() => this.periodicMatch(),
 			PERIODIC_MATCH_INTERVAL
 		);
+
+		// Create writestream for modlog
+		this.modlogStream = fs.createWriteStream(path.resolve(__dirname, 'logs/modlog/modlog_global.txt'), {flags:'a+'});
 	}
 	GlobalRoom.prototype.type = 'global';
 
@@ -794,7 +798,6 @@ let GlobalRoom = (() => {
 		this.cancelSearch(user);
 	};
 	GlobalRoom.prototype.startBattle = function (p1, p2, format, p1team, p2team, options) {
-		let newRoom;
 		p1 = Users.get(p1);
 		p2 = Users.get(p2);
 
@@ -826,8 +829,9 @@ let GlobalRoom = (() => {
 			i++;
 		}
 		this.lastBattle = i;
-		Rooms.global.writeNumRooms();
-		newRoom = Rooms.createBattle('battle-' + formaturlid + '-' + i, format, p1, p2, options);
+		this.writeNumRooms();
+
+		let newRoom = Rooms.createBattle('battle-' + formaturlid + '-' + i, format, p1, p2, options);
 		p1.joinRoom(newRoom);
 		p2.joinRoom(newRoom);
 		newRoom.battle.addPlayer(p1, p1team);
@@ -856,6 +860,9 @@ let GlobalRoom = (() => {
 		if (message && message !== true) {
 			connection.popup("You can't send messages directly to the server.");
 		}
+	};
+	GlobalRoom.prototype.modlog = function (text) {
+		this.modlogStream.write('[' + (new Date().toJSON()) + '] ' + text + '\n');
 	};
 	return GlobalRoom;
 })();
@@ -909,6 +916,8 @@ let BattleRoom = (() => {
 		this.disconnectTickDiff = [0, 0];
 
 		if (Config.forcetimer) this.requestKickInactive(false);
+
+		this.modlogStream = Rooms.battleModlogStream;
 	}
 	BattleRoom.prototype = Object.create(Room.prototype);
 	BattleRoom.prototype.type = 'battle';
@@ -1379,6 +1388,12 @@ let ChatRoom = (() => {
 			this.userList = this.getUserList();
 			this.reportJoinsQueue = [];
 		}
+
+		if (this.isPersonal) {
+			this.modlogStream = Rooms.groupchatModlogStream;
+		} else {
+			this.modlogStream = fs.createWriteStream(path.resolve(__dirname, 'logs/modlog/modlog_' + roomid + '.txt'), {flags:'a+'});
+		}
 	}
 	ChatRoom.prototype = Object.create(Room.prototype);
 	ChatRoom.prototype.type = 'chat';
@@ -1672,6 +1687,9 @@ Rooms.createChatRoom = function (roomid, title, data) {
 	Rooms.rooms.set(roomid, room);
 	return room;
 };
+
+Rooms.battleModlogStream = fs.createWriteStream(path.resolve(__dirname, 'logs/modlog/modlog_battle.txt'), {flags:'a+'});
+Rooms.groupchatModlogStream = fs.createWriteStream(path.resolve(__dirname, 'logs/modlog/modlog_groupchat.txt'), {flags:'a+'});
 
 Rooms.global = null;
 Rooms.lobby = null;

@@ -593,8 +593,12 @@ class User {
 			return false;
 		}
 		name = this.filterName(name);
-		if (name && userid !== toId(name)) {
-			name = userid;
+		if (userid !== toId(name)) {
+			if (name) {
+				name = userid;
+			} else {
+				userid = '';
+			}
 		}
 		if (this.registered) newlyRegistered = false;
 
@@ -710,8 +714,6 @@ class User {
 			// This user already exists; let's merge
 			user.merge(this);
 
-			user.updateGroup(registered);
-
 			Users.merge(user, this);
 			for (let i in this.prevNames) {
 				if (!user.prevNames[i]) {
@@ -789,6 +791,8 @@ class User {
 		if (!this.locked && oldUser.locked === '#dnsbl') oldUser.locked = false;
 		if (oldUser.locked) this.locked = oldUser.locked;
 		if (oldUser.autoconfirmed) this.autoconfirmed = oldUser.autoconfirmed;
+
+		this.updateGroup(this.registered);
 
 		for (let i = 0; i < oldUser.connections.length; i++) {
 			this.mergeConnection(oldUser.connections[i]);
@@ -955,8 +959,6 @@ class User {
 		let removed = [];
 		if (usergroups[userid]) {
 			removed.push(usergroups[userid].charAt(0));
-			delete usergroups[userid];
-			exportUsergroups();
 		}
 		for (let i = 0; i < Rooms.global.chatRooms.length; i++) {
 			let room = Rooms.global.chatRooms[i];
@@ -966,6 +968,7 @@ class User {
 			}
 		}
 		this.confirmed = '';
+		this.setGroup(Config.groupsranking[0]);
 		return removed;
 	}
 	markInactive() {
@@ -1208,13 +1211,10 @@ class User {
 			connection.popup(message);
 			return Promise.resolve(false);
 		}
-		let gameCount = 0;
-		for (let i in this.games) { // eslint-disable-line no-unused-vars
-			gameCount++;
-			if (gameCount > 4) {
-				connection.popup("Due to high load, you are limited to 4 games at the same time.");
-				return Promise.resolve(false);
-			}
+		let gameCount = Object.keys(this.games).length;
+		if (gameCount > 4) {
+			connection.popup("Due to high load, you are limited to 4 games at the same time.");
+			return Promise.resolve(false);
 		}
 		if (Monitor.countPrepBattle(connection.ip || connection.latestIp, this.name)) {
 			connection.popup("Due to high load, you are limited to 6 battles every 3 minutes.");
@@ -1240,9 +1240,6 @@ class User {
 
 		if (result.length > 1) {
 			this.team = result.slice(1);
-			Monitor.teamValidatorChanged++;
-		} else {
-			Monitor.teamValidatorUnchanged++;
 		}
 		return (this === users.get(this.userid));
 	}

@@ -194,6 +194,9 @@ const pluginCommands = {
 			fs.unwatchFile('./config/custom.css');
 			global.LoginServer = Tools.reloadModule('./loginserver.js');
 			return this.sendReply("El login server ha sido actualizado. Nuevas solicitudes utilizarán el nuevo código.");
+		} else if (target === 'dnsbl') {
+			Dnsbl.loadDatacenters();
+			return this.sendReply("Dnsbl has been hotpatched.");
 		} else if (target === 'learnsets') {
 			try {
 				const toolsLoaded = !!Tools.isLoaded;
