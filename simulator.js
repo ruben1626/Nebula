@@ -47,7 +47,7 @@ class BattlePlayer {
 		this.userid = user.userid;
 		this.name = user.name;
 		this.game = game;
-		user.games[this.game.id] = this.game;
+		user.games.set(this.game.id, this.game);
 		user.updateSearch();
 
 		this.slot = slot;
@@ -63,7 +63,7 @@ class BattlePlayer {
 		if (this.active) this.simSend('leave');
 		let user = Users(this.userid);
 		if (user) {
-			delete user.games[this.game.id];
+			user.games.delete(this.game.id);
 			user.updateSearch();
 			for (let j = 0; j < user.connections.length; j++) {
 				let connection = user.connections[j];
@@ -300,7 +300,7 @@ class Battle {
 		if (user.userid === oldUserid) return;
 		if (!this.players) {
 			// !! should never happen but somehow still does
-			delete user.games[this.id];
+			user.games.delete(this.id);
 			return;
 		}
 		if (!(oldUserid in this.players)) {
@@ -312,7 +312,11 @@ class Battle {
 			return;
 		}
 		if (!this.allowRenames) {
-			this.forfeit(user, " forfeited by changing their name.");
+			let player = this.players[oldUserid];
+			if (player) this.forfeit(null, " forfeited by changing their name.", player.slotNum);
+			if (!(user.userid in this.players)) {
+				user.games.delete(this.id);
+			}
 			return;
 		}
 		if (user.userid in this.players) return;
