@@ -45,11 +45,12 @@ if (cluster.isMaster) {
 			// console.log('master received: ' + data);
 			switch (data.charAt(0)) {
 			case '*': {
-				// *socketid, ip
+				// *socketid, ip, protocol
 				// connect
 				let nlPos = data.indexOf('\n');
 				let nlPos2 = data.indexOf('\n', nlPos + 1);
-				Users.socketConnect(worker, id, data.slice(1, nlPos), data.slice(nlPos + 1, nlPos2), data.slice(nlPos2 + 1));
+				let nlPos3 = data.indexOf('\n', nlPos2 + 1);
+				Users.socketConnect(worker, id, data.slice(1, nlPos), data.slice(nlPos + 1, nlPos2), data.slice(nlPos2 + 1, nlPos3), data.slice(nlPos3 + 1));
 				break;
 			}
 
@@ -523,7 +524,7 @@ if (cluster.isMaster) {
 	let sockjs = require('sockjs');
 
 	let server = Servers['sockjs'] = sockjs.createServer({
-		sockjs_url: '//play.pokemonshowdown.com/js/lib/sockjs-0.3.min.js',
+		sockjs_url: "//play.pokemonshowdown.com/js/lib/sockjs-1.1.1-nwjsfix.min.js",
 		log: (severity, message) => {
 			if (severity === 'error') console.log("ERROR: " + message);
 		},
@@ -762,7 +763,7 @@ if (cluster.isMaster) {
 			}
 		}
 
-		process.send('*' + socketid + '\n' + socket.remoteAddress.replace(/\n/g, '') + '\n' + (socket.headers['user-agent'] || ''));
+		process.send('*' + socketid + '\n' + socket.remoteAddress + '\n' + socket.protocol + '\n' + (socket.headers['user-agent'] || ''));
 
 		socket.on('data', message => {
 			// drop empty messages (DDoS?)
