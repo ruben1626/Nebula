@@ -29,6 +29,7 @@ function makeUser(name, connection) {
 	let user = new User(connection);
 	user.name = name;
 	user.userid = name.toLowerCase().replace(/[^a-z0-9-]+/g, '');
+	Users.users.set(user.userid, user);
 	return user;
 }
 
@@ -51,7 +52,7 @@ describe('Trivia', function () {
 
 	beforeEach(function () {
 		let questions = [{question: '', answers: ['answer'], category: 'ae'}];
-		this.game = new Trivia(this.room, 'first', 'ae', 'short', questions);
+		this.game = this.room.game = new Trivia(this.room, 'first', 'ae', 'short', questions);
 		this.user = makeUser('Morfent', new Connection('127.0.0.1'));
 	});
 
@@ -77,16 +78,16 @@ describe('Trivia', function () {
 		assert.strictEqual(this.game.playerCount, 1);
 	});
 
-	// FIXME: this test **should** be passing, since this works fine in
-	// production, but this test completely ignores the early return and goes
-	// ahead with adding the second player anyways.
-	it.skip('should not add a player if another one on the same IP has joined', function () {
+	it('should not add a player if another one on the same IP has joined', function () {
 		this.game.addPlayer(this.user);
 
-		let user2 = makeUser('Not Morfent', new Connection(this.user.connections[0].ip));
+		let user2 = makeUser('Not Morfent', new Connection('127.0.0.1'));
 		this.game.addPlayer(user2);
 
 		assert.strictEqual(this.game.playerCount, 1);
+
+		user2.disconnectAll();
+		user2.destroy();
 	});
 
 	it('should not add a player if another player had their username previously', function () {
@@ -97,6 +98,9 @@ describe('Trivia', function () {
 		this.game.addPlayer(user2);
 
 		assert.strictEqual(this.game.playerCount, 1);
+
+		user2.disconnectAll();
+		user2.destroy();
 	});
 
 	it('should not add a player if they were kicked from the game', function () {
@@ -178,7 +182,7 @@ describe('Trivia', function () {
 			game.start();
 			game.askQuestion();
 
-			this.game = game;
+			this.game = this.room.game = game;
 			this.player = game.players[this.user.userid];
 		});
 
@@ -238,7 +242,7 @@ describe('Trivia', function () {
 			game.start();
 			game.askQuestion();
 
-			this.game = game;
+			this.game = this.room.game = game;
 			this.player = game.players[this.user.userid];
 		});
 
@@ -309,7 +313,7 @@ describe('Trivia', function () {
 			game.start();
 			game.askQuestion();
 
-			this.game = game;
+			this.game = this.room.game = game;
 			this.player = game.players[this.user.userid];
 		});
 
