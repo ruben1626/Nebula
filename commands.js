@@ -840,7 +840,7 @@ exports.commands = {
 			if (room.modjoin === true) return this.errorReply(`Modjoin is already set to sync modchat in this room.`);
 			room.modjoin = true;
 			this.addModCommand(`${user.name} set modjoin to sync with modchat.`);
-		} else if (Config.groups.hasOwnProperty(target)) {
+		} else if (target in Config.groups) {
 			if (room.battle && !this.can('makeroom')) return;
 			if (room.isPersonal && !user.can('makeroom') && target !== '+') return this.errorReply(`/modjoin - Access denied from setting modjoin past + in group chats.`);
 			if (room.modjoin === target) return this.errorReply(`Modjoin is already set to ${target} in this room.`);
@@ -2384,7 +2384,7 @@ exports.commands = {
 		} else if (roomId.startsWith('battle-') || roomId.startsWith('groupchat-')) {
 			return this.errorReply("Battles and groupchats do not have modlogs.");
 		} else {
-			if (!this.can('modlog', null, Rooms.get(roomId))) return;
+			if (!user.can('modlog') && !this.can('modlog', null, Rooms.get(roomId))) return;
 			roomNames = "the room " + roomId;
 			filename = path.normalize(__dirname + '/' + logPath + 'modlog_' + roomId + '.txt');
 		}
@@ -2481,6 +2481,7 @@ exports.commands = {
 	 *********************************************************/
 
 	hotpatch: function (target, room, user) {
+
 	},
 	hotpatchhelp: ["Hot-patching the game engine allows you to update parts of Showdown without interrupting currently-running battles. Requires: ~",
 		"Hot-patching has greater memory requirements than restarting.",

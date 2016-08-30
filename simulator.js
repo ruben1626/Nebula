@@ -13,7 +13,7 @@
 
 'use strict';
 
-global.Config = require('./config/config.js');
+global.Config = require('./config/config');
 
 const FakeProcess = require('./fake-process');
 const ProcessManager = require('./process-manager');
@@ -21,7 +21,7 @@ const BattleEngine = require('./battle-engine').Battle;
 
 const SimulatorProcess = new ProcessManager({
 	maxProcesses: 1, // But fake!
-	execFile: 'simulator.js', // Just a formalism
+	execFile: 'simulator', // Just a formalism
 	onMessageUpstream: function (message) {
 		let lines = message.split('\n');
 		let battle = this.pendingTasks.get(lines[0]);
@@ -464,10 +464,11 @@ if (process.send && module === process.mainModule || (() => true)()) {
 	if (Config.crashguard) {
 		// graceful crash - allow current battles to finish before restarting
 		process.on('uncaughtException', err => {
-			require('./crashlogger.js')(err, 'A simulator process');
+			require('./crashlogger')(err, 'A simulator process');
 		});
 	}
-	require('./repl.js').start('battle-engine-', process.pid, cmd => eval(cmd));*/
+
+	require('./repl').start('battle-engine-', process.pid, cmd => eval(cmd));*/
 
 	let Battles = new Map();
 
@@ -488,7 +489,7 @@ if (process.send && module === process.mainModule || (() => true)()) {
 				try {
 					Battles.set(id, BattleEngine.construct(id, data[2], data[3], sendBattleMessage));
 				} catch (err) {
-					if (require('./crashlogger.js')(err, 'A battle', {
+					if (require('./crashlogger')(err, 'A battle', {
 						message: message,
 					}) === 'lockdown') {
 						let ministack = Tools.escapeHTML(err.stack).split("\n").slice(0, 2).join("<br />");
@@ -506,7 +507,7 @@ if (process.send && module === process.mainModule || (() => true)()) {
 				// remove from battle list
 				Battles.delete(id);
 			} else {
-				require('./crashlogger.js')(new Error("Invalid dealloc"), 'A battle', {
+				require('./crashlogger')(new Error("Invalid dealloc"), 'A battle', {
 					message: message,
 				});
 			}
@@ -518,7 +519,7 @@ if (process.send && module === process.mainModule || (() => true)()) {
 				try {
 					battle.receive(data, more);
 				} catch (err) {
-					require('./crashlogger.js')(err, 'A battle', {
+					require('./crashlogger')(err, 'A battle', {
 						message: message,
 						currentRequest: prevRequest,
 						log: '\n' + battle.log.join('\n').replace(/\n\|split\n[^\n]*\n[^\n]*\n[^\n]*\n/g, '\n'),

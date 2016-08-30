@@ -63,14 +63,23 @@ exports.Formats = [
 	{
 		name: "RU",
 		desc: [
-			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3572877/\">np: RU Stage 17</a>",
+			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3580918/\">np: RU Stage 18</a>",
 			"&bullet; <a href=\"https://www.smogon.com/dex/xy/tags/ru/\">RU Banlist</a>",
 			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3558546/\">RU Viability Ranking</a>",
 		],
 		section: "ORAS Singles",
 
+		searchShow: false,
 		ruleset: ['UU'],
 		banlist: ['UU', 'BL2'],
+	},
+	{
+		name: "RU (current)",
+		section: "ORAS Singles",
+
+		challengeShow: false,
+		ruleset: ['RU'],
+		banlist: [],
 	},
 	{
 		name: "NU",
@@ -332,31 +341,6 @@ exports.Formats = [
 		},
 		ruleset: ['Pokemon', 'Standard GBU', 'Team Preview'],
 		requirePentagon: true,
-	},
-	{
-		name: "Unova Classic",
-		desc: ["&bullet; <a href=\"https://www.smogon.com/forums/threads/3577932/\">Unova Classic</a>"],
-		section: "ORAS Triples",
-
-		gameType: 'triples',
-		maxForcedLevel: 50,
-		teamLength: {
-			validate: [6, 6],
-		},
-		ruleset: ['Pokemon', 'Standard GBU', 'Team Preview'],
-		banlist: [],
-		onValidateSet: function (set) {
-			let problems = [];
-			let template = this.getTemplate(set.species || set.name);
-			if (template.num > 649) {
-				problems.push(template.species + " is banned by Unova Classic.");
-			}
-			let item = this.getItem(set.item);
-			if (item.megaStone) {
-				problems.push(item.name + " is banned by Unova Classic.");
-			}
-			return problems;
-		},
 	},
 	{
 		name: "Triples Custom Game",

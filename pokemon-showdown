@@ -24,14 +24,14 @@ let config = (function () {
 			fs.readFileSync(path.resolve(__dirname, 'config/config-example.js'))
 		);
 	} finally {
-		return require('./config/config.js');
+		return require('./config/config');
 	}
 })();
 
 let cliConfig = require.main === module ? require('./cli')(process.argv.slice(2)) : null;
 Object.assign(config, cliConfig);
 
-require('./app.js').listen(Config.port, undefined, undefined, {
+require('./app').listen(Config.port, undefined, undefined, {
 	devPort: config.localhost,
 	staticPath: config.staticserver
 });

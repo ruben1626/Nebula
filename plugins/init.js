@@ -92,7 +92,7 @@ const pluginCommands = {
 
 		if (target === 'chat' || target === 'commands') {
 			try {
-				global.CommandParser = Tools.reloadModule('./command-parser.js');
+				global.CommandParser = Tools.reloadModule('./command-parser');
 
 				/**
 				 * Plugin hotpatch
@@ -169,8 +169,8 @@ const pluginCommands = {
 			try {
 				const toolsLoaded = !!Tools.isLoaded;
 
-				global.Tools = Tools.reloadModule('./tools.js')[toolsLoaded ? 'includeMods' : 'includeFormats'](); // note: this will lock up the server for a few seconds
-				global.TeamValidator = Tools.reloadModule('./team-validator.js');
+				global.Tools = Tools.reloadModule('./tools')[toolsLoaded ? 'includeMods' : 'includeFormats'](); // note: this will lock up the server for a few seconds
+				global.TeamValidator = Tools.reloadModule('./team-validator');
 
 				// rebuild the formats list
 				Rooms.global.formatListText = Rooms.global.getFormatListText();
@@ -200,8 +200,8 @@ const pluginCommands = {
 		} else if (target === 'learnsets') {
 			try {
 				const toolsLoaded = !!Tools.isLoaded;
-				global.Tools = Tools.reloadModule('./tools.js')[toolsLoaded ? 'includeMods' : 'includeFormats'](); // note: this will lock up the server for a few seconds
-				global.TeamValidator = Tools.reloadModule('./team-validator.js');
+				global.Tools = Tools.reloadModule('./tools')[toolsLoaded ? 'includeMods' : 'includeFormats'](); // note: this will lock up the server for a few seconds
+				global.TeamValidator = Tools.reloadModule('./team-validator');
 
 				return this.sendReply("La listas de movimientos aprendidos ha sido actualizada.");
 			} catch (e) {

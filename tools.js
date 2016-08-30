@@ -55,17 +55,17 @@ module.exports = (() => {
 
 	let dataTypes = ['Pokedex', 'FormatsData', 'Learnsets', 'Movedex', 'Statuses', 'TypeChart', 'Scripts', 'Items', 'Abilities', 'Natures', 'Formats', 'Aliases'];
 	let dataFiles = {
-		'Pokedex': 'pokedex.js',
-		'Movedex': 'moves.js',
-		'Statuses': 'statuses.js',
-		'TypeChart': 'typechart.js',
-		'Scripts': 'scripts.js',
-		'Items': 'items.js',
-		'Abilities': 'abilities.js',
-		'Formats': 'rulesets.js',
-		'FormatsData': 'formats-data.js',
-		'Learnsets': 'learnsets.js',
-		'Aliases': 'aliases.js',
+		'Pokedex': 'pokedex',
+		'Movedex': 'moves',
+		'Statuses': 'statuses',
+		'TypeChart': 'typechart',
+		'Scripts': 'scripts',
+		'Items': 'items',
+		'Abilities': 'abilities',
+		'Formats': 'rulesets',
+		'FormatsData': 'formats-data',
+		'Learnsets': 'learnsets',
+		'Aliases': 'aliases',
 	};
 
 	let BattleNatures = dataFiles.Natures = {
@@ -776,7 +776,7 @@ module.exports = (() => {
 		let buf = strings[0];
 		for (let i = 1; i < arguments.length; i++) {
 			buf += this.escapeHTML(arguments[i]);
-			buf += strings[i + 1];
+			buf += strings[i];
 		}
 		return buf;
 	};
@@ -1678,7 +1678,7 @@ module.exports = (() => {
 		this.data.Aliases = BattleAliases;
 
 		// Load formats
-		let maybeFormats = tryRequire('./config/formats.js');
+		let maybeFormats = tryRequire('./config/formats');
 		if (maybeFormats instanceof Error) {
 			if (maybeFormats.code !== 'MODULE_NOT_FOUND') throw new Error("CRASH LOADING FORMATS:\n" + maybeFormats.stack);
 		}
