@@ -5,7 +5,7 @@ const path = require('path');
 
 const mock = require('mock-fs');
 
-require('./common.js').globalCheck = false;
+require('./common').globalCheck = false;
 
 try {
   console.log = function () {};

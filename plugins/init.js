@@ -49,7 +49,7 @@ const errorPostHandler = function (error, options) {
 			if (extraInformation.length) {
 				fakeErr.stack += '\n\nInformación adicional:\n' + extraInformation.join('\n');
 			}
-			require('./../crashlogger.js')(fakeErr, error.source ? 'Plugin ' + error.source : 'A plugin');
+			require('./../crashlogger')(fakeErr, error.source ? 'Plugin ' + error.source : 'A plugin');
 		}
 	}
 };

@@ -1,6 +1,6 @@
 "use strict";
 
-const ErrorCreator = require('./../../plugin-error.js');
+const ErrorCreator = require('./../../plugin-error');
 
 exports.AuthenticationError = new ErrorCreator(exports.id + '-authentication', 'warning');
 exports.IncompatibilityError = new ErrorCreator(exports.id + '-incompatibility', 'debug');

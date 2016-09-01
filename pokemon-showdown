@@ -14,7 +14,7 @@ try {
 
 let config = (function () {
 	try {
-		require.resolve('./config/config.js');
+		require.resolve('./config/config');
 	} catch (err) {
 		if (err.code !== 'MODULE_NOT_FOUND') throw err; // should never happen
 

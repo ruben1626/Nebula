@@ -157,7 +157,7 @@ Plugins.eval = function (target, id) {
 Plugins.path = __dirname;
 Plugins.config = {};
 try {
-	Plugins.config = require('./config.js');
+	Plugins.config = require('./config');
 	Plugins.configLoaded = true;
 } catch (err) {
 	if (typeof err.stack === 'string') {
@@ -165,7 +165,7 @@ try {
 		stack[0] = stack[0].replace(/(.*)(Error\:\s)(.*)/, "$1$2Archivo de configuración de plugins `config.js` inexistente o inválido: $3");
 		err.stack = stack.join('\n');
 	}
-	require('./../crashlogger.js')(err);
+	require('./../crashlogger')(err);
 }
 
 const eventEmitter = Plugins.eventEmitter = new events.EventEmitter();
@@ -234,9 +234,9 @@ Plugins.removeErrorLogger = function (id, details, options) {
 };
 
 exports = module.exports = Plugins;
-Plugins.init = require('./init.js');
+Plugins.init = require('./init');
 
-Plugins.ErrorCreator = require('./plugin-error.js');
+Plugins.ErrorCreator = require('./plugin-error');
 Plugins.Errors = require('./utils/builtin-errors');
 
 // Utility classes
