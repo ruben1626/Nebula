@@ -87,6 +87,7 @@
 		"no-param-reassign": 0,
 		"no-process-env": 0,
 		"no-proto": 2,
+		"no-prototype-builtins": "warn",
 		"no-redeclare": 2,
 		"no-return-assign": [2, "except-parens"],
 		"no-self-compare": 2,
