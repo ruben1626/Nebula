@@ -384,7 +384,7 @@ exports.Formats = [
 			if (!item.megaEvolves && item.id !== 'blueorb' && item.id !== 'redorb') return;
 			if (template.baseSpecies === item.megaEvolves || (item.id === 'redorb' && template.baseSpecies === 'Groudon') || (item.id === 'blueorb' && template.baseSpecies === 'Kyogre')) return;
 			if (template.evos.length) return ["" + template.species + " is not allowed to hold " + item.name + " because it's not fully evolved."];
-			let ubers = {'Arceus':1, 'Cresselia':1, 'Darkrai':1, 'Deoxys':1, 'Deoxys-Attack':1, 'Dialga':1, 'Dragonite':1, 'Giratina':1, 'Giratina-Origin':1, 'Groudon':1, 'Ho-Oh':1, 'Kyogre':1, 'Kyurem-Black':1, 'Kyurem-White':1, 'Lucario':1, 'Lugia':1, 'Manaphy':1, 'Mewtwo':1, 'Palkia':1, 'Rayquaza':1, 'Regigigas':1, 'Reshiram':1, 'Shaymin-Sky':1, 'Slaking':1, 'Xerneas':1, 'Yveltal':1, 'Zekrom':1};
+			let ubers = {'Arceus':1, 'Blaziken':1, 'Cresselia':1, 'Darkrai':1, 'Deoxys':1, 'Deoxys-Attack':1, 'Dialga':1, 'Dragonite':1, 'Giratina':1, 'Giratina-Origin':1, 'Groudon':1, 'Ho-Oh':1, 'Kyogre':1, 'Kyurem-Black':1, 'Kyurem-White':1, 'Lucario':1, 'Lugia':1, 'Manaphy':1, 'Mewtwo':1, 'Palkia':1, 'Rayquaza':1, 'Regigigas':1, 'Reshiram':1, 'Shaymin-Sky':1, 'Slaking':1, 'Xerneas':1, 'Yveltal':1, 'Zekrom':1};
 			let uberStones = {'Beedrillite':1, 'Blazikenite':1, 'Gengarite':1, 'Kangaskhanite':1, 'Mawilite':1, 'Medichamite':1};
 			if (ubers.hasOwnProperty(template.species) || uberStones.hasOwnProperty(item.name)) {
 				return ["" + template.species + " is not allowed to hold " + item.name + "."];
@@ -402,7 +402,7 @@ exports.Formats = [
 			let item = pokemon.getItem();
 			if (pokemon.isActive && !pokemon.template.isMega && !pokemon.template.isPrimal && (item.id === 'blueorb' || item.id === 'redorb') && !pokemon.template.evos.length) {
 				// Primal Reversion
-				let ubers = {'Arceus':1, 'Cresselia':1, 'Darkrai':1, 'Deoxys':1, 'Deoxys-Attack':1, 'Dialga':1, 'Dragonite':1, 'Giratina':1, 'Giratina-Origin':1, 'Groudon':1, 'Ho-Oh':1, 'Kyogre':1, 'Kyurem-Black':1, 'Kyurem-White':1, 'Lucario':1, 'Lugia':1, 'Manaphy':1, 'Mewtwo':1, 'Palkia':1, 'Rayquaza':1, 'Regigigas':1, 'Reshiram':1, 'Shaymin-Sky':1, 'Slaking':1, 'Xerneas':1, 'Yveltal':1, 'Zekrom':1};
+				let ubers = {'Arceus':1, 'Blaziken':1, 'Cresselia':1, 'Darkrai':1, 'Deoxys':1, 'Deoxys-Attack':1, 'Dialga':1, 'Dragonite':1, 'Giratina':1, 'Giratina-Origin':1, 'Groudon':1, 'Ho-Oh':1, 'Kyogre':1, 'Kyurem-Black':1, 'Kyurem-White':1, 'Lucario':1, 'Lugia':1, 'Manaphy':1, 'Mewtwo':1, 'Palkia':1, 'Rayquaza':1, 'Regigigas':1, 'Reshiram':1, 'Shaymin-Sky':1, 'Slaking':1, 'Xerneas':1, 'Yveltal':1, 'Zekrom':1};
 				if (!(ubers.hasOwnProperty(pokemon.baseTemplate.baseSpecies))) {
 					let template = this.getMixedTemplate(pokemon.originalSpecies, item.id === 'redorb' ? 'Groudon-Primal' : 'Kyogre-Primal');
 					pokemon.formeChange(template);
@@ -729,14 +729,14 @@ exports.Formats = [
 	///////////////////////////////////////////////////////////////////
 
 	{
-		name: "[Gen 2] UU",
-		desc: ["&bullet; <a href=\"https://www.smogon.com/forums/threads/3576710/\">GSC UU</a>"],
+		name: "[Gen 3] NU",
+		desc: ["&bullet; <a href=\"https://www.smogon.com/forums/threads/3503418/\">ADV NU</a>"],
 		section: "RoA Spotlight",
 		column: 3,
 
-		mod: 'gen2',
-		ruleset: ['[Gen 2] OU'],
-		banlist: ['OU', 'BL'],
+		mod: 'gen3',
+		ruleset: ['[Gen 3] OU'],
+		banlist: ['OU', 'BL', 'UU'],
 	},
 
 	// BW2 Singles
