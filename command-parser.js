@@ -202,11 +202,6 @@ class CommandContext {
 	}
 	canBroadcast(suppressMessage) {
 		if (!this.broadcasting && this.cmdToken === BROADCAST_TOKEN) {
-			if (this.user.broadcasting) {
-				this.errorReply("You can't broadcast another command too soon.");
-				return false;
-			}
-
 			let message = this.canTalk(suppressMessage || this.message);
 			if (!message) return false;
 			if (!this.user.can('broadcast', null, this.room)) {
@@ -226,7 +221,6 @@ class CommandContext {
 
 			this.message = message;
 			this.broadcastMessage = broadcastMessage;
-			this.user.broadcasting = this.cmd;
 		}
 		return true;
 	}
@@ -246,7 +240,6 @@ class CommandContext {
 		this.room.lastBroadcastTime = Date.now();
 
 		this.broadcasting = true;
-		this.user.broadcasting = false;
 
 		return true;
 	}

@@ -228,6 +228,8 @@ class Validator {
 
 					if (template.unreleasedHidden && banlistTable['Unreleased']) {
 						problems.push(name + "'s hidden ability is unreleased.");
+					} else if (set.species.endsWith('Orange') || set.species.endsWith('White') && ability.name === 'Symbiosis') {
+						problems.push(name + "'s hidden ability is unreleased for the Orange and White forms.");
 					} else if (tools.gen === 5 && set.level < 10 && (template.maleOnlyHidden || template.gender === 'N')) {
 						problems.push(name + " must be at least level 10 with its hidden ability.");
 					}
@@ -496,7 +498,11 @@ class Validator {
 
 		if (teamHas) {
 			for (let i in setHas) {
-				teamHas[i] = true;
+				if (i in teamHas) {
+					teamHas[i]++;
+				} else {
+					teamHas[i] = 1;
+				}
 			}
 		}
 		for (let i = 0; i < format.setBanTable.length; i++) {
