@@ -74,12 +74,11 @@ exports.Formats = [
 		banlist: ['UU', 'BL2'],
 	},
 	{
-		name: "RU (current)",
+		name: "RU (suspect test)",
 		section: "ORAS Singles",
 
-		challengeShow: false,
 		ruleset: ['RU'],
-		banlist: [],
+		banlist: ['Alomomola'],
 	},
 	{
 		name: "NU",
@@ -186,7 +185,7 @@ exports.Formats = [
 		section: "ORAS Doubles",
 
 		gameType: 'doubles',
-		team: 'randomDoubles',
+		team: 'random',
 		ruleset: ['PotD', 'Pokemon', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
@@ -308,7 +307,7 @@ exports.Formats = [
 		section: "ORAS Triples",
 
 		gameType: 'triples',
-		team: 'randomDoubles',
+		team: 'random',
 		ruleset: ['PotD', 'Pokemon', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
