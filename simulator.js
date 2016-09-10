@@ -19,19 +19,24 @@ const FakeProcess = require('./fake-process');
 const ProcessManager = require('./process-manager');
 const BattleEngine = require('./battle-engine').Battle;
 
-const SimulatorProcess = new ProcessManager({
-	maxProcesses: 1, // But fake!
-	execFile: 'simulator', // Just a formalism
-	onMessageUpstream: function (message) {
+class SimulatorManager extends ProcessManager {
+	onMessageUpstream(message) {
 		let lines = message.split('\n');
 		let battle = this.pendingTasks.get(lines[0]);
 		if (battle) battle.receive(lines);
-	},
-	eval: function (code) {
+	}
+
+	eval(code) {
 		for (let process of this.processes) {
 			process.send('|eval|' + code);
 		}
-	},
+	}
+}
+
+const SimulatorProcess = new SimulatorManager({
+	execFile: __filename,
+	maxProcesses: 1, // But fake!
+	isChatBased: false,
 });
 
 const BattleEngineFakeProcess = new FakeProcess.FakeProcessWrapper(SimulatorProcess);
@@ -448,6 +453,7 @@ class Battle {
 
 exports.BattlePlayer = BattlePlayer;
 exports.Battle = Battle;
+exports.SimulatorManager = SimulatorManager;
 exports.SimulatorProcess = SimulatorProcess;
 
 exports.create = function (id, format, rated, room) {
