@@ -273,7 +273,7 @@ const pluginCommands = {
 			}
 			if (method) {
 				if (!this.broadcasting) this.sendReply('||>> ' + target);
-				this.sendReply('||<< ' + Plugins.inspect(method(target, room, user, connection)));
+				this.sendReply('||<< ' + Plugins.inspect(method.call(this, target, room, user, connection)));
 			} else if (CommandParser.commands['evalcommands']) {
 				this.target = target;
 				this.run('evalcommands');
