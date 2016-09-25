@@ -24,7 +24,7 @@ const MAX_REASON_LENGTH = 300;
 const MUTE_LENGTH = 7 * 60 * 1000;
 const HOURMUTE_LENGTH = 60 * 60 * 1000;
 
-exports.commands = {
+let commands = exports.commands = {
 
 	'!version': true,
 	version: function (target, room, user) {
@@ -386,7 +386,7 @@ exports.commands = {
 			return this.parse('/help msg');
 		}
 
-		return Messages.send(target, this);
+		return CommandParser.Messages.send(target, this);
 	},
 	msghelp: ["/msg OR /whisper OR /w [username], [message] - Send a private message."],
 
@@ -1168,7 +1168,7 @@ exports.commands = {
 			return this.privateModCommand("(" + name + " would be banned by " + user.name + problem + ".)");
 		}
 
-		if (targetUser.confirmed && room.isPrivate !== true) {
+		if (targetUser.confirmed && room.isPrivate !== true && !room.isPersonal) {
 			Monitor.log("[CrisisMonitor] Confirmed user " + targetUser.name + (targetUser.confirmed !== targetUser.userid ? " (" + targetUser.confirmed + ")" : "") + " was roombanned from " + room.id + " by " + user.name + ", and should probably be demoted.");
 		}
 
@@ -1210,7 +1210,7 @@ exports.commands = {
 		let name = Punishments.roomUnban(room, target);
 
 		if (name) {
-			this.addModCommand("" + name + " was unbanned by " + user.name + ".");
+			this.addModCommand("" + name + " was unbanned from " + room.title + " by " + user.name + ".");
 			if (!room.isPrivate && room.chatRoomData) {
 				this.globalModlog("UNROOMBAN", name, " by " + user.name);
 			}
@@ -1585,8 +1585,9 @@ exports.commands = {
 		this.globalModlog("BAN", targetUser, " by " + user.name + (target ? ": " + target : ""));
 		return true;
 	},
-	globalbanhelp: ["/globalban OR /gb [username], [reason] - Kick user from all rooms and ban user's IP address with reason. Requires: @ * & ~"],
+	globalbanhelp: ["/globalban OR /gban [username], [reason] - Kick user from all rooms and ban user's IP address with reason. Requires: @ * & ~"],
 
+	globalunban: 'unglobalban',
 	unglobalban: function (target, room, user) {
 		if (!target) return this.parse('/help unglobalban');
 		if (!this.can('ban')) return false;
@@ -2056,6 +2057,37 @@ exports.commands = {
 	},
 	blacklisthelp: ["/blacklist [username], [reason] - Blacklists the user from the room you are in for a year. Requires: # & ~"],
 
+	blacklistname: function (target, room, user) {
+		if (!target) return this.parse('/help blacklistname');
+		if (!this.canTalk()) return this.errorReply("You cannot do this while unable to talk.");
+		if (!this.can('editroom', null, room)) return false;
+		if (!room.chatRoomData) {
+			return this.errorReply("This room is not going to last long enough for a blacklist to matter - just ban the user");
+		}
+
+		let parts = target.split('|');
+		if (parts.length < 2) {
+			return this.errorReply("Blacklists require a reason.");
+		}
+		let reason = parts[1];
+		let targets = parts[0].split(',').map(s => toId(s));
+
+		for (let i = 0; i < targets.length; i++) {
+			let userid = targets[i];
+
+			Punishments.roomBlacklist(room, null, null, userid, reason);
+
+			let confirmed = Users.isConfirmed(userid);
+			if (Users.isConfirmed(userid)) {
+				Monitor.log("[CrisisMonitor] Confirmed user " + userid + (confirmed !== userid ? " (" + confirmed + ")" : "") + " was nameblacklisted from " + room.id + " by " + user.name + ", and should probably be demoted.");
+			}
+		}
+
+		this.addModCommand("" + targets.join(', ') + (targets.length > 1 ? " were" : " was") + " nameblacklisted by " + user.name + ".");
+		return true;
+	},
+	blacklistnamehelp: ["/blacklistname [username1, username2, etc.] | reason - Blacklists the given username(s) from the room you are in for a year. Requires: # & ~"],
+
 	unab: 'unblacklist',
 	unblacklist: function (target, room, user) {
 		if (!target) return this.parse('/help unblacklist');
@@ -2098,14 +2130,17 @@ exports.commands = {
 
 		if (user.can('ban')) {
 			const subMap = Punishments.roomIps.get(room.id);
-			ips = '/ips';
-			subMap.forEach((punishment, ip) => {
-				const [punishType, id] = punishment;
-				if (punishType === 'BLACKLIST') {
-					if (!blMap.has(id)) blMap.set(id, []);
-					blMap.get(id).push(ip);
-				}
-			});
+
+			if (subMap) {
+				ips = '/ips';
+				subMap.forEach((punishment, ip) => {
+					const [punishType, id] = punishment;
+					if (punishType === 'BLACKLIST') {
+						if (!blMap.has(id)) blMap.set(id, []);
+						blMap.get(id).push(ip);
+					}
+				});
+			}
 		}
 
 		let buf = `Blacklist for room ${room.id}:<br />`;
@@ -3126,6 +3161,8 @@ exports.commands = {
 	},
 
 	trn: function (target, room, user, connection) {
+		if (target === user.name) return false;
+
 		let commaIndex = target.indexOf(',');
 		let targetName = target;
 		let targetRegistered = false;
@@ -3219,13 +3256,19 @@ exports.commands = {
 
 process.nextTick(() => {
 	// We might want to migrate most of this to a JSON schema of command attributes.
-	CommandParser.multiLinePattern.register('>>>? ');
-	CommandParser.multiLinePattern.register('/(room|staff)(topic|intro) ');
-	CommandParser.multiLinePattern.register('/adddatacenters ');
-	CommandParser.globalPattern.register([
-		'/join ', '/leave ', '/cmd ', '/trn ', '/logout ', '/autojoin ', '/utm ', '/vtm ', '/pm ',
-		'/accept ', '/reject ', '/challenge ', '/cancelchallenge ', '/search ', '/cancelsearch ',
-		'/avatar ',
-		'/roomauth ', '/auth ', '/stafflist ', '/globalauth ', '/authlist ', '/authority ',
+	CommandParser.multiLinePattern.register(
+		'>>>? ', '/(?:room|staff)intro ', '/(?:staff)?topic ', '/adddatacenters '
+	);
+
+	let globalCmds = new Set([
+		'/join ', '/part ', '/cmd ', '/trn ', '/logout ', '/autojoin ',
+		'/useteam ', '/vtm ', '/msg ', '/accept ', '/reject ', '/challenge ',
+		'/cancelchallenge ', '/search ', '/avatar ', '/roomauth ', '/authority ',
 	]);
+	for (let cmd in commands) {
+		if (typeof commands[cmd] === 'string' && globalCmds.has('/' + commands[cmd] + ' ')) {
+			globalCmds.add('/' + cmd + ' ');
+		}
+	}
+	CommandParser.globalPattern.register(...globalCmds);
 });

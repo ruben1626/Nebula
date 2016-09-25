@@ -39,16 +39,6 @@ if (!Object.entries) {
 		},
 	});
 }
-// shim Array.prototype.includes
-if (!Array.prototype.includes) {
-	Object.defineProperty(Array.prototype, 'includes', { // eslint-disable-line no-extend-native
-		writable: true, configurable: true,
-		value: function (object) {
-			if (object !== object) return this.some(elem => elem !== elem); // eslint-disable-line no-self-compare
-			return this.indexOf(object) !== -1;
-		},
-	});
-}
 
 module.exports = (() => {
 	let moddedTools = {};
@@ -627,6 +617,7 @@ module.exports = (() => {
 			if (!format.banlistTable) format.banlistTable = {};
 			if (!format.setBanTable) format.setBanTable = [];
 			if (!format.teamBanTable) format.teamBanTable = [];
+			if (!format.teamLimitTable) format.teamLimitTable = [];
 
 			banlistTable = format.banlistTable;
 			if (!subformat) subformat = format;
@@ -639,7 +630,14 @@ module.exports = (() => {
 					banlistTable[toId(subformat.banlist[i])] = subformat.name || true;
 
 					let complexList;
-					if (subformat.banlist[i].includes('+')) {
+					if (subformat.banlist[i].includes('>')) {
+						complexList = subformat.banlist[i].split('>');
+						let limit = parseInt(complexList[1], 10);
+						let banlist = complexList[0].trim();
+						complexList = banlist.split('+').map(toId);
+						complexList.unshift(banlist, subformat.name, limit);
+						format.teamLimitTable.push(complexList);
+					} else if (subformat.banlist[i].includes('+')) {
 						if (subformat.banlist[i].includes('++')) {
 							complexList = subformat.banlist[i].split('++');
 							let banlist = complexList.join('+');
