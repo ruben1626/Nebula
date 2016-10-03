@@ -8,11 +8,11 @@
  *
  */
 
-const colors = Object.create(null);
-
 const hashColor = require('./hash');
 const convert = require('./convert');
 const parseColor = require('./parser');
+
+const colors = new Map();
 
 class ColoredName {
 	constructor(name) {
@@ -50,10 +50,13 @@ class ColoredName {
 	}
 }
 
-function getColor(userid) {
-	if (colors[userid]) return colors[userid];
-	const hslColor = hashColor(userid);
-	return (colors[userid] = '#' + convert.hslToRgb(hslColor[0] / 360, hslColor[1] / 100, hslColor[2] / 100).join(''));
+function getColor(userId) {
+	userId = toId(userId);
+	if (colors.has(userId)) return colors.get(userId);
+	const hslValues = hashColor(userId);
+	const hexCode = '#' + convert.hslToRgb(hslValues[0] / 360, hslValues[1] / 100, hslValues[2] / 100).join('');
+	colors.set(userId, hexCode);
+	return hexCode;
 }
 
 function loadColors(colorData) {
@@ -62,8 +65,12 @@ function loadColors(colorData) {
 	for (let i = userIds.length - 1; i >= 0; i--) {
 		let userId = userIds[i];
 		let color = colorData[userId];
-		colors[userId] = color && typeof color === 'object' ? color.color : getColor(toId(color));
+		colors.set(userId, color && typeof color === 'object' ? color.color : getColor(toId(color)));
 	}
+}
+
+function clearColors() {
+	return colors.clear();
 }
 
 function applyColor(name) {
@@ -73,4 +80,6 @@ function applyColor(name) {
 exports.get = getColor;
 exports.parse = parseColor;
 exports.apply = applyColor;
+
+exports.clear = clearColors;
 exports.load = loadColors;

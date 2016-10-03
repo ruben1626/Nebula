@@ -1,14 +1,18 @@
 {
   "name": "Pokemon-Showdown-Plugin-Colors",
-  "version": "0.1",
+  "version": "0.3",
   "engines": {
-    "node": ">= 4.0.0"
+    "node": ">= 6.0.0"
   },
   "main": "main.js",
   "scripts": {},
   "author": {
     "name": "Leonardo Ivo Julca Salazar",
     "email": "ivojulca@hotmail.com"
+  },
+  "dependencies": {
+    "color-name": "1.1.1",
+    "color-diff": "1.0.0"
   },
   "private": true
 }

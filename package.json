@@ -8,7 +8,9 @@
     "css.escape": "1.5.0",
     "sugar": "1.4.1",
     "validate-npm-package-name": "2.2.2",
-    "yamljs": "0.2.8"
+    "yamljs": "0.2.8",
+    "color-name": "1.1.1",
+    "color-diff": "1.0.0"
   },
   "optionalDependencies": {
     "cloud-env": "0.1.1",

@@ -1,6 +1,7 @@
 "use strict";
 
 const convert = require('./convert');
+const Palettes = require('./palettes');
 
 function loadHSL(color) {
 	const hslValues = convert.rgbToHsl(color.red, color.green, color.blue);
@@ -49,6 +50,20 @@ class Color {
 		case 'hsl': return `hsl(${this.hue}°, ${this.saturation}%, ${this.luminosity}%)`;
 		case 'hsla': return `hsl(${this.hue}°, ${this.saturation}%, ${this.luminosity}%, ${this.alpha})`;
 		}
+	}
+
+	_getNearest(palette, depth) {
+		return Palettes.get(palette, depth).match(this);
+	}
+
+	getNearest(options) {
+		if (typeof options === 'string') return this._getNearest(options, Infinity);
+		return this._getNearest(options.palette, 'depth' in options ? options.depth : Infinity);
+	}
+
+	getName(language, depth) {
+		const nearestNamed = this._getNearest(language, Infinity);
+		return nearestNamed.getName();
 	}
 
 	static fromHEX(red, green, blue, alpha) {
