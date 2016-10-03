@@ -498,7 +498,7 @@ if (process.send && module === process.mainModule || (() => true)()) {
 					if (require('./crashlogger')(err, 'A battle', {
 						message: message,
 					}) === 'lockdown') {
-						let ministack = Tools.escapeHTML(err.stack).split("\n").slice(0, 2).join("<br />");
+						let ministack = Chat.escapeHTML(err.stack).split("\n").slice(0, 2).join("<br />");
 						battleEngineFakeProcess.client.send(id + '\nupdate\n|html|<div class="broadcast-red"><b>A BATTLE PROCESS HAS CRASHED:</b> ' + ministack + '</div>');
 					} else {
 						battleEngineFakeProcess.client.send(id + '\nupdate\n|html|<div class="broadcast-red"><b>The battle crashed!</b><br />Don\'t worry, we\'re working on fixing it.</div>');

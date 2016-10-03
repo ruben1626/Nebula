@@ -28,15 +28,15 @@ class ColoredName {
 	}
 
 	toString() {
-		return `<span style="color:${this.color}">${Tools.escapeHTML(this.name)}</span>`;
+		return `<span style="color:${this.color}">${Chat.escapeHTML(this.name)}</span>`;
 	}
 
 	toRawString() {
-		return `<span style="color:${this.color}">${Tools.escapeHTML(this.inputName)}</span>`;
+		return `<span style="color:${this.color}">${Chat.escapeHTML(this.inputName)}</span>`;
 	}
 
 	getClickable() {
-		return `<span class="username" style="color:${this.color}"><strong>${Tools.escapeHTML(this.name)}</strong></span>`;
+		return `<span class="username" style="color:${this.color}"><strong>${Chat.escapeHTML(this.name)}</strong></span>`;
 	}
 
 	getIdentity() {
@@ -46,7 +46,7 @@ class ColoredName {
 	}
 
 	bold() {
-		return `<strong style="color:${this.color}"><span>${Tools.escapeHTML(this.name)}</span></strong>`;
+		return `<strong style="color:${this.color}"><span>${Chat.escapeHTML(this.name)}</span></strong>`;
 	}
 }
 

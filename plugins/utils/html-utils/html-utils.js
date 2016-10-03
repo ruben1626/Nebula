@@ -71,7 +71,7 @@ function openTag(tagName, attribs, style) {
 		attribs['style'] = extraStyle;
 		entries.push(['style', extraStyle]);
 	}
-	return '<' + tagName + (entries.length ? " " + entries.map(entry => Tools.escapeHTML(entry[0]) + '="' + Tools.escapeHTML(entry[1]) + '"').join(" ") : "") + '>';
+	return '<' + tagName + (entries.length ? " " + entries.map(entry => Chat.escapeHTML(entry[0]) + '="' + Chat.escapeHTML(entry[1]) + '"').join(" ") : "") + '>';
 }
 
 function closeTag(tagName) {
@@ -130,7 +130,7 @@ Object.assign(exports, {
 	renderMarkup: function (html, cb) {
 		this.cleanHTML(html, function (cleanedHTML) {
 			return cb(
-				Tools.escapeHTML(cleanedHTML)
+				Chat.escapeHTML(cleanedHTML)
 				.replace(/((&lt;br&gt;)+)/, '<span klass="html-block-separator">$1</span>')
 				.replace(/&gt;(.*?)&lt;/g, '&gt;<span klass="html-text">$1</span>&lt;') // text content
 				.replace(/[\r\n]+/g, '<br />') // new lines

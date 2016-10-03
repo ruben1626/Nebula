@@ -92,7 +92,7 @@ const pluginCommands = {
 
 		if (target === 'chat' || target === 'commands') {
 			try {
-				global.CommandParser = Tools.reloadModule('./command-parser');
+				global.Chat = Tools.reloadModule('./chat');
 
 				/**
 				 * Plugin hotpatch
@@ -133,7 +133,7 @@ const pluginCommands = {
 					}
 					const id = plugin.id;
 					if (plugin.commands && typeof plugin.commands === 'object') {
-						object_merge(CommandParser.commands, plugin.commands, true);
+						object_merge(Chat.commands, plugin.commands, true);
 					}
 					if (typeof plugin.init === 'function') {
 						plugin.init(pluginCache.version[id], pluginCache.dynamic[id]);
@@ -274,7 +274,7 @@ const pluginCommands = {
 			if (method) {
 				if (!this.broadcasting) this.sendReply('||>> ' + target);
 				this.sendReply('||<< ' + Plugins.inspect(method.call(this, target, room, user, connection)));
-			} else if (CommandParser.commands['evalcommands']) {
+			} else if (Chat.commands['evalcommands']) {
 				this.target = target;
 				this.run('evalcommands');
 			} else {
@@ -368,7 +368,7 @@ function startBattle(p1, p2, format, p1team, p2team, options) {
 	const suppressReport = !!Plugins.eventEmitter.getData().silent;
 
 	if (Config.reportbattles && !suppressReport) {
-		const msg = "<a href=\"/battle-" + formaturlid + "-" + this.lastBattle + "\" class=\"ilink\"><b> Ha empezado una batalla de formato " + Tools.getFormat(format).name + " entre " + Tools.escapeHTML(toUserName(p1.userid)) + " y " + Tools.escapeHTML(toUserName(p2.userid)) + ".</b></a>";
+		const msg = "<a href=\"/battle-" + formaturlid + "-" + this.lastBattle + "\" class=\"ilink\"><b> Ha empezado una batalla de formato " + Tools.getFormat(format).name + " entre " + Chat.escapeHTML(toUserName(p1.userid)) + " y " + Chat.escapeHTML(toUserName(p2.userid)) + ".</b></a>";
 		Rooms.lobby.addRaw(msg).update();
 	}
 	if (Config.logladderip && options.rated) {
@@ -542,7 +542,7 @@ exports = module.exports = function () {
 
 	if (cluster.isMaster) {
 		// Implement commands
-		Object.assign(CommandParser.commands, pluginCommands);
+		Object.assign(Chat.commands, pluginCommands);
 
 		// Implement methods
 		Rooms.GlobalRoom.prototype.startBattle = startBattle;
