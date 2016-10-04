@@ -62,8 +62,8 @@ const errorPostHandler = function (error, options) {
  *	The behavior of hotpatch described above is only true if the /hotpatch command implemented here is used.
  *
  *	The command /eval (and, similarly, its shortcut >>) will now support /eval plugin:<name> <code> to call the 'eval' method of a plugin.
- *	The original syntax will still be available. However, the original command /eval in 'commands.js' must be renamed to /evalcommands
- *	in order to keep the context of 'commands.js' available to the hereby provided /eval command.
+ *	The original syntax will still be available. However, the original command /eval in 'chat-commands.js' must be renamed to /evalcommands
+ *	in order to keep the context of 'chat-commands.js' available to the hereby provided /eval command.
  *
  */
 const pluginCommands = {
@@ -93,6 +93,7 @@ const pluginCommands = {
 		if (target === 'chat' || target === 'commands') {
 			try {
 				global.Chat = Tools.reloadModule('./chat');
+				Chat.loadCommands();
 
 				/**
 				 * Plugin hotpatch
