@@ -40,6 +40,26 @@ if (!Object.entries) {
 	});
 }
 
+if (!Number.prototype.fround) {
+	// In analogy to Sugar.js' Number#round
+	Object.defineProperty(Number.prototype, 'fround', { // eslint-disable-line no-extend-native
+		writable: true, configurable: true,
+		value: function (places) {
+			if (typeof places === 'undefined') return Math.fround(this);
+			places = Math.min(~~places, 0x1E);
+			if (places < 0) places = 0;
+			const power = Math.pow(2, places);
+			const intPart = this >> 0;
+			const nIntPart = (((this - intPart) * power * 2) >> 1) / power;
+			const floored = intPart + nIntPart;
+			if (this - floored < Number.EPSILON) return floored;
+			const ceiled = floored + 1 / power;
+			if (ceiled - this <= this - floored) return ceiled;
+			return floored;
+		},
+	});
+}
+
 module.exports = (() => {
 	let moddedTools = {};
 
