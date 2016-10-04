@@ -116,6 +116,10 @@ class CommandContext {
 		this.inputUsername = "";
 	}
 
+	get namespaces() {
+		return this.fullCmd.split(' ').slice(0, -1);
+	}
+
 	parse(message) {
 		if (message) {
 			// spawn subcontext
@@ -223,7 +227,7 @@ class CommandContext {
 		let fullCmd = cmd;
 
 		do {
-			if (curCommands.hasOwnProperty(cmd)) {
+			if (Object.prototype.hasOwnProperty.call(curCommands, cmd)) {
 				commandHandler = curCommands[cmd];
 			} else {
 				commandHandler = undefined;
