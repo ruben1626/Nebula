@@ -23,17 +23,17 @@ let eventEmitter = null;
 let plugins = {};
 
 const errorPreHandler = function (error) {
-	if (!(error instanceof Error)) throw new TypeError();
+	if (!(error instanceof Error)) throw new TypeError(`Did not emit a proper Error instance`);
 	const severity = error.severity || 'critical';
 	this.env('severity', severity);
 
 	const severityTable = ['debug', 'warning', 'minor', 'critical', 'fatal'];
 	if (severityTable.indexOf(severity) < 0) {
-		console.error("Error emitted with invalid severity: `" + severity + "`.");
+		console.error(`Error emitted with invalid severity: "${severity}".`);
 		this.env('severity', 'fatal'); // RIP
 	}
 };
-const errorPostHandler = function (error, options) {
+const errorPostHandler = function (error, options = {}) {
 	if (!this.isDefaultPrevented()) {
 		if (error.source && !(error instanceof LoaderError)) Plugins.addErrorLogger(error.source)("" + error.stack);
 		const severity = this.env('severity');
@@ -44,12 +44,8 @@ const errorPostHandler = function (error, options) {
 			Object.getOwnPropertyNames(error).forEach(function (name) {
 				fakeErr[name] = error[name];
 			});
-			const extraInformation = [];
-			if (error.originalError) extraInformation.push("" + error.originalError.stack);
-			if (extraInformation.length) {
-				fakeErr.stack += '\n\nInformación adicional:\n' + extraInformation.join('\n');
-			}
-			require('./../crashlogger')(fakeErr, error.source ? 'Plugin ' + error.source : 'A plugin');
+			if (error.originalError) options.trueStack = error.originalError.stack;
+			require('./../crashlogger')(fakeErr, error.source ? `Plugin ${error.source}` : `A plugin`, options);
 		}
 	}
 };
