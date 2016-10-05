@@ -70,6 +70,22 @@ exports.commands = {
 		"/auth [room] - Show what roomauth a room has.",
 		"/auth [user] - Show what global and roomauth a user has."],
 
+	userlist: function (target, room, user) {
+		let userList = [];
+
+		for (let i in room.users) {
+			let curUser = Users(room.users[i]);
+			if (!curUser || !curUser.named) continue;
+			userList.push(Chat.escapeHTML(curUser.getIdentity(room.id)));
+		}
+
+		let output = `There ${Chat.plural(userList.length, 'are', 'is')} <strong style="color:#24678d">${userList.length}</strong> user${Chat.plural(userList.length)} in this room:<br />`;
+		output += userList.join(`, `);
+
+		this.sendReplyBox(output);
+	},
+	userlisthelp: ["/userlist - Displays a list of users who are currently in the room."],
+
 	'!me': true,
 	mee: 'me',
 	me: function (target, room, user) {
@@ -898,12 +914,12 @@ exports.commands = {
 	},
 
 	stafftopic: 'staffintro',
-	staffintro: function (target, room, user) {
+	staffintro: function (target, room, user, connection, cmd) {
 		if (!target) {
 			if (!this.can('mute', null, room)) return false;
 			if (!room.staffMessage) return this.sendReply("This room does not have a staff introduction set.");
 			this.sendReply('|raw|<div class="infobox">' + room.staffMessage.replace(/\n/g, '') + '</div>');
-			if (user.can('ban', null, room)) {
+			if (user.can('ban', null, room) && cmd !== 'stafftopic') {
 				this.sendReply('Source:');
 				this.sendReplyBox(
 					'<code>/staffintro ' + Chat.escapeHTML(room.staffMessage).split('\n').map(line => {
@@ -2507,18 +2523,7 @@ exports.commands = {
 	lockdown: function (target, room, user) {
 		if (!this.can('lockdown')) return false;
 
-		Rooms.global.lockdown = true;
-		Rooms.rooms.forEach((curRoom, id) => {
-			if (id === 'global') return;
-			curRoom.addRaw("<div class=\"broadcast-red\"><b>The server is restarting soon.</b><br />Please finish your battles quickly. No new battles can be started until the server resets in a few minutes.</div>").update();
-			if (curRoom.requestKickInactive && !curRoom.battle.ended) {
-				curRoom.requestKickInactive(user, true);
-				if (curRoom.modchat !== '+') {
-					curRoom.modchat = '+';
-					curRoom.addRaw("<div class=\"broadcast-red\"><b>Moderated chat was set to +!</b><br />Only users of rank + and higher can talk.</div>").update();
-				}
-			}
-		});
+		Rooms.global.startLockdown();
 
 		this.logEntry(user.name + " used /lockdown");
 	},
@@ -2534,12 +2539,7 @@ exports.commands = {
 	slowlockdown: function (target, room, user) {
 		if (!this.can('lockdown')) return false;
 
-		Rooms.global.lockdown = true;
-		Rooms.rooms.forEach((curRoom, id) => {
-			if (id === 'global') return;
-			if (curRoom.battle) return;
-			curRoom.addRaw("<div class=\"broadcast-red\"><b>The server is restarting soon.</b><br />Please finish your battles quickly. No new battles can be started until the server resets in a few minutes.</div>").update();
-		});
+		Rooms.global.startLockdown(undefined, true);
 
 		this.logEntry(user.name + " used /slowlockdown");
 	},

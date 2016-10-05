@@ -297,17 +297,14 @@ class CommandContext {
 		try {
 			result = commandHandler.call(this, this.target, this.room, this.user, this.connection, this.cmd, this.message);
 		} catch (err) {
-			if (require('./crashlogger')(err, 'A chat command', {
+			require('./crashlogger')(err, 'A chat command', {
 				user: this.user.name,
 				room: this.room && this.room.id,
 				pmTarget: this.pmTarget && this.pmTarget.name,
 				message: this.message,
-			}) === 'lockdown') {
-				let ministack = Chat.escapeHTML(err.stack).split("\n").slice(0, 2).join("<br />");
-				if (Rooms.lobby) Rooms.lobby.send('|html|<div class="broadcast-red"><b>POKEMON SHOWDOWN HAS CRASHED:</b> ' + ministack + '</div>');
-			} else {
-				this.sendReply('|html|<div class="broadcast-red"><b>Pokemon Showdown crashed!</b><br />Don\'t worry, we\'re working on fixing it.</div>');
-			}
+			});
+			Rooms.global.reportCrash(err);
+			this.sendReply(`|html|<div class="broadcast-red"><b>Pokemon Showdown crashed!</b><br />Don't worry, we\'re working on fixing it.</div>`);
 		}
 		if (result === undefined) result = false;
 
@@ -843,11 +840,12 @@ Chat.escapeHTML = function (str) {
  * @param  {...any} values
  * @return {string}
  */
-Chat.html = function (strings) {
+Chat.html = function (strings, ...args) {
 	let buf = strings[0];
-	for (let i = 1; i < arguments.length; i++) {
-		buf += Chat.escapeHTML(arguments[i]);
-		buf += strings[i];
+	let i = 0;
+	while (i < args.length) {
+		buf += Chat.escapeHTML(args[i]);
+		buf += strings[++i];
 	}
 	return buf;
 };

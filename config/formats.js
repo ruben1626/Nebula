@@ -233,8 +233,7 @@ exports.Formats = [
 		name: "VGC 2016",
 		desc: [
 			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3558332/\">VGC 2016 Rules</a>",
-			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3558929/\">VGC 2016 Viability Ranking</a>",
-			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3500650/\">VGC Learning Resources</a>",
+			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3580592/\">VGC 2016 Viability Ranking</a>",
 		],
 		section: "ORAS Doubles",
 
@@ -476,7 +475,7 @@ exports.Formats = [
 			'Blazikenite', 'Gengarite', 'Kangaskhanite', 'Lucarionite', 'Mawilite', 'Salamencite', 'Soul Dew', 'Shadow Tag', 'Dynamic Punch', 'Zap Cannon',
 		],
 		onValidateSet: function (set) {
-			let bannedAbilities = {'Aerilate': 1, 'Arena Trap': 1, 'Contrary': 1, 'Fur Coat': 1, 'Huge Power': 1, 'Illusion': 1, 'Imposter': 1, 'Parental Bond': 1, 'Poison Heal': 1, 'Protean': 1, 'Pure Power': 1, 'Simple':1, 'Speed Boost': 1, 'Wonder Guard': 1};
+			let bannedAbilities = {'Aerilate': 1, 'Arena Trap': 1, 'Contrary': 1, 'Fur Coat': 1, 'Huge Power': 1, 'Illusion': 1, 'Imposter': 1, 'Parental Bond': 1, 'Protean': 1, 'Pure Power': 1, 'Simple':1, 'Speed Boost': 1, 'Wonder Guard': 1};
 			if (set.ability in bannedAbilities) {
 				let template = this.getTemplate(set.species || set.name);
 				let legalAbility = false;
@@ -733,13 +732,16 @@ exports.Formats = [
 
 	{
 		name: "[Gen 4] NU",
-		desc: ["&bullet; <a href=\"https://www.smogon.com/forums/threads/3512254/\">DPP NU</a>"],
+		desc: [
+			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3583742/\">DPP NU</a>",
+			"&bullet; <a href=\"https://www.smogon.com/forums/threads/3512254/\">DPP NU Viability Ranking</a>",
+		],
 		section: "RoA Spotlight",
 		column: 3,
 
 		mod: 'gen4',
 		ruleset: ['[Gen 4] UU'],
-		banlist: ['BL2'],
+		banlist: ['UU', 'BL2'],
 	},
 
 	// BW2 Singles

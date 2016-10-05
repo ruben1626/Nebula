@@ -45,8 +45,6 @@ SimulatorProcess.spawn = function () {};
 
 global.battleEngineFakeProcess = BattleEngineFakeProcess;
 
-let slice = Array.prototype.slice;
-
 class BattlePlayer {
 	constructor(user, game, slot) {
 		this.userid = user.userid;
@@ -100,8 +98,8 @@ class BattlePlayer {
 		let user = Users(this.userid);
 		if (user) user.sendTo(this.game.id, data);
 	}
-	simSend(action) {
-		this.game.send.apply(this.game, [action, this.slot].concat(slice.call(arguments, 1)));
+	simSend(action, ...rest) {
+		this.game.send(action, this.slot, ...rest);
 	}
 }
 
@@ -144,15 +142,15 @@ class Battle {
 		this.process.pendingTasks.set(room.id, this);
 	}
 
-	send() {
+	send(...args) {
 		this.activeIp = Monitor.activeIp;
-		this.process.send('' + this.id + '|' + slice.call(arguments).join('|'));
+		this.process.send(`${this.id}|${args.join('|')}`);
 	}
-	sendFor(user, action) {
+	sendFor(user, action, ...rest) {
 		let player = this.players[user];
 		if (!player) return;
 
-		this.send.apply(this, [action, player.slot].concat(slice.call(arguments, 2)));
+		this.send(action, player.slot, ...rest);
 	}
 	checkActive() {
 		let active = true;
