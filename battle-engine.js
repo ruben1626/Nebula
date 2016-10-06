@@ -1929,7 +1929,7 @@ let Battle = (() => {
 	let Battle = {};
 
 	Battle.construct = (() => {
-		let battleProtoCache = new Map();
+		global.battleProtoCache = new Map();
 		return (roomid, formatarg, rated, send) => {
 			let format = Tools.getFormat(formatarg);
 			let mod = format.mod || 'base';

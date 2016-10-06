@@ -170,7 +170,7 @@ const pluginCommands = {
 				global.TeamValidator = Tools.reloadModule('./team-validator');
 
 				// rebuild the formats list
-				Rooms.global.formatListText = Rooms.global.getFormatListText();
+				delete Rooms.global.formatList;
 				// respawn validator processes
 				/*
 				TeamValidator.ValidatorProcess.respawn();
