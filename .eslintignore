@@ -11,8 +11,8 @@ plugins/plugins/tour/translations
 plugins/plugins/friends/**
 plugins/plugins/*/data/*.js
 plugins/plugins/*/data/*.json
-plugins/utils/html-utils/html-css-sanitizer-bundle.js
-plugins/utils/html-utils/tabifier.js
+plugins/utils/html/html-css-sanitizer-bundle.js
+plugins/utils/html/tabifier.js
 mod-tools/chat-formatter.js
 dev-tools/eslint/curly-return.js
 /data/

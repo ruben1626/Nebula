@@ -252,4 +252,4 @@ Plugins.PublicPromise = require('./utils/promise-public');
 // Utility functions
 Plugins.BrowserRequire = require('./utils/browser-require');
 Plugins.Colors = require('./utils/colors');
-Plugins.HTMLUtils = require('./utils/html-utils');
+Plugins.HTML = require('./utils/html');

@@ -23,7 +23,7 @@ const fs = require('fs');
 const path = require('path');
 
 require('css.escape');
-const htmlUtils = require('./plugins/utils/html-utils');
+const htmlUtils = require('./plugins/utils/html');
 
 // shim Object.values
 if (!Object.values) {

@@ -9,7 +9,7 @@ const cheerio = (() => {
 	return require('cheerio');
 })();
 
-const htmlUtils = require('./html-utils');
+const htmlUtils = require('./html');
 const cheerioExtras = require('./cheerio-extras');
 
 // HTML5-ization

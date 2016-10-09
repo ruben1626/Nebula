@@ -4,7 +4,7 @@
   "engines": {
     "node": ">= 4.0.0"
   },
-  "main": "html-utils.js",
+  "main": "html.js",
   "scripts": {},
   "author": {
     "name": "Leonardo Ivo Julca Salazar",
