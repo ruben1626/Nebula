@@ -57,6 +57,24 @@ const CAJA_EXTRA_ATTRIBUTES = {
 	'countdown::time': 0,
 };
 
+const ESCAPE_CHARS = {
+	'&': '&amp;',
+	'<': '&lt;',
+	'>': '&gt;',
+	'"': '&quot;',
+	"'": '&apos;',
+	"\/": '&#x2f;',
+};
+
+const UNESCAPE_CHARS = {
+	'&amp;': '&',
+	'&lt;': '<',
+	'&gt;': '>',
+	'&quot;': '"',
+	'&apos;': "'",
+	'&#x2f;': "\/",
+};
+
 function openTag(tagName, attribs, style) {
 	const extraStyle = style ? Object.entries(style).map(entry => CSS.escape(entry[0]) + ': ' + CSS.escape(entry[1])).join(" ; ") : "";
 	const entries = [];
@@ -92,6 +110,16 @@ function getRowGroup(arr) {
 	return '<tr>' + arr.join('</tr><tr>') + '</tr>';
 }
 
+function escapeHTML(str) {
+	if (!str) return '';
+	return ('' + str).replace(new RegExp('(' + Object.keys(ESCAPE_CHARS).join('|') + ')', 'g'), function (match) {return ESCAPE_CHARS[match]});
+}
+
+function unescapeHTML(str) {
+	if (!str) return '';
+	return ('' + str).replace(new RegExp('(' + Object.keys(UNESCAPE_CHARS).join('|') + ')', 'g'), function (match) {return UNESCAPE_CHARS[match]});
+}
+
 exports.getRow = getRow;
 exports.getRowGroup = getRowGroup;
 
@@ -101,6 +129,9 @@ exports.createElement = createElement;
 
 exports.blockElements = blockElements;
 exports.modernize = modernizeHTML;
+
+exports.escape = escapeHTML;
+exports.unescape = unescapeHTML;
 
 Object.assign(exports, (function () {
 	const cajaPath = path.resolve(__dirname, 'html-css-sanitizer-bundle.js');
