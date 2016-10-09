@@ -69,15 +69,6 @@ exports.Formats = [
 		],
 		section: "ORAS Singles",
 
-		searchShow: false,
-		ruleset: ['UU'],
-		banlist: ['UU', 'BL2'],
-	},
-	{
-		name: "RU (suspect test)",
-		section: "ORAS Singles",
-
-		challengeShow: false,
 		ruleset: ['UU'],
 		banlist: ['UU', 'BL2'],
 	},
@@ -338,7 +329,7 @@ exports.Formats = [
 		column: 2,
 
 		ruleset: ['Ubers', 'Baton Pass Clause'],
-		banlist: ['Uber > 1', 'AG ++ Uber', 'Blissey', 'Chansey', 'Eviolite', 'Mawilite', 'Medichamite', 'Soul Dew', 'Huge Power', 'Pure Power'],
+		banlist: ['Uber > 1', 'AG ++ Uber', 'Blissey', 'Chansey', 'Eviolite', 'Mawilite', 'Medichamite', 'Soul Dew', 'Huge Power', 'Pure Power', 'Shadow Tag'],
 		onBegin: function () {
 			let stats = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'];
 			for (let j = 0; j < this.sides.length; j++) {
