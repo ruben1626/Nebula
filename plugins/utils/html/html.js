@@ -4,6 +4,7 @@ const path = require('path');
 
 require('css.escape');
 
+const cajaContext = require('./caja-wrap');
 const browserRequire = require('./../browser-require');
 const modernizeHTML = require('./modernizer');
 
@@ -16,46 +17,6 @@ const blockElements = new Set([
 ]);
 
 const IMAGE_LEGACY_DIMENSION = /^\d+%?$/;
-
-const CAJA_EXTRA_ELEMENTS = {
-	// Non-standard HTML
-	'marquee': 0,
-	'blink': 0,
-
-	// Untrusted HTML
-	'form': 84,
-
-	// Custom elements
-	'countup': 0,
-	'countdown': 0,
-};
-
-const CAJA_EXTRA_ATTRIBUTES = {
-	// Non-standard HTML
-	'marquee::behavior': 0,
-	'marquee::bgcolor': 0,
-	'marquee::direction': 0,
-	'marquee::height': 0,
-	'marquee::hspace': 0,
-	'marquee::loop': 0,
-	'marquee::scrollamount': 0,
-	'marquee::scrolldelay': 0,
-	'marquee::truespeed': 0,
-	'marquee::vspace': 0,
-	'marquee::width': 0,
-
-	// Custom elements
-	'countup::data-max': 0,
-	'countup::data-value': 0,
-	'countup::data-zone': 0,
-	'countup::data-hour': 0,
-	'countup::time': 0,
-	'countdown::data-min': 0,
-	'countdown::data-value': 0,
-	'countdown::data-zone': 0,
-	'countdown::data-hour': 0,
-	'countdown::time': 0,
-};
 
 const ESCAPE_CHARS = {
 	'&': '&amp;',
@@ -120,6 +81,268 @@ function unescapeHTML(str) {
 	return ('' + str).replace(new RegExp('(' + Object.keys(UNESCAPE_CHARS).join('|') + ')', 'g'), function (match) {return UNESCAPE_CHARS[match]});
 }
 
+function linkify(message, whiteList) {
+	return message.replace(/https?\:\/\/[a-z0-9-.]+(?:\:[0-9]+)?(?:\/(?:[^\s]*[^\s?.,])?)?|[a-z0-9.]+\@[a-z0-9.]+\.[a-z0-9]{2,3}|(?:[a-z0-9](?:[a-z0-9-\.]*[a-z0-9])?\.(?:com|org|net|edu|us|jp)(?:\:[0-9]+)?|qmark\.tk)(?:(?:\/(?:[^\s]*[^\s?.,])?)?)\b/ig, uri => {
+		if (/[a-z0-9.]+\@[a-z0-9.]+\.[a-z0-9]{2,3}/ig.test(uri)) {
+			return '<a href="mailto:' + this.escapeHTML(uri) + '">' + this.escapeHTML(uri) + '</a>';
+		}
+		// Insert http:// before URIs without a URI scheme specified.
+		const qualifiedURI = uri.replace(/^([a-z]*[^a-z:])/g, 'http://$1');
+		const securedURI = this.secureURI(qualifiedURI, whiteList);
+		if (!securedURI) return this.escapeHTML(uri);
+		return '<a href="' + this.escapeHTML(securedURI) + '">' + this.escapeHTML(uri) + '</a>';
+	});
+}
+
+function sanitizeHTML() {
+	const caja = cajaContext.caja;
+
+	function createReservedValuesSrc(exceptions) {
+		return (
+			'^(' + [
+				// Disallow all commands except for a very specific subset
+				'\(\/|\!)' + '(?!(' + (
+					[].concat(
+						['warlog', 'clan', 'clanauth', 'rules', 'tourhof', 'shop', 'roomauth'].map(cmd => cmd + '|' + cmd + ' ([^ \n\r\f]+)')
+					).concat(
+						['join canaldeeventos']
+					).concat(
+						['[a-z]+ help']
+					).concat(
+						exceptions || []
+					).join('|')
+				) + ')$)' + '.*',
+			].join('|') + ')$'
+		);
+	}
+
+	function createReservedTokensSrc(exceptions) {
+		return (
+			'^(' + [
+				'ps-room', 'pm-window', 'pm-window-.*',
+				'pm-log-add', 'chat-log-add',
+				'chat-message-.*',
+				'inner',
+				'autofocus',
+				'username',
+				'parseCommand',
+				'x-enriched',
+			].filter(elem => {
+				return !exceptions || !exceptions.has(elem);
+			}).join('|') + ')$'
+		);
+	}
+
+	const defaultReservedValuesSrc = createReservedValuesSrc();
+	const defaultReservedTokensSrc = createReservedTokensSrc();
+
+	// Create cache for reserved value/token regular expresions and register defaults.
+	const reservedValues = new Map([[defaultReservedValuesSrc, new RegExp(defaultReservedValuesSrc)]]);
+	const reservedTokens = new Map([[defaultReservedTokensSrc, new RegExp(defaultReservedTokensSrc)]]);
+
+	const naiveUriRewriter = Tools._secureURI;
+
+	const nmTokenPolicy = (tokenList, tokenExceptions) => {
+		const effReservedSrc = tokenExceptions ? createReservedTokensSrc(tokenExceptions) : defaultReservedTokensSrc;
+		const effReserved = (reservedTokens.has(effReservedSrc) ? reservedTokens : reservedTokens.set(effReservedSrc, new RegExp(effReservedSrc))).get(effReservedSrc);
+		return tokenList.split(' ').filter(token => !effReserved.test(token)).join(' ');
+	};
+
+	const parseLegacyDimension = dimension => {
+		const numericalPart = dimension.match(/^\d+/);
+		if (!numericalPart) return '';
+		if (numericalPart[0].length === dimension.length) return dimension + 'px';
+		if (numericalPart[0] + '%' === dimension) return dimension;
+		return '';
+	};
+
+	const tagPolicy = (tagName, attribs, options) => {
+		const valueExceptions = options.exceptValues;
+		const tokenExceptions = Array.isArray(options.exceptTokens) ? new Set(options.exceptTokens) : options.exceptTokens;
+
+		const effReservedSrc = valueExceptions ? createReservedValuesSrc(valueExceptions) : defaultReservedValuesSrc;
+		const effReserved = (reservedValues.has(effReservedSrc) ? reservedValues : reservedValues.set(effReservedSrc, new RegExp(effReservedSrc))).get(effReservedSrc);
+
+		const styleAttrs = new Map();
+
+		// Initialize index of the value for "style" attribute.
+		// !! Once found, make sure to decrease it each time attributes are deleted !!
+		let styleValueIndex = -1;
+		let hasLegacyOnlyAttribute = false; // if true, we don't convert to modern tags
+
+		for (let i = attribs.length - 2; i >= 0; i -= 2) {
+			switch (attribs[i]) {
+			case 'value':
+				if (effReserved.test(attribs[i + 1].trim())) {
+					attribs.splice(i, 2);
+					styleValueIndex -= 2;
+				}
+				break;
+
+			case 'style':
+				styleValueIndex = i + 1;
+				break;
+
+			case 'height': case 'width': {
+				if (tagName !== 'img' && tagName !== 'object') break;
+				let dimension = parseLegacyDimension(attribs[i + 1].trim());
+				if (dimension) {
+					styleAttrs.set(attribs[i], dimension);
+					attribs.splice(i, 2);
+					styleValueIndex -= 2;
+				} else {
+					hasLegacyOnlyAttribute = true;
+				}
+				break;
+			}
+
+			case 'hspace': case 'vspace': {
+				if (tagName !== 'img' && tagName !== 'object') break;
+				let dimension = parseLegacyDimension(attribs[i + 1].trim());
+				if (dimension) {
+					styleAttrs.set(attribs[i] === 'vspace' ? 'margin-top' : 'margin-left', dimension);
+					styleAttrs.set(attribs[i] === 'vspace' ? 'margin-bottom' : 'margin-right', dimension);
+					attribs.splice(i, 2);
+					styleValueIndex -= 2;
+				} else {
+					hasLegacyOnlyAttribute = true;
+				}
+				break;
+			}
+
+			case 'color': case 'face': {
+				// <font color="${value}"></font>	style="color:${value}"
+				// <font face="${value}"></font>	style="font-family:${value}"
+				if (tagName !== 'font') break;
+				let cssProperty = attribs[i] === 'color' ? 'color' : 'font-family';
+				styleAttrs.set(cssProperty, attribs[i + 1].trim());
+				attribs.splice(i, 2);
+				styleValueIndex -= 2;
+				break;
+			}
+
+			case 'size': {
+				// <hr size="${value}" />			<hr style="height:${value}(px|%)" />
+				// <font size="${value}"></font>	<span style="font-size:${value}px"></span>
+				if (tagName !== 'font' && tagName !== 'hr') break;
+				let dimension = parseLegacyDimension(attribs[i + 1].trim());
+				if (dimension) {
+					if (tagName === 'font' && !dimension.endsWith('px')) {
+						hasLegacyOnlyAttribute = true;
+						break;
+					}
+					let cssProperty = tagName === 'font' ? 'font-size' : 'height';
+					styleAttrs.set(cssProperty, dimension);
+					attribs.splice(i, 2);
+					styleValueIndex -= 2;
+				} else {
+					hasLegacyOnlyAttribute = true;
+				}
+				break;
+			}
+
+			case 'bgcolor':
+				styleAttrs.set('background-color', attribs[i + 1].trim());
+				attribs.splice(i, 2);
+				styleValueIndex -= 2;
+				break;
+
+			case 'align': {
+				let value = attribs[i + 1].trim();
+				if (value === 'top' || value === 'bottom' || value === 'middle' || value === 'absmiddle') {
+					if (value === 'absmiddle') value = 'middle';
+					styleAttrs.set('vertical-align', value);
+				} else if (value === 'center' || value === 'right' || value === 'left') {
+					if (tagName === 'table' || tagName === 'hr') {
+						let cssProperty = 'float';
+						if (value === 'center') {
+							cssProperty = 'margin';
+							value = 'auto';
+						}
+						styleAttrs.set(cssProperty, value);
+					} else if (tagName === 'p' || /^h[1-6]$/.test(tagName)) {
+						styleAttrs.set('text-align', attribs[i + 1].trim());
+					} else if (tagName === 'img' || tagName === 'input' || tagName === 'object' || tagName === 'iframe') {
+						if (value === 'center') break;
+						styleAttrs.set('float', attribs[i + 1].trim());
+					} else {
+						hasLegacyOnlyAttribute = true;
+						break;
+					}
+				} else {
+					hasLegacyOnlyAttribute = true;
+					break;
+				}
+				attribs.splice(i, 2);
+				styleValueIndex -= 2;
+				break;
+			}
+
+			case 'valign': {
+				let value = attribs[i + 1].trim();
+				if (value === 'absmiddle') value = 'middle';
+				styleAttrs.set('vertical-align', value);
+				attribs.splice(i, 2);
+				styleValueIndex -= 2;
+				break;
+			}
+
+			default:
+				break;
+			}
+		}
+
+		switch (tagName) {
+		case 's': case 'strike':
+			if (!hasLegacyOnlyAttribute) tagName = 'span';
+			styleAttrs.set('text-decoration', 'line-through');
+			break;
+		case 'u':
+			if (!hasLegacyOnlyAttribute) tagName = 'span';
+			styleAttrs.set('text-decoration', 'underline');
+			break;
+		case 'big': case 'small':
+			styleAttrs.set('font-size', tagName === 'big' ? 'larger' : 'smaller');
+			if (!hasLegacyOnlyAttribute) tagName = 'span';
+			break;
+		case 'b':
+			if (!hasLegacyOnlyAttribute) tagName = 'strong';
+			break;
+		case 'i':
+			if (!hasLegacyOnlyAttribute) tagName = 'em';
+			break;
+		case 'font':
+			if (!hasLegacyOnlyAttribute) tagName = 'span';
+			break;
+		default:
+			break;
+		}
+
+		if (styleAttrs.size) {
+			if (styleValueIndex < 1) {
+				// We never found the style attribute. Create it with our modern style rules.
+				styleValueIndex = attribs.length + 1;
+				attribs.push('style', Array.from(styleAttrs).map(entry => entry[0] + ": " + CSS.escape(entry[1])).join("; "));
+			} else if (styleAttrs.size) {
+				// Append modernized style rules to the `style` attribute.
+				// Don't check for duplicates and/or invalid syntax. It really doesn't matter.
+				attribs[styleValueIndex] += '; ' + Array.from(styleAttrs).map(entry => entry[0] + ": " + CSS.escape(entry[1])).join("; ");
+			}
+		}
+
+		return {
+			'tagName': tagName,
+			'attribs': caja.sanitizeAttribs(tagName, attribs, naiveUriRewriter, tokenList => nmTokenPolicy(tokenList, tokenExceptions)),
+		};
+	};
+
+	return function (str, options) {
+		str = Tools.getString(str);
+		str = caja.sanitizeWithPolicy(str, (tagName, attribs) => tagPolicy(tagName, attribs, options || {}));
+		return modernizeHTML(str, ['center', 'div']);
+	};
+}
+
 exports.getRow = getRow;
 exports.getRowGroup = getRowGroup;
 
@@ -132,22 +355,11 @@ exports.modernize = modernizeHTML;
 
 exports.escape = escapeHTML;
 exports.unescape = unescapeHTML;
+exports.linkify = linkify;
+exports.sanitize = sanitizeHTML;
 
-Object.assign(exports, (function () {
-	const cajaPath = path.resolve(__dirname, 'html-css-sanitizer-bundle.js');
-	const sandbox = browserRequire(cajaPath, function (fileContents) {
-		// return fileContents.replace(/ALLOWED_URI_SCHEMES\s*=\s*\/\^\(\?\:([^\/\$\)]+)\)\$\/i/g, 'ALLOWED_URI_SCHEMES = /^(?:$1|data)$/i');
-		return fileContents;
-	});
-
-	Object.assign(sandbox.html4.ELEMENTS, CAJA_EXTRA_ELEMENTS);
-	Object.assign(sandbox.html4.ATTRIBS, CAJA_EXTRA_ATTRIBUTES);
-
-	return {
-		caja: sandbox.html,
-		URI: sandbox.URI,
-	};
-})());
+exports.caja = cajaContext.caja;
+exports.URI = cajaContext.URI;
 
 Object.assign(exports, (function () {
 	const tabifierPath = path.resolve(__dirname, 'tabifier.js');

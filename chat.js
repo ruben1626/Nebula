@@ -656,7 +656,7 @@ class CommandContext {
 		html = Tools.getString(html).trim();
 		if (!html) return '';
 
-		html = Tools.sanitizeHTML(html, {
+		html = Plugins.HTML.sanitize(html, {
 			exceptTokens: this.user.can('oversee') ? ['username'] : null,
 			exceptValues: this.user.can('lock') ? (
 				this.user.can('hotpatch') ? [
