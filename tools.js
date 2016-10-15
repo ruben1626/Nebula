@@ -23,7 +23,6 @@ const fs = require('fs');
 const path = require('path');
 
 require('css.escape');
-const htmlUtils = require('./plugins/utils/html');
 
 // shim Object.values
 if (!Object.values) {
@@ -903,7 +902,7 @@ module.exports = (() => {
 	})();
 
 	Tools.prototype.secureURI = function (uri, whiteList) {
-		const urlData = htmlUtils.URI.parse(uri);
+		const urlData = require('./plugins/utils/html').URI.parse(uri);
 		if (!urlData || !urlData.domain_) return '';
 		if (whiteList && !whiteList.has(urlData.domain_)) return '';
 		return this._secureURI(urlData).toString();

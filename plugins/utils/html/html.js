@@ -94,7 +94,7 @@ function linkify(message, whiteList) {
 	});
 }
 
-function sanitizeHTML() {
+const sanitizeHTML = (function sanitizeHTML() {
 	const caja = cajaContext.caja;
 
 	function createReservedValuesSrc(exceptions) {
@@ -341,7 +341,7 @@ function sanitizeHTML() {
 		str = caja.sanitizeWithPolicy(str, (tagName, attribs) => tagPolicy(tagName, attribs, options || {}));
 		return modernizeHTML(str, ['center', 'div']);
 	};
-}
+})();
 
 exports.getRow = getRow;
 exports.getRowGroup = getRowGroup;
