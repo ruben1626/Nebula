@@ -251,6 +251,7 @@ Plugins.PublicPromise = require('./utils/promise-public');
 
 // Utility functions
 Plugins.BrowserRequire = require('./utils/browser-require');
+Plugins.Clone = require('./utils/object-clone');
 Plugins.Colors = require('./utils/colors');
 Plugins.HTML = require('./utils/html');
 Plugins.Merge = require('./utils/object-merge');
