@@ -8,6 +8,8 @@
  *
  */
 
+const HTML = require('./../html');
+
 const hashColor = require('./hash');
 const convert = require('./convert');
 const parseColor = require('./parser');
@@ -28,15 +30,15 @@ class ColoredName {
 	}
 
 	toString() {
-		return `<span style="color:${this.color}">${Chat.escapeHTML(this.name)}</span>`;
+		return `<span style="color:${this.color}">${HTML.escape(this.name)}</span>`;
 	}
 
 	toRawString() {
-		return `<span style="color:${this.color}">${Chat.escapeHTML(this.inputName)}</span>`;
+		return `<span style="color:${this.color}">${HTML.escape(this.inputName)}</span>`;
 	}
 
 	getClickable() {
-		return `<span class="username" style="color:${this.color}"><strong>${Chat.escapeHTML(this.name)}</strong></span>`;
+		return `<span class="username" style="color:${this.color}"><strong>${HTML.escape(this.name)}</strong></span>`;
 	}
 
 	getIdentity() {
@@ -46,7 +48,7 @@ class ColoredName {
 	}
 
 	bold() {
-		return `<strong style="color:${this.color}"><span>${Chat.escapeHTML(this.name)}</span></strong>`;
+		return `<strong style="color:${this.color}"><span>${HTML.escape(this.name)}</span></strong>`;
 	}
 }
 
