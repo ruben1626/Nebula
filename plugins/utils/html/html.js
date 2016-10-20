@@ -343,6 +343,18 @@ const sanitizeHTML = (function sanitizeHTML() {
 	};
 })();
 
+function HTML(strings, ...args) {
+	let buf = strings[0];
+	let i = 0;
+	while (i < args.length) {
+		buf += escapeHTML(args[i]);
+		buf += strings[++i];
+	}
+	return buf;
+}
+
+exports = module.exports = HTML;
+
 exports.getRow = getRow;
 exports.getRowGroup = getRowGroup;
 
