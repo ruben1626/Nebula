@@ -130,14 +130,14 @@ const pluginCommands = {
 					}
 					const id = plugin.id;
 					if (plugin.commands && typeof plugin.commands === 'object') {
-						object_merge(Chat.commands, plugin.commands, true);
+						object_merge(Chat.commands, plugin.commands, {deep: true});
 					}
 					if (typeof plugin.init === 'function') {
 						plugin.init(pluginCache.version[id], pluginCache.dynamic[id]);
 					}
 
 					if (pluginCache.dynamic[id]) {
-						object_merge(plugin.dynamic, pluginCache.dynamic[id], true);
+						object_merge(plugin.dynamic, pluginCache.dynamic[id], {deep: true});
 					}
 
 					if (typeof plugin.loadData === 'function' && !pluginCache.dataLoaded[id]) {

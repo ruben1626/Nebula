@@ -253,3 +253,4 @@ Plugins.PublicPromise = require('./utils/promise-public');
 Plugins.BrowserRequire = require('./utils/browser-require');
 Plugins.Colors = require('./utils/colors');
 Plugins.HTML = require('./utils/html');
+Plugins.Merge = require('./utils/object-merge');

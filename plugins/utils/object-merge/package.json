@@ -2,7 +2,7 @@
   "name": "Pokemon-Showdown-Plugin-Object-Merge",
   "version": "0.1",
   "engines": {
-    "node": ">= 4.0.0"
+    "node": ">= 6.0.0"
   },
   "main": "object-merge.js",
   "scripts": {},
