@@ -36,6 +36,9 @@ const UNESCAPE_CHARS = {
 	'&#x2f;': "\/",
 };
 
+const ESCAPE_REGEXP = new RegExp('(' + Object.keys(ESCAPE_CHARS).join('|') + ')', 'g');
+const UNESCAPE_REGEXP = new RegExp('(' + Object.keys(UNESCAPE_CHARS).join('|') + ')', 'g');
+
 function openTag(tagName, attribs, style) {
 	const extraStyle = style ? Object.entries(style).map(entry => CSS.escape(entry[0]) + ': ' + CSS.escape(entry[1])).join(" ; ") : "";
 	const entries = [];
@@ -73,12 +76,12 @@ function getRowGroup(arr) {
 
 function escapeHTML(str) {
 	if (typeof str !== 'number' && typeof str !== 'string') return '';
-	return ('' + str).replace(new RegExp('(' + Object.keys(ESCAPE_CHARS).join('|') + ')', 'g'), function (match) {return ESCAPE_CHARS[match]});
+	return ('' + str).replace(ESCAPE_REGEXP, match => ESCAPE_CHARS[match]);
 }
 
 function unescapeHTML(str) {
 	if (typeof str !== 'number' && typeof str !== 'string') return '';
-	return ('' + str).replace(new RegExp('(' + Object.keys(UNESCAPE_CHARS).join('|') + ')', 'g'), function (match) {return UNESCAPE_CHARS[match]});
+	return ('' + str).replace(UNESCAPE_REGEXP, match => UNESCAPE_CHARS[match]);
 }
 
 function linkify(message, whiteList) {
