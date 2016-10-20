@@ -33,9 +33,9 @@ class NamedColor extends Color {
 		return colorLocales.normalize(name);
 	}
 
-	static from(name, options) {
+	static from(name, options = {}) {
 		const isW3 = Boolean(options && options.w3); // eslint-disable-line no-unused-vars
-		const locales = options.locales || options || ['en'];
+		const locales = options && options.locales || options || ['en'];
 		if (!Array.isArray(locales)) throw new Error(`Invalid locales passed to parse()`);
 
 		const id = toId(name);
