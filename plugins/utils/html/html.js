@@ -84,13 +84,13 @@ function unescapeHTML(str) {
 function linkify(message, whiteList) {
 	return message.replace(/https?\:\/\/[a-z0-9-.]+(?:\:[0-9]+)?(?:\/(?:[^\s]*[^\s?.,])?)?|[a-z0-9.]+\@[a-z0-9.]+\.[a-z0-9]{2,3}|(?:[a-z0-9](?:[a-z0-9-\.]*[a-z0-9])?\.(?:com|org|net|edu|us|jp)(?:\:[0-9]+)?|qmark\.tk)(?:(?:\/(?:[^\s]*[^\s?.,])?)?)\b/ig, uri => {
 		if (/[a-z0-9.]+\@[a-z0-9.]+\.[a-z0-9]{2,3}/ig.test(uri)) {
-			return '<a href="mailto:' + this.escapeHTML(uri) + '">' + this.escapeHTML(uri) + '</a>';
+			return '<a href="mailto:' + escapeHTML(uri) + '">' + escapeHTML(uri) + '</a>';
 		}
 		// Insert http:// before URIs without a URI scheme specified.
 		const qualifiedURI = uri.replace(/^([a-z]*[^a-z:])/g, 'http://$1');
-		const securedURI = this.secureURI(qualifiedURI, whiteList);
-		if (!securedURI) return this.escapeHTML(uri);
-		return '<a href="' + this.escapeHTML(securedURI) + '">' + this.escapeHTML(uri) + '</a>';
+		const securedURI = Tools.secureURI(qualifiedURI, whiteList);
+		if (!securedURI) return escapeHTML(uri);
+		return '<a href="' + escapeHTML(securedURI) + '">' + escapeHTML(uri) + '</a>';
 	});
 }
 
