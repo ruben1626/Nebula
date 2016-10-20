@@ -72,12 +72,12 @@ function getRowGroup(arr) {
 }
 
 function escapeHTML(str) {
-	if (!str) return '';
+	if (typeof str !== 'number' && typeof str !== 'string') return '';
 	return ('' + str).replace(new RegExp('(' + Object.keys(ESCAPE_CHARS).join('|') + ')', 'g'), function (match) {return ESCAPE_CHARS[match]});
 }
 
 function unescapeHTML(str) {
-	if (!str) return '';
+	if (typeof str !== 'number' && typeof str !== 'string') return '';
 	return ('' + str).replace(new RegExp('(' + Object.keys(UNESCAPE_CHARS).join('|') + ')', 'g'), function (match) {return UNESCAPE_CHARS[match]});
 }
 
