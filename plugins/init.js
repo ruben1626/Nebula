@@ -148,6 +148,10 @@ const pluginCommands = {
 					if (plugin.globalScope) {
 						global[typeof plugin.globalScope === 'string' ? plugin.globalScope : id] = plugin;
 					}
+
+					if (typeof plugin.onLoad === 'function') {
+						plugin.onLoad();
+					}
 				});
 
 				const runningTournaments = Tournaments.tournaments;
