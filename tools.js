@@ -795,6 +795,21 @@ module.exports = (() => {
 		return num;
 	};
 
+	Tools.prototype.getLocalDate = function (date, timeZone) {
+		if (!date && date !== 0) date = new Date();
+		if (typeof date === 'number') date = new Date(date);
+
+		const formatter = timeZone || !Config.dateFormatter ? (
+			new Intl.DateTimeFormat('ja-jp', {
+				year: 'numeric', month: 'numeric', day: 'numeric',
+				hour: 'numeric', minute: 'numeric', second: 'numeric',
+				hour12: true, timeZone: timeZone || 'America/Los_Angeles',
+			})
+		) : Config.dateFormatter;
+
+		return Date.utc.create(formatter.format(date)).utc();
+	};
+
 	Tools.prototype._getSecureDomainsData = (function () {
 		const DOMAINS_DATA = [
 			{domain: 'i.imgur.com', excludeSub: true},
