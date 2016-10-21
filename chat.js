@@ -41,6 +41,7 @@ const NULL_USERID_REGEX_SOURCE = '([^a-zA-Z0-9]{1,17})?';
 
 const fs = require('fs');
 const path = require('path');
+const htmlUtils = require('./plugins/utils/html');
 
 class PatternTester {
 	// This class sounds like a RegExp
@@ -656,7 +657,7 @@ class CommandContext {
 		html = Tools.getString(html).trim();
 		if (!html) return '';
 
-		html = Plugins.HTML.sanitize(html, {
+		html = htmlUtils.sanitize(html, {
 			exceptTokens: this.user.can('oversee') ? ['username'] : null,
 			exceptValues: this.user.can('lock') ? (
 				this.user.can('hotpatch') ? [
@@ -824,32 +825,21 @@ Chat.loadCommands = function () {
 };
 
 /**
- * Escapes HTML in a string.
- *
- * @param  {string} str
- * @return {string}
- */
-Chat.escapeHTML = function (str) {
-	if (!str) return '';
-	return ('' + str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');
-};
-
-/**
  * Template string tag function for escaping HTML
  *
  * @param  {string[]} strings
  * @param  {...any} values
  * @return {string}
  */
-Chat.html = function (strings, ...args) {
-	let buf = strings[0];
-	let i = 0;
-	while (i < args.length) {
-		buf += Chat.escapeHTML(args[i]);
-		buf += strings[++i];
-	}
-	return buf;
-};
+Chat.html = htmlUtils;
+
+/**
+ * Escapes HTML in a string.
+ *
+ * @param  {string} str
+ * @return {string}
+ */
+Chat.escapeHTML = htmlUtils.escape;
 
 /**
  * Returns singular (defaulting to '') if num is 1, or plural
