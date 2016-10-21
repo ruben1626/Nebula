@@ -6,7 +6,8 @@ require('css.escape');
 
 const cajaContext = require('./caja-wrap');
 const browserRequire = require('./../browser-require');
-const modernizeHTML = require('./modernizer');
+
+let modernizeHTML;
 
 const blockElements = new Set([
 	'address', 'article', 'aside', 'blockquote', 'canvas', 'div', 'dl',
@@ -342,6 +343,7 @@ const sanitizeHTML = (function sanitizeHTML() {
 	return function (str, options) {
 		str = Tools.getString(str);
 		str = caja.sanitizeWithPolicy(str, (tagName, attribs) => tagPolicy(tagName, attribs, options || {}));
+		if (!modernizeHTML) modernizeHTML = require('./modernizer');
 		return modernizeHTML(str, ['center', 'div']);
 	};
 })();
@@ -366,7 +368,6 @@ exports.closeTag = closeTag;
 exports.createElement = createElement;
 
 exports.blockElements = blockElements;
-exports.modernize = modernizeHTML;
 
 exports.escape = escapeHTML;
 exports.unescape = unescapeHTML;
@@ -375,6 +376,17 @@ exports.sanitize = sanitizeHTML;
 
 exports.caja = cajaContext.caja;
 exports.URI = cajaContext.URI;
+
+Object.defineProperty(exports, 'modernize', {
+	get() {
+		if (!modernizeHTML) modernizeHTML = require('./modernizer');
+		return modernizeHTML;
+	},
+	set(value) {
+		modernizeHTML = value;
+		return value;
+	},
+});
 
 Object.assign(exports, (function () {
 	const tabifierPath = path.resolve(__dirname, 'tabifier.js');
