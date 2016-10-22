@@ -34,6 +34,7 @@ const errorPreHandler = function (error) {
 	}
 };
 const errorPostHandler = function (error, options = {}) {
+	if (!error || !options || typeof options !== 'object') throw new Error(`Bad error event parameters`);
 	if (!this.isDefaultPrevented()) {
 		if (error.source && !(error instanceof LoaderError)) Plugins.addErrorLogger(error.source)("" + error.stack);
 		const severity = this.env('severity');
