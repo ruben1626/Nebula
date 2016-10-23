@@ -425,17 +425,16 @@ class User {
 	can(permission, target, room) {
 		if (this.hasSysopAccess()) return true;
 
-		let groupData = Config.groups[this.group];
-		if (groupData && groupData['root']) {
-			return true;
-		}
-
 		let group, targetGroup;
 
 		if (typeof target === 'string') {
 			target = null;
 			targetGroup = target;
 		}
+
+		let isDefaultPrevented = global.Plugins && Plugins.eventEmitter.emit('Can', permission, this, target, room).isDefaultPrevented();
+		if (Plugins.eventEmitter.getData().allowed) return true;
+		if (isDefaultPrevented) return false;
 
 		if (room && room.auth) {
 			group = room.getAuth(this);
@@ -445,7 +444,16 @@ class User {
 			if (target) targetGroup = target.group;
 		}
 
-		groupData = Config.groups[group];
+		let groupData = Config.groups[this.group];
+		if (groupData && groupData['root']) {
+			return true;
+		}
+
+		if (room && room.groups) {
+			groupData = room.groups[group];
+		} else {
+			groupData = Config.groups[group];
+		}
 
 		if (groupData && groupData[permission]) {
 			let jurisdiction = groupData[permission];
