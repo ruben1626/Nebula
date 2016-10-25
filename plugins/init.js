@@ -165,13 +165,13 @@ const pluginCommands = {
 				return this.sendReply("Se presento un error al intentar actualizar el chat:\n" + e.stack);
 			}
 		} else if (target === 'battles') {
-			Simulator.SimulatorProcess.respawn();
+			Rooms.SimulatorProcess.respawn();
 			return this.sendReply("Las batallas han sido actualizadas. Aquellas que empiecen desde ahora utilizaran el nuevo codigo, pero las que estan en curso usaran el antiguo.");
 		} else if (target === 'formats') {
 			try {
-				const toolsLoaded = !!Tools.isLoaded;
+				const toolsLoaded = Object.values(Tools.dexes).filter(dex => dex.dataLoaded).length;
+				global.Tools = Tools.reloadModule('./tools')[toolsLoaded >= 2 ? 'includeModData' : (toolsLoaded ? 'includeData' : 'includeMods')](); // note: this will lock up the server for a few seconds
 
-				global.Tools = Tools.reloadModule('./tools')[toolsLoaded ? 'includeMods' : 'includeFormats'](); // note: this will lock up the server for a few seconds
 				global.TeamValidator = Tools.reloadModule('./team-validator');
 
 				// rebuild the formats list
@@ -183,7 +183,7 @@ const pluginCommands = {
 				global.battleProtoCache.clear();
 				// respawn simulator processes
 				/*
-				Simulator.SimulatorProcess.respawn();
+				Rooms.SimulatorProcess.respawn();
 				//*/
 				// broadcast the new formats list to clients
 				Rooms.global.send(Rooms.global.formatListText);
@@ -201,8 +201,8 @@ const pluginCommands = {
 			return this.sendReply("Dnsbl has been hotpatched.");
 		} else if (target === 'learnsets') {
 			try {
-				const toolsLoaded = !!Tools.isLoaded;
-				global.Tools = Tools.reloadModule('./tools')[toolsLoaded ? 'includeMods' : 'includeFormats'](); // note: this will lock up the server for a few seconds
+				const toolsLoaded = Object.values(Tools.dexes).filter(dex => dex.dataLoaded).length;
+				global.Tools = Tools.reloadModule('./tools')[toolsLoaded >= 2 ? 'includeModData' : (toolsLoaded ? 'includeData' : 'includeMods')](); // note: this will lock up the server for a few seconds
 				global.TeamValidator = Tools.reloadModule('./team-validator');
 
 				return this.sendReply("La listas de movimientos aprendidos ha sido actualizada.");

@@ -1,5 +1,5 @@
 /**
- * Tools
+ * Dex
  * Pokemon Showdown - http://pokemonshowdown.com/
  *
  * Handles getting data about pokemon, items, etc.
@@ -12,6 +12,28 @@
  * It currently also contains our shims, since it has no dependencies and
  * is included by nearly every process.
  *
+ * By default, nothing is loaded until you call Dex.mod(mod) or
+ * Dex.format(format).
+ *
+ * You may choose to preload some things:
+ * - Dex.includeMods() ~10ms
+ *   This will populate Dex.dexes, giving you a list of possible mods.
+ *   Note that you don't need this for Dex.mod, Dex.mod will
+ *   automatically populate this.
+ * - Dex.includeFormats() ~30ms
+ *   As above, but will also populate Dex.data.Formats, giving an object
+ *   containing formats.
+ * - Dex.includeData() ~500ms
+ *   As above, but will also populate all of Dex.data, giving access to
+ *   the data access functions like Dex.getTemplate, Dex.getMove, etc.
+ *   Note that you don't need this if you access the functions through
+ *   Dex.mod(...).getTemplate, because Dex.mod automatically populates
+ *   data for the relevant mod.
+ * - Dex.includeModData() ~1500ms
+ *   As above, but will also populate Dex.dexes[...].data for all mods.
+ *   Note that Dex.mod(...) will automatically populate .data, so use
+ *   this only if you need to manually iterate Dex.dexes.
+ *
  * @license MIT license
  */
 
@@ -22,193 +44,141 @@ require('sugar');
 const fs = require('fs');
 const path = require('path');
 
+const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
+
 require('css.escape');
+
+function defineNonEnumerable(receiver, methodName, method) {
+	return Object.defineProperty(receiver, methodName, {
+		writable: true, configurable: true,
+		value: method,
+	});
+}
 
 // shim Object.values
 if (!Object.values) {
-	Object.defineProperty(Object, 'values', { // eslint-disable-line no-extend-native
-		writable: true, configurable: true,
-		value: function (object) {
-			return Object.keys(object).map(key => object[key]);
-		},
+	defineNonEnumerable(Object, 'values', function (object) {
+		return Object.keys(object).map(key => object[key]);
 	});
 }
 // shim Object.entries
 if (!Object.entries) {
-	Object.defineProperty(Object, 'entries', { // eslint-disable-line no-extend-native
-		writable: true, configurable: true,
-		value: function (object) {
-			return Object.keys(object).map(key => [key, object[key]]);
-		},
+	defineNonEnumerable(Object, 'entries', function (object) {
+		return Object.keys(object).map(key => [key, object[key]]);
 	});
 }
 
 if (!Number.prototype.fround) {
 	// In analogy to Sugar.js' Number#round
-	Object.defineProperty(Number.prototype, 'fround', { // eslint-disable-line no-extend-native
-		writable: true, configurable: true,
-		value: function (places) {
-			if (typeof places === 'undefined') return Math.fround(this);
-			places = Math.min(~~places, 0x1E);
-			if (places < 0) places = 0;
-			const power = Math.pow(2, places);
-			const intPart = this >> 0;
-			const nIntPart = (((this - intPart) * power * 2) >> 1) / power;
-			const floored = intPart + nIntPart;
-			if (this - floored < Number.EPSILON) return floored;
-			const ceiled = floored + 1 / power;
-			if (ceiled - this <= this - floored) return ceiled;
-			return floored;
-		},
+	defineNonEnumerable(Number.prototype, 'fround', function (places) {
+		if (typeof places === 'undefined') return Math.fround(this);
+		places = Math.min(~~places, 0x1E);
+		if (places < 0) places = 0;
+		const power = Math.pow(2, places);
+		const intPart = this >> 0;
+		const nIntPart = (((this - intPart) * power * 2) >> 1) / power;
+		const floored = intPart + nIntPart;
+		if (this - floored < Number.EPSILON) return floored;
+		const ceiled = floored + 1 / power;
+		if (ceiled - this <= this - floored) return ceiled;
+		return floored;
 	});
 }
 
-module.exports = (() => {
-	let moddedTools = {};
+let dexes = {};
 
-	let dataTypes = ['Pokedex', 'FormatsData', 'Learnsets', 'Movedex', 'Statuses', 'TypeChart', 'Scripts', 'Items', 'Abilities', 'Natures', 'Formats', 'Aliases'];
-	let dataFiles = {
-		'Pokedex': 'pokedex',
-		'Movedex': 'moves',
-		'Statuses': 'statuses',
-		'TypeChart': 'typechart',
-		'Scripts': 'scripts',
-		'Items': 'items',
-		'Abilities': 'abilities',
-		'Formats': 'rulesets',
-		'FormatsData': 'formats-data',
-		'Learnsets': 'learnsets',
-		'Aliases': 'aliases',
-	};
+const DATA_TYPES = ['Pokedex', 'FormatsData', 'Learnsets', 'Movedex', 'Statuses', 'TypeChart', 'Scripts', 'Items', 'Abilities', 'Natures', 'Formats', 'Aliases'];
 
-	let BattleNatures = dataFiles.Natures = {
-		adamant: {name:"Adamant", plus:'atk', minus:'spa'},
-		bashful: {name:"Bashful"},
-		bold: {name:"Bold", plus:'def', minus:'atk'},
-		brave: {name:"Brave", plus:'atk', minus:'spe'},
-		calm: {name:"Calm", plus:'spd', minus:'atk'},
-		careful: {name:"Careful", plus:'spd', minus:'spa'},
-		docile: {name:"Docile"},
-		gentle: {name:"Gentle", plus:'spd', minus:'def'},
-		hardy: {name:"Hardy"},
-		hasty: {name:"Hasty", plus:'spe', minus:'def'},
-		impish: {name:"Impish", plus:'def', minus:'spa'},
-		jolly: {name:"Jolly", plus:'spe', minus:'spa'},
-		lax: {name:"Lax", plus:'def', minus:'spd'},
-		lonely: {name:"Lonely", plus:'atk', minus:'def'},
-		mild: {name:"Mild", plus:'spa', minus:'def'},
-		modest: {name:"Modest", plus:'spa', minus:'atk'},
-		naive: {name:"Naive", plus:'spe', minus:'spd'},
-		naughty: {name:"Naughty", plus:'atk', minus:'spd'},
-		quiet: {name:"Quiet", plus:'spa', minus:'spe'},
-		quirky: {name:"Quirky"},
-		rash: {name:"Rash", plus:'spa', minus:'spd'},
-		relaxed: {name:"Relaxed", plus:'def', minus:'spe'},
-		sassy: {name:"Sassy", plus:'spd', minus:'spe'},
-		serious: {name:"Serious"},
-		timid: {name:"Timid", plus:'spe', minus:'atk'},
-	};
+const DATA_FILES = {
+	'Pokedex': 'pokedex',
+	'Movedex': 'moves',
+	'Statuses': 'statuses',
+	'TypeChart': 'typechart',
+	'Scripts': 'scripts',
+	'Items': 'items',
+	'Abilities': 'abilities',
+	'Formats': 'rulesets',
+	'FormatsData': 'formats-data',
+	'Learnsets': 'learnsets',
+	'Aliases': 'aliases',
+	'Natures': 'natures',
+};
 
-	function tryRequire(filePath) {
-		try {
-			let ret = require(filePath);
-			if (!ret || typeof ret !== 'object') return new TypeError("" + filePath + " debe exportar un objeto excepto `null`, o debe ser removido");
-			return ret;
-		} catch (e) {
-			return e;
-		}
+const BattleNatures = {
+	adamant: {name:"Adamant", plus:'atk', minus:'spa'},
+	bashful: {name:"Bashful"},
+	bold: {name:"Bold", plus:'def', minus:'atk'},
+	brave: {name:"Brave", plus:'atk', minus:'spe'},
+	calm: {name:"Calm", plus:'spd', minus:'atk'},
+	careful: {name:"Careful", plus:'spd', minus:'spa'},
+	docile: {name:"Docile"},
+	gentle: {name:"Gentle", plus:'spd', minus:'def'},
+	hardy: {name:"Hardy"},
+	hasty: {name:"Hasty", plus:'spe', minus:'def'},
+	impish: {name:"Impish", plus:'def', minus:'spa'},
+	jolly: {name:"Jolly", plus:'spe', minus:'spa'},
+	lax: {name:"Lax", plus:'def', minus:'spd'},
+	lonely: {name:"Lonely", plus:'atk', minus:'def'},
+	mild: {name:"Mild", plus:'spa', minus:'def'},
+	modest: {name:"Modest", plus:'spa', minus:'atk'},
+	naive: {name:"Naive", plus:'spe', minus:'spd'},
+	naughty: {name:"Naughty", plus:'atk', minus:'spd'},
+	quiet: {name:"Quiet", plus:'spa', minus:'spe'},
+	quirky: {name:"Quirky"},
+	rash: {name:"Rash", plus:'spa', minus:'spd'},
+	relaxed: {name:"Relaxed", plus:'def', minus:'spe'},
+	sassy: {name:"Sassy", plus:'spd', minus:'spe'},
+	serious: {name:"Serious"},
+	timid: {name:"Timid", plus:'spe', minus:'atk'},
+};
+
+function toId(text) {
+	// this is a duplicate of Dex.getId, for performance reasons
+	if (text && text.id) {
+		text = text.id;
+	} else if (text && text.userid) {
+		text = text.userid;
 	}
+	if (typeof text !== 'string' && typeof text !== 'number') return '';
+	return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
 
-	function deepClone(obj) {
-		if (typeof obj === 'function') return obj;
-		if (obj === null || typeof obj !== 'object') return obj;
-		if (Array.isArray(obj)) return obj.map(deepClone);
-		const clone = Object.create(Object.getPrototypeOf(obj));
-		const keys = Object.keys(obj);
-		for (let i = 0; i < keys.length; i++) {
-			clone[keys[i]] = deepClone(obj[keys[i]]);
-		}
-		return clone;
-	}
+class BattleDex {
 
-	function Tools(mod) {
+	constructor(mod) {
 		if (!mod) mod = 'base';
+
+		this.formatsLoaded = false;
+		this.modsLoaded = false;
+		this.dataLoaded = false;
+
 		this.isBase = (mod === 'base');
-
-		let path = (this.isBase ? './data/' : './mods/' + mod + '/') + dataFiles.Scripts;
-		let maybeScripts = tryRequire(path);
-		if (maybeScripts instanceof Error) {
-			if (maybeScripts.code !== 'MODULE_NOT_FOUND') throw new Error("CRASH LOADING DATA IN " + path + ": " + maybeScripts.stack);
-		} else {
-			let BattleScripts = maybeScripts.BattleScripts;
-			if (!BattleScripts || typeof BattleScripts !== 'object') throw new TypeError("Exported property `BattleScripts`from `./data/scripts.js` must be an object except `null`.");
-			if (BattleScripts.init) Object.defineProperty(this, 'initMod', {value: BattleScripts.init, enumerable: false, writable: true, configurable: true});
-			if (BattleScripts.inherit) Object.defineProperty(this, 'inheritMod', {value: BattleScripts.inherit, enumerable: false, writable: true, configurable: true});
-		}
 		this.currentMod = mod;
-		this.parentMod = this.isBase ? '' : (this.inheritMod || 'base');
+		this.parentMod = '';
+		this.data = null;
+		this.dexes = dexes;
 	}
 
-	Tools.preloadMods = function () {
-		if (Tools.preloadedMods) return;
-		let modList = fs.readdirSync(path.resolve(__dirname, 'mods'));
-		for (let i = 0; i < modList.length; i++) {
-			moddedTools[modList[i]] = new Tools(modList[i]);
-		}
-		Tools.preloadedMods = true;
-	};
-
-	Tools.prototype.mod = function (mod) {
-		if (!moddedTools[mod]) {
-			mod = this.getFormat(mod).mod;
-		}
+	mod(mod) {
+		if (!dexes['base'].modsLoaded) dexes['base'].includeMods();
 		if (!mod) mod = 'base';
-		return moddedTools[mod].includeData();
-	};
-	Tools.prototype.modData = function (dataType, id) {
+		return dexes[mod].includeData();
+	}
+	format(format) {
+		if (!this.modsLoaded) this.includeMods();
+		const mod = this.getFormat(format).mod;
+		if (!mod) return dexes['base'].includeData();
+		return dexes[mod].includeData();
+	}
+	modData(dataType, id) {
 		if (this.isBase) return this.data[dataType][id];
-		if (this.data[dataType][id] !== moddedTools[this.parentMod].data[dataType][id]) return this.data[dataType][id];
-		return (this.data[dataType][id] = deepClone(this.data[dataType][id]));
-	};
+		if (this.data[dataType][id] !== dexes[this.parentMod].data[dataType][id]) return this.data[dataType][id];
+		return (this.data[dataType][id] = this.deepClone(this.data[dataType][id]));
+	}
 
-	Tools.prototype.effectToString = function () {
+	effectToString() {
 		return this.name;
-	};
-	Tools.prototype.getImmunity = function (source, target) {
-		// returns false if the target is immune; true otherwise
-		// also checks immunity to some statuses
-		let sourceType = source.type || source;
-		let targetTyping = target.getTypes && target.getTypes() || target.types || target;
-		if (Array.isArray(targetTyping)) {
-			for (let i = 0; i < targetTyping.length; i++) {
-				if (!this.getImmunity(sourceType, targetTyping[i])) return false;
-			}
-			return true;
-		}
-		let typeData = this.data.TypeChart[targetTyping];
-		if (typeData && typeData.damageTaken[sourceType] === 3) return false;
-		return true;
-	};
-	Tools.prototype.getEffectiveness = function (source, target) {
-		let sourceType = source.type || source;
-		let totalTypeMod = 0;
-		let targetTyping = target.getTypes && target.getTypes() || target.types || target;
-		if (Array.isArray(targetTyping)) {
-			for (let i = 0; i < targetTyping.length; i++) {
-				totalTypeMod += this.getEffectiveness(sourceType, targetTyping[i]);
-			}
-			return totalTypeMod;
-		}
-		let typeData = this.data.TypeChart[targetTyping];
-		if (!typeData) return 0;
-		switch (typeData.damageTaken[sourceType]) {
-		case 1: return 1; // super-effective
-		case 2: return -1; // resist
-		// in case of weird situations like Gravity, immunity is
-		// handled elsewhere
-		default: return 0;
-		}
-	};
+	}
 
 	/**
 	 * Safely converts the passed variable into a string. Unlike '' + str,
@@ -222,10 +192,10 @@ module.exports = (() => {
 	 * @param {mixed} str
 	 * @return {string}
 	 */
-	Tools.prototype.getString = function (str) {
+	getString(str) {
 		if (typeof str === 'string' || typeof str === 'number') return '' + str;
 		return '';
-	};
+	}
 
 	/**
 	 * Sanitizes a username or Pokemon nickname
@@ -251,7 +221,7 @@ module.exports = (() => {
 	 * @param {mixed} name
 	 * @return {string}
 	 */
-	Tools.prototype.getName = function (name) {
+	getName(name) {
 		if (typeof name !== 'string' && typeof name !== 'number') return '';
 		name = ('' + name).replace(/[\|\s\[\]\,\u202e]+/g, ' ').trim();
 		if (name.length > 18) name = name.substr(0, 18).trim();
@@ -261,7 +231,7 @@ module.exports = (() => {
 		name = name.replace(/[\u239b-\u23b9]/g, '');
 
 		return name;
-	};
+	}
 
 	/**
 	 * Converts anything to an ID. An ID must have only lowercase alphanumeric
@@ -277,7 +247,7 @@ module.exports = (() => {
 	 * @param {mixed} text
 	 * @return {string}
 	 */
-	Tools.prototype.getId = function (text) {
+	getId(text) {
 		if (text && text.id) {
 			text = text.id;
 		} else if (text && text.userid) {
@@ -285,8 +255,46 @@ module.exports = (() => {
 		}
 		if (typeof text !== 'string' && typeof text !== 'number') return '';
 		return ('' + text).toLowerCase().replace(/[^a-z0-9]+/g, '');
-	};
-	let toId = Tools.prototype.getId;
+	}
+
+	/**
+	 * returns false if the target is immune; true otherwise
+	 *
+	 * also checks immunity to some statuses
+	 */
+	getImmunity(source, target) {
+		let sourceType = source.type || source;
+		let targetTyping = target.getTypes && target.getTypes() || target.types || target;
+		if (Array.isArray(targetTyping)) {
+			for (let i = 0; i < targetTyping.length; i++) {
+				if (!this.getImmunity(sourceType, targetTyping[i])) return false;
+			}
+			return true;
+		}
+		let typeData = this.data.TypeChart[targetTyping];
+		if (typeData && typeData.damageTaken[sourceType] === 3) return false;
+		return true;
+	}
+	getEffectiveness(source, target) {
+		let sourceType = source.type || source;
+		let totalTypeMod = 0;
+		let targetTyping = target.getTypes && target.getTypes() || target.types || target;
+		if (Array.isArray(targetTyping)) {
+			for (let i = 0; i < targetTyping.length; i++) {
+				totalTypeMod += this.getEffectiveness(sourceType, targetTyping[i]);
+			}
+			return totalTypeMod;
+		}
+		let typeData = this.data.TypeChart[targetTyping];
+		if (!typeData) return 0;
+		switch (typeData.damageTaken[sourceType]) {
+		case 1: return 1; // super-effective
+		case 2: return -1; // resist
+		// in case of weird situations like Gravity, immunity is
+		// handled elsewhere
+		default: return 0;
+		}
+	}
 
 	/**
 	 * Convert a pokemon name, ID, or template into its species name, preserving
@@ -296,7 +304,7 @@ module.exports = (() => {
 	 * @param {string|DexTemplate} species
 	 * @return {string}
 	 */
-	Tools.prototype.getSpecies = function (species) {
+	getSpecies(species) {
 		let id = toId(species || '');
 		let template = this.getTemplate(id);
 		if (template.otherForms && template.otherForms.indexOf(id) >= 0) {
@@ -306,33 +314,45 @@ module.exports = (() => {
 			species = template.species;
 		}
 		return species;
-	};
+	}
 
-	Tools.prototype.getTemplate = function (template) {
+	getTemplate(template) {
 		if (!template || typeof template === 'string') {
 			let name = (template || '').trim();
 			let id = toId(name);
-			if (id !== 'constructor' && this.data.Aliases[id]) {
-				name = this.data.Aliases[id];
-				id = toId(name);
+			template = this.data.TemplateCache.get(id);
+			if (template) return template;
+			if (hasOwnProperty(this.data.Aliases, id)) {
+				template = this.getTemplate(this.data.Aliases[id]);
+				if (template) {
+					this.data.TemplateCache.set(id, template);
+				}
+				return template;
 			}
-			if (!this.data.Pokedex[id]) {
+			if (!hasOwnProperty(this.data.Pokedex, id)) {
+				let aliasTo = '';
 				if (id.startsWith('mega') && this.data.Pokedex[id.slice(4) + 'mega']) {
-					id = id.slice(4) + 'mega';
+					aliasTo = id.slice(4) + 'mega';
 				} else if (id.startsWith('m') && this.data.Pokedex[id.slice(1) + 'mega']) {
-					id = id.slice(1) + 'mega';
+					aliasTo = id.slice(1) + 'mega';
 				} else if (id.startsWith('primal') && this.data.Pokedex[id.slice(6) + 'primal']) {
-					id = id.slice(6) + 'primal';
+					aliasTo = id.slice(6) + 'primal';
 				} else if (id.startsWith('p') && this.data.Pokedex[id.slice(1) + 'primal']) {
-					id = id.slice(1) + 'primal';
+					aliasTo = id.slice(1) + 'primal';
+				}
+				if (aliasTo) {
+					template = this.getTemplate(aliasTo);
+					if (template.exists) {
+						this.data.TemplateCache.set(id, template);
+						return template;
+					}
 				}
 			}
-			template = {};
-			if (id && id !== 'constructor' && this.data.Pokedex[id]) {
-				template = this.data.Pokedex[id];
-				if (template.cached) return template;
-				template.cached = true;
+			if (id && hasOwnProperty(this.data.Pokedex, id)) {
+				template = this.deepClone(this.data.Pokedex[id]);
 				template.exists = true;
+			} else {
+				template = {};
 			}
 			name = template.species || template.name || name;
 			if (this.data.FormatsData[id]) {
@@ -395,27 +415,37 @@ module.exports = (() => {
 					template.gen = 0;
 				}
 			}
+			if (template.exists) this.data.TemplateCache.set(id, template);
 		}
 		return template;
-	};
-	Tools.prototype.getMove = function (move) {
+	}
+	getLearnset(template) {
+		const id = toId(template);
+		if (!this.data.Learnsets[id]) return null;
+		return this.data.Learnsets[id].learnset;
+	}
+	getMove(move) {
 		if (!move || typeof move === 'string') {
 			let name = (move || '').trim();
 			let id = toId(name);
-			if (this.data.Aliases[id]) {
-				name = this.data.Aliases[id];
-				id = toId(name);
+			move = this.data.MoveCache.get(id);
+			if (move) return move;
+			if (hasOwnProperty(this.data.Aliases, id)) {
+				move = this.getMove(this.data.Aliases[id]);
+				if (move.exists) {
+					this.data.MoveCache.set(id, move);
+				}
+				return move;
 			}
-			move = {};
 			if (id.substr(0, 11) === 'hiddenpower') {
 				let matches = /([a-z]*)([0-9]*)/.exec(id);
 				id = matches[1];
 			}
-			if (id && id !== 'constructor' && this.data.Movedex[id]) {
-				move = this.data.Movedex[id];
-				if (move.cached) return move;
-				move.cached = true;
+			if (id && hasOwnProperty(this.data.Movedex, id)) {
+				move = this.deepClone(this.data.Movedex[id]);
 				move.exists = true;
+			} else {
+				move = {};
 			}
 			if (!move.id) move.id = id;
 			if (!move.name) move.name = name;
@@ -445,9 +475,10 @@ module.exports = (() => {
 			if (!move.priority) move.priority = 0;
 			if (move.ignoreImmunity === undefined) move.ignoreImmunity = (move.category === 'Status');
 			if (!move.flags) move.flags = {};
+			if (move.exists) this.data.MoveCache.set(id, move);
 		}
 		return move;
-	};
+	}
 	/**
 	 * Ensure we're working on a copy of a move (and make a copy if we aren't)
 	 *
@@ -460,14 +491,14 @@ module.exports = (() => {
 	 * @param  move    Move ID, move object, or movecopy object describing move to copy
 	 * @return         movecopy object
 	 */
-	Tools.prototype.getMoveCopy = function (move) {
+	getMoveCopy(move) {
 		if (move && move.isCopy) return move;
 		move = this.getMove(move);
-		let moveCopy = deepClone(move);
+		let moveCopy = this.deepClone(move);
 		moveCopy.isCopy = true;
 		return moveCopy;
-	};
-	Tools.prototype.getEffect = function (effect) {
+	}
+	getEffect(effect) {
 		if (!effect || typeof effect === 'string') {
 			let name = (effect || '').trim();
 			let id = toId(name);
@@ -506,8 +537,8 @@ module.exports = (() => {
 			if (!effect.effectType) effect.effectType = 'Effect';
 		}
 		return effect;
-	};
-	Tools.prototype.getFormat = function (effect) {
+	}
+	getFormat(effect) {
 		if (!effect || typeof effect === 'string') {
 			let name = (effect || '').trim();
 			let id = toId(name);
@@ -532,24 +563,30 @@ module.exports = (() => {
 			if (!effect.effectType) effect.effectType = 'Effect';
 		}
 		return effect;
-	};
-	Tools.prototype.getItem = function (item) {
+	}
+	getItem(item) {
 		if (!item || typeof item === 'string') {
 			let name = (item || '').trim();
 			let id = toId(name);
-			if (this.data.Aliases[id]) {
-				name = this.data.Aliases[id];
-				id = toId(name);
+			item = this.data.ItemCache.get(id);
+			if (item) return item;
+			if (hasOwnProperty(this.data.Aliases, id)) {
+				item = this.getItem(this.data.Aliases[id]);
+				if (item.exists) {
+					this.data.ItemCache.set(id, item);
+				}
+				return item;
 			}
 			if (id && !this.data.Items[id] && this.data.Items[id + 'berry']) {
-				id += 'berry';
+				item = this.getItem(id + 'berry');
+				this.data.ItemCache.set(id, item);
+				return item;
 			}
-			item = {};
-			if (id && id !== 'constructor' && this.data.Items[id]) {
+			if (id && hasOwnProperty(this.data.Items, id)) {
 				item = this.data.Items[id];
-				if (item.cached) return item;
-				item.cached = true;
 				item.exists = true;
+			} else {
+				item = {};
 			}
 			if (!item.id) item.id = id;
 			if (!item.name) item.name = name;
@@ -573,19 +610,23 @@ module.exports = (() => {
 				}
 				// Due to difference in storing items, gen 2 items must be specified manually
 			}
+			if (item.exists) this.data.ItemCache.set(id, item);
 		}
 		return item;
-	};
-	Tools.prototype.getAbility = function (ability) {
+	}
+	getAbility(ability) {
 		if (!ability || typeof ability === 'string') {
 			let name = (ability || '').trim();
 			let id = toId(name);
-			ability = {};
-			if (id && id !== 'constructor' && this.data.Abilities[id]) {
+			ability = this.data.AbilityCache.get(id);
+			if (ability) return ability;
+			if (id && hasOwnProperty(this.data.Abilities, id)) {
 				ability = this.data.Abilities[id];
 				if (ability.cached) return ability;
 				ability.cached = true;
 				ability.exists = true;
+			} else {
+				ability = {};
 			}
 			if (!ability.id) ability.id = id;
 			if (!ability.name) ability.name = name;
@@ -606,10 +647,11 @@ module.exports = (() => {
 					ability.gen = 0;
 				}
 			}
+			if (ability.exists) this.data.AbilityCache.set(id, ability);
 		}
 		return ability;
-	};
-	Tools.prototype.getType = function (type) {
+	}
+	getType(type) {
 		if (!type || typeof type === 'string') {
 			let id = toId(type);
 			id = id.charAt(0).toUpperCase() + id.substr(1);
@@ -629,8 +671,8 @@ module.exports = (() => {
 			}
 		}
 		return type;
-	};
-	Tools.prototype.getNature = function (nature) {
+	}
+	getNature(nature) {
 		if (!nature || typeof nature === 'string') {
 			let name = (nature || '').trim();
 			let id = toId(name);
@@ -647,15 +689,15 @@ module.exports = (() => {
 			if (!nature.effectType) nature.effectType = 'Nature';
 		}
 		return nature;
-	};
-	Tools.prototype.natureModify = function (stats, nature) {
+	}
+	natureModify(stats, nature) {
 		nature = this.getNature(nature);
 		if (nature.plus) stats[nature.plus] *= 1.1;
 		if (nature.minus) stats[nature.minus] *= 0.9;
 		return stats;
-	};
+	}
 
-	Tools.prototype.getBanlistTable = function (format, subformat, depth) {
+	getBanlistTable(format, subformat, depth) {
 		let banlistTable;
 		if (!depth) depth = 0;
 		if (depth > 8) return; // avoid infinite recursion
@@ -727,9 +769,9 @@ module.exports = (() => {
 			}
 		}
 		return banlistTable;
-	};
+	}
 
-	Tools.prototype.shuffle = function (arr) {
+	shuffle(arr) {
 		// In-place shuffle by Fisher-Yates algorithm
 		for (let i = arr.length - 1; i > 0; i--) {
 			let j = Math.floor(Math.random() * (i + 1));
@@ -738,9 +780,9 @@ module.exports = (() => {
 			arr[j] = temp;
 		}
 		return arr;
-	};
+	}
 
-	Tools.prototype.levenshtein = function (s, t, l) { // s = string 1, t = string 2, l = limit
+	levenshtein(s, t, l) { // s = string 1, t = string 2, l = limit
 		// Original levenshtein distance function by James Westgate, turned out to be the fastest
 		let d = []; // 2d matrix
 
@@ -785,17 +827,17 @@ module.exports = (() => {
 
 		// Step 7
 		return d[n][m];
-	};
+	}
 
-	Tools.prototype.clampIntRange = function (num, min, max) {
+	clampIntRange(num, min, max) {
 		if (typeof num !== 'number') num = 0;
 		num = Math.floor(num);
 		if (num < min) num = min;
 		if (max !== undefined && num > max) num = max;
 		return num;
-	};
+	}
 
-	Tools.prototype.getLocalDate = function (date, timeZone) {
+	getLocalDate(date, timeZone) {
 		if (!date && date !== 0) date = new Date();
 		if (typeof date === 'number') date = new Date(date);
 
@@ -808,131 +850,25 @@ module.exports = (() => {
 		) : Config.dateFormatter;
 
 		return Date.utc.create(formatter.format(date)).utc();
-	};
+	}
 
-	Tools.prototype._getSecureDomainsData = (function () {
-		const DOMAINS_DATA = [
-			{domain: 'i.imgur.com', excludeSub: true},
-			{domain: 'i.gyazo.com', excludeSub: true},
-			{domain: 'puu.sh', excludeSub: true},
-			{domain: 'd.pr', excludeSub: true},
-			{domain: 'play.pokemonshowdown.com', excludeSub: true},
-			{domain: 'play.pandorashowdown.net', excludeSub: true},
-			{domain: 'wikia.nocookie.net', excludeMain: true},
-			{domain: 'bp.blogspot.com', excludeMain: true},
-			{domain: 'deviantart.net', excludeMain: true},
-			{domain: 'media.tumblr.com'},
-			{domain: 'pokefans.net'},
-		].map(domainData => {
-			if (!domainData.main) domainData.main = {};
-			if (!domainData.subDomains) domainData.subDomains = {};
-
-			if (domainData.excludeSub) domainData.subDomains.excluded = true;
-			if (domainData.excludeMain) domainData.main.excluded = true;
-
-			if (domainData.main.downGrades) domainData.main.excluded = true;
-			if (domainData.subDomains.downGrades) domainData.subDomains.excluded = true;
-
-			domainData.source = domainData.domain.replace(/\./g, '\\.');
-			return domainData;
-		});
-
-		return function () {
-			return DOMAINS_DATA;
-		};
-	})();
-
-	Tools.prototype.getSecureDomains = (function () {
-		const DOMAINS_DATA = Tools.prototype._getSecureDomainsData();
-
-		const map = new Map();
-		DOMAINS_DATA.forEach(entry => map.set(entry.domain, entry));
-
-		return function () {
-			return map;
-		};
-	})();
-
-	Tools.prototype._secureURI = (function () {
-		const DOMAINS = Tools.prototype._getSecureDomainsData();
-
-		const DOMAIN_SUPPORTS_HTTPS = (function () {
-			const FULL_DOMAIN = DOMAINS.filter(domainData => !domainData.main.excluded).map(domainData => domainData.source);
-			const SUB_DOMAINS = DOMAINS.filter(domainData => !domainData.subDomains.excluded).map(domainData => domainData.source);
-
-			const TEST_REGEX = new RegExp(
-				'^(?:' +
-					'(?:' + FULL_DOMAIN.map(domain => '(?:' + domain + ')').join('|') + ')' +
-					'|' +
-					'(?:[^\.]+\.(' +
-						'(?:' + SUB_DOMAINS.map(domain => '(?:' + domain + ')').join('|') + ')' +
-					'))' +
-				')$'
-			);
-
-			return TEST_REGEX.test.bind(TEST_REGEX);
-		})();
-
-		const DOMAIN_DOWNGRADES_HTTPS = (function () {
-			const FULL_DOMAIN = DOMAINS.filter(domainData => domainData.main.downGrades).map(domainData => domainData.source);
-			const SUB_DOMAINS = DOMAINS.filter(domainData => domainData.subDomains.downGrades).map(domainData => domainData.source);
-
-			const TEST_REGEX = new RegExp(
-				'^(?:' +
-					'(?:' + FULL_DOMAIN.map(domain => '(?:' + domain + ')').join('|') + ')' +
-					'|' +
-					'(?:[^\.]+\.(' +
-						'(?:' + SUB_DOMAINS.map(domain => '(?:' + domain + ')').join('|') + ')' +
-					'))' +
-				')$'
-			);
-			return TEST_REGEX.test.bind(TEST_REGEX);
-		})();
-
-		return function (urlData) {
-			urlData.credentials_ = null;
-
-			if (!urlData.scheme_ && !urlData.domain_ && !urlData.query_ && !urlData.fragment_ && !urlData.paramCache && !urlData.port_) {
-				if (urlData.path_ && urlData.path_.startsWith('')) return urlData;
-			}
-
-			if (urlData.domain_ === 'play.pandorashowdown.net') {
-				// CloudFlare
-				if (urlData.path_) urlData.path_ = urlData.path_.replace(/^\/resources\/(?!hotlink-ok\/)/, '/resources/hotlink-ok/');
-			} else if (urlData.domain_ === 'pandora.xiaotai.org') {
-				urlData.scheme_ = 'https';
-				if (urlData.port_ === '5000') urlData.port_ = '5443';
-			} else if (!urlData.scheme_ && !urlData.domain_ && !urlData.query_ && !urlData.fragment_ && !urlData.paramCache && !urlData.port_) {
-				// Relative URI
-				if (urlData.path_ && urlData.path_.startsWith('/')) return urlData;
-			}
-
-			if ((!urlData.scheme_ || urlData.scheme_ === 'http') && DOMAIN_SUPPORTS_HTTPS(urlData.domain_)) {
-				urlData.scheme_ = 'https';
-			}  else if ((urlData.scheme === 'https' || !urlData.scheme_) && DOMAIN_DOWNGRADES_HTTPS(urlData.domain_)) {
-				urlData.scheme_ = 'http';
-			}
-			return urlData;
-		};
-	})();
-
-	Tools.prototype.secureURI = function (uri, whiteList) {
+	secureURI(uri, whiteList) {
 		const urlData = require('./plugins/utils/html').URI.parse(uri);
 		if (!urlData || !urlData.domain_) return '';
 		if (whiteList && !whiteList.has(urlData.domain_)) return '';
 		return this._secureURI(urlData).toString();
-	};
+	}
 
-	Tools.prototype.laxSecureURI = function (uri, whiteList) {
+	laxSecureURI(uri, whiteList) {
 		uri = uri.trim();
 		if (!uri.startsWith('//') && /^https?\:\/\/[a-z0-9-.]+(?:\:[0-9]+)?(?:\/(?:[^\s]*[^\s?.,])?)?|[a-z0-9.]+\@[a-z0-9.]+\.[a-z0-9]{2,3}|(?:[a-z0-9](?:[a-z0-9-\.]*[a-z0-9])?\.(?:com|org|net|edu|us|jp)(?:\:[0-9]+)?|qmark\.tk)(?:(?:\/(?:[^\s]*[^\s?.,])?)?)$/i.test(uri)) {
 			// Make the URI fully-qualified if it isn't (assume HTTP)
 			uri = uri.replace(/^([a-z]*[^a-z:])/g, 'http://$1');
 		}
 		return this.secureURI(uri);
-	};
+	}
 
-	Tools.prototype.dataSearch = function (target, searchIn, isInexact) {
+	dataSearch(target, searchIn, isInexact) {
 		if (!target) {
 			return false;
 		}
@@ -1004,9 +940,9 @@ module.exports = (() => {
 		}
 
 		return false;
-	};
+	}
 
-	Tools.prototype.checkRegister = function (userid, requireDate, callback) {
+	checkRegister(userid, requireDate, callback) {
 		if (typeof requireDate === 'function') {
 			callback = requireDate;
 			requireDate = false;
@@ -1047,9 +983,9 @@ module.exports = (() => {
 		}).on('error', function (err) {
 			this.abort();
 		}).end();
-	};
+	}
 
-	Tools.prototype.uncacheTree = function (rootPath) {
+	uncacheTree(rootPath) {
 		const uncachedPaths = new Set();
 
 		let uncache = [require.resolve(rootPath)];
@@ -1075,16 +1011,16 @@ module.exports = (() => {
 		} while (uncache.length > 0);
 
 		return rootModule;
-	};
+	}
 
-	Tools.prototype.reloadModule = function (modulePath) {
+	reloadModule(modulePath) {
 		const oldModule = this.uncacheTree(modulePath);
 		if (!oldModule) return require(modulePath);
 		const parentModule = oldModule.parent || require.main;
 		return parentModule.require(modulePath);
-	};
+	}
 
-	Tools.prototype.DataSaver = function (path, getData) {
+	DataSaver(path, getData) {
 		let writing = false;
 		let writePending = false; // whether or not a new write is pending
 		let finishWriting = function () {
@@ -1114,9 +1050,9 @@ module.exports = (() => {
 			});
 		};
 		return saver;
-	};
+	}
 
-	Tools.prototype.packTeam = function (team) {
+	packTeam(team) {
 		if (!team) return '';
 
 		let buf = '';
@@ -1136,7 +1072,7 @@ module.exports = (() => {
 			buf += '|' + toId(set.item);
 
 			// ability
-			let template = moddedTools.base.getTemplate(set.species || set.name);
+			let template = dexes['base'].getTemplate(set.species || set.name);
 			let abilities = template.abilities;
 			id = toId(set.ability);
 			if (abilities) {
@@ -1211,9 +1147,9 @@ module.exports = (() => {
 		}
 
 		return buf;
-	};
+	}
 
-	Tools.prototype.fastUnpackTeam = function (buf) {
+	fastUnpackTeam(buf) {
 		if (!buf) return null;
 
 		let team = [];
@@ -1246,7 +1182,7 @@ module.exports = (() => {
 			j = buf.indexOf('|', i);
 			if (j < 0) return;
 			let ability = buf.substring(i, j);
-			let template = moddedTools.base.getTemplate(set.species);
+			let template = dexes['base'].getTemplate(set.species);
 			set.ability = (template.abilities && ability in {'':1, 0:1, 1:1, H:1} ? template.abilities[ability || '0'] : ability);
 			i = j + 1;
 
@@ -1325,59 +1261,93 @@ module.exports = (() => {
 		}
 
 		return team;
-	};
+	}
 
-	Tools.prototype.includeMods = function () {
-		if (this.modsLoaded) return this;
-		if (!this.isLoaded) this.includeData();
-
-		for (let id in moddedTools) {
-			if (moddedTools[id].isLoaded) continue;
-			moddedTools[id].includeData();
+	deepClone(obj) {
+		if (typeof obj === 'function') return obj;
+		if (obj === null || typeof obj !== 'object') return obj;
+		if (Array.isArray(obj)) return obj.map(prop => this.deepClone(prop));
+		const clone = Object.create(Object.getPrototypeOf(obj));
+		const keys = Object.keys(obj);
+		for (let i = 0; i < keys.length; i++) {
+			clone[keys[i]] = this.deepClone(obj[keys[i]]);
 		}
+		return clone;
+	}
+
+	loadDataFile(basePath, dataType) {
+		try {
+			const filePath = basePath + DATA_FILES[dataType];
+			const dataObject = require(filePath);
+			const key = `Battle${dataType}`;
+			if (!dataObject || typeof dataObject !== 'object') return new TypeError(`${filePath}, si existe, debe exportar un objeto no nulo.`);
+			if (!dataObject[key] || typeof dataObject[key] !== 'object') return new TypeError(`${filePath}, si existe, debe exportar un objeto con una propiedad '${key}' que sea un objeto no nulo.`);
+			return dataObject[key];
+		} catch (e) {
+			if (e.code !== 'MODULE_NOT_FOUND') {
+				throw e;
+			}
+		}
+		return {};
+	}
+
+	includeMods() {
+		if (!this.isBase) throw new Error("This must be called on the base Dex.");
+		if (this.modsLoaded) return this;
+
+		let modList = fs.readdirSync(path.resolve(__dirname, 'mods'));
+		for (let i = 0; i < modList.length; i++) {
+			dexes[modList[i]] = new BattleDex(modList[i]);
+		}
+		this.modsLoaded = true;
 
 		return this;
-	};
+	}
 
-	Tools.prototype.includeData = function () {
-		if (this.isLoaded) return this;
+	includeModData() {
+		this.includeMods();
+		for (const mod in dexes) {
+			dexes[mod].includeData();
+		}
+	}
+
+	includeData() {
+		if (this.dataLoaded) return this;
+		dexes['base'].includeMods();
 		if (!this.data) this.data = {mod: this.currentMod};
-		let data = this.data;
 
-		let basePath = './data/';
-		let parentTools;
+		let basePath = this.isBase ? './data/' : './mods/' + this.currentMod + '/';
+
+		let BattleScripts = this.loadDataFile(basePath, 'Scripts');
+		this.parentMod = this.isBase ? '' : (BattleScripts.inherit || 'base');
+
+		let parentDex;
 		if (this.parentMod) {
-			parentTools = moddedTools[this.parentMod];
-			if (!parentTools || parentTools === this) throw new Error("Unable to load " + this.currentMod + ". `inherit` should specify a parent mod from which to inherit data, or must be not specified.");
-			if (!parentTools.isLoaded) parentTools.includeData();
-			basePath = './mods/' + this.currentMod + '/';
+			parentDex = dexes[this.parentMod];
+			if (!parentDex || parentDex === this) throw new Error("Unable to load " + this.currentMod + ". `inherit` should specify a parent mod from which to inherit data, or must be not specified.");
+			parentDex.includeData();
 		}
 
-		for (let dataType of dataTypes) {
-			if (typeof dataFiles[dataType] !== 'string') {
-				data[dataType] = dataFiles[dataType];
+		for (let dataType of DATA_TYPES) {
+			if (dataType === 'Natures' && this.isBase) {
+				this.data[dataType] = BattleNatures;
 				continue;
 			}
-			if (dataType === 'Natures') {
-				if (data.mod === 'base') data[dataType] = BattleNatures;
-				continue;
-			}
-			let maybeData = tryRequire(basePath + dataFiles[dataType]);
-			if (maybeData instanceof Error) {
-				if (maybeData.code !== 'MODULE_NOT_FOUND') throw new Error("CRASH LOADING " + data.mod.toUpperCase() + " DATA in " + basePath + dataFiles[dataType] + ":\n" + maybeData.stack);
-				maybeData['Battle' + dataType] = {}; // Fall back to an empty object
-			}
-			let BattleData = maybeData['Battle' + dataType];
-			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + './data/' + dataFiles[dataType] + "` must be an object except `null`.");
-			if (BattleData !== data[dataType]) data[dataType] = Object.assign(BattleData, data[dataType]);
+			let BattleData = this.loadDataFile(basePath, dataType);
+			if (!BattleData || typeof BattleData !== 'object') throw new TypeError("Exported property `Battle" + dataType + "`from `" + './data/' + DATA_FILES[dataType] + "` must be an object except `null`.");
+			if (BattleData !== this.data[dataType]) this.data[dataType] = Object.assign(BattleData, this.data[dataType]);
 		}
+		this.data['MoveCache'] = new Map();
+		this.data['ItemCache'] = new Map();
+		this.data['AbilityCache'] = new Map();
+		this.data['TemplateCache'] = new Map();
 		if (this.isBase) {
 			// Formats are inherited by mods
 			this.includeFormats();
 		} else {
-			for (let dataType of dataTypes) {
-				const parentTypedData = parentTools.data[dataType];
-				const childTypedData = data[dataType] || (data[dataType] = {});
+			for (let dataType of DATA_TYPES) {
+				const parentTypedData = parentDex.data[dataType];
+				const childTypedData = this.data[dataType] || (this.data[dataType] = {});
 				for (let entryId in parentTypedData) {
 					if (childTypedData[entryId] === null) {
 						// null means don't inherit
@@ -1386,7 +1356,8 @@ module.exports = (() => {
 						// If it doesn't exist it's inherited from the parent data
 						if (dataType === 'Pokedex') {
 							// Pokedex entries can be modified too many different ways
-							childTypedData[entryId] = deepClone(parentTypedData[entryId]);
+							// e.g. inheriting different formats-data/learnsets
+							childTypedData[entryId] = this.deepClone(parentTypedData[entryId]);
 						} else {
 							childTypedData[entryId] = parentTypedData[entryId];
 						}
@@ -1406,42 +1377,37 @@ module.exports = (() => {
 		}
 
 		// Flag the generation. Required for team validator.
-		this.gen = data.Scripts.gen || 6;
+		this.gen = this.data.Scripts.gen || 6;
 
 		// Execute initialization script.
-		if (typeof this.initMod === 'function') this.initMod();
+		if (BattleScripts.init) BattleScripts.init.call(this);
 
-		this.isLoaded = true;
+		this.dataLoaded = true;
 		return this;
-	};
+	}
 
-	Tools.prototype.includeFormats = function () {
+	includeFormats() {
+		this.includeMods();
 		if (this.formatsLoaded) return this;
-		Tools.preloadMods();
 
 		if (!this.data) this.data = {mod: this.currentMod};
 		if (!this.data.Formats) this.data.Formats = {};
 
 		// Load [formats] aliases
-		let maybeAliases = tryRequire('./data/' + dataFiles.Aliases);
-		if (maybeAliases instanceof Error) {
-			if (maybeAliases.code !== 'MODULE_NOT_FOUND') throw new Error("CRASH LOADING ALIASES:\n" + maybeAliases.stack);
-			maybeAliases.BattleAliases = {}; // Fall back to an empty object
-		}
-		let BattleAliases = maybeAliases.BattleAliases;
-		if (!BattleAliases || typeof BattleAliases !== 'object') throw new TypeError("Exported property `BattleAliases`from `" + "./data/aliases.js` must be an object except `null`.");
+		let BattleAliases = this.loadDataFile('./data/', 'Aliases');
 		this.data.Aliases = BattleAliases;
 
 		// Load formats
-		let maybeFormats = tryRequire('./config/formats');
-		if (maybeFormats instanceof Error) {
-			if (maybeFormats.code !== 'MODULE_NOT_FOUND') throw new Error("CRASH LOADING FORMATS:\n" + maybeFormats.stack);
+		let Formats;
+		try {
+			Formats = require('./config/formats').Formats;
+		} catch (e) {
+			if (e.code !== 'MODULE_NOT_FOUND') throw e;
 		}
-		let BattleFormats = maybeFormats.Formats;
-		if (!Array.isArray(BattleFormats)) throw new TypeError("Exported property `Formats`from `" + "./config/formats.js" + "` must be an array.");
+		if (!Array.isArray(Formats)) throw new TypeError("Exported property `Formats` from `" + "./config/formats.js" + "` must be an array.");
 
-		for (let i = 0; i < BattleFormats.length; i++) {
-			let format = BattleFormats[i];
+		for (let i = 0; i < Formats.length; i++) {
+			let format = Formats[i];
 			let id = toId(format.name);
 			if (!id) throw new RangeError("Format #" + (i + 1) + " must have a name with alphanumeric characters");
 			if (this.data.Formats[id]) throw new Error("Format #" + (i + 1) + " has a duplicate ID: `" + id + "`");
@@ -1451,36 +1417,143 @@ module.exports = (() => {
 			if (format.searchShow === undefined) format.searchShow = true;
 			if (format.tournamentShow === undefined) format.tournamentShow = true;
 			if (format.mod === undefined) format.mod = 'base';
-			if (!moddedTools[format.mod]) throw new Error("Format `" + format.name + "` requires nonexistent mod: `" + format.mod + "`");
+			if (!dexes[format.mod]) throw new Error("Format `" + format.name + "` requires nonexistent mod: `" + format.mod + "`");
 			this.installFormat(id, format);
 		}
 
 		this.formatsLoaded = true;
 		return this;
-	};
+	}
 
-	Tools.prototype.installFormat = function (id, format) {
+	installFormat(id, format) {
 		this.data.Formats[id] = format;
 		if (!this.isBase) {
-			moddedTools.base.data.Formats[id] = format;
+			dexes['base'].data.Formats[id] = format;
 		}
-	};
+	}
 
 	/**
 	 * Install our Tools functions into the battle object
 	 */
-	Tools.prototype.install = function (battle) {
+	install(battle) {
 		for (let i in this.data.Scripts) {
 			battle[i] = this.data.Scripts[i];
 		}
+	}
+}
+
+defineNonEnumerable(BattleDex.prototype, '_getSecureDomainsData', (function () {
+	const DOMAINS_DATA = [
+		{domain: 'i.imgur.com', excludeSub: true},
+		{domain: 'i.gyazo.com', excludeSub: true},
+		{domain: 'puu.sh', excludeSub: true},
+		{domain: 'd.pr', excludeSub: true},
+		{domain: 'play.pokemonshowdown.com', excludeSub: true},
+		{domain: 'play.pandorashowdown.net', excludeSub: true},
+		{domain: 'wikia.nocookie.net', excludeMain: true},
+		{domain: 'bp.blogspot.com', excludeMain: true},
+		{domain: 'deviantart.net', excludeMain: true},
+		{domain: 'media.tumblr.com'},
+		{domain: 'pokefans.net'},
+	].map(domainData => {
+		if (!domainData.main) domainData.main = {};
+		if (!domainData.subDomains) domainData.subDomains = {};
+
+		if (domainData.excludeSub) domainData.subDomains.excluded = true;
+		if (domainData.excludeMain) domainData.main.excluded = true;
+
+		if (domainData.main.downGrades) domainData.main.excluded = true;
+		if (domainData.subDomains.downGrades) domainData.subDomains.excluded = true;
+
+		domainData.source = domainData.domain.replace(/\./g, '\\.');
+		return domainData;
+	});
+
+	return function () {
+		return DOMAINS_DATA;
 	};
+})());
 
-	moddedTools.base = new Tools();
 
-	// "gen6" is an alias for the current base data
-	moddedTools.gen6 = moddedTools.base;
+// Hail ES6 classes <_<
+defineNonEnumerable(BattleDex.prototype, 'getSecureDomains', (function () {
+	const DOMAINS_DATA = BattleDex.prototype._getSecureDomainsData();
 
-	Object.getPrototypeOf(moddedTools.base).moddedTools = moddedTools;
+	const map = new Map();
+	DOMAINS_DATA.forEach(entry => map.set(entry.domain, entry));
 
-	return moddedTools.base;
-})();
+	return function () {
+		return map;
+	};
+})());
+
+defineNonEnumerable(BattleDex.prototype, '_secureURI', (function () {
+	const DOMAINS = BattleDex.prototype._getSecureDomainsData();
+
+	const DOMAIN_SUPPORTS_HTTPS = (function () {
+		const FULL_DOMAIN = DOMAINS.filter(domainData => !domainData.main.excluded).map(domainData => domainData.source);
+		const SUB_DOMAINS = DOMAINS.filter(domainData => !domainData.subDomains.excluded).map(domainData => domainData.source);
+
+		const TEST_REGEX = new RegExp(
+			'^(?:' +
+				'(?:' + FULL_DOMAIN.map(domain => '(?:' + domain + ')').join('|') + ')' +
+				'|' +
+				'(?:[^\.]+\.(' +
+					'(?:' + SUB_DOMAINS.map(domain => '(?:' + domain + ')').join('|') + ')' +
+				'))' +
+			')$'
+		);
+
+		return TEST_REGEX.test.bind(TEST_REGEX);
+	})();
+
+	const DOMAIN_DOWNGRADES_HTTPS = (function () {
+		const FULL_DOMAIN = DOMAINS.filter(domainData => domainData.main.downGrades).map(domainData => domainData.source);
+		const SUB_DOMAINS = DOMAINS.filter(domainData => domainData.subDomains.downGrades).map(domainData => domainData.source);
+
+		const TEST_REGEX = new RegExp(
+			'^(?:' +
+				'(?:' + FULL_DOMAIN.map(domain => '(?:' + domain + ')').join('|') + ')' +
+				'|' +
+				'(?:[^\.]+\.(' +
+					'(?:' + SUB_DOMAINS.map(domain => '(?:' + domain + ')').join('|') + ')' +
+				'))' +
+			')$'
+		);
+		return TEST_REGEX.test.bind(TEST_REGEX);
+	})();
+
+	return function (urlData) {
+		urlData.credentials_ = null;
+
+		if (!urlData.scheme_ && !urlData.domain_ && !urlData.query_ && !urlData.fragment_ && !urlData.paramCache && !urlData.port_) {
+			if (urlData.path_ && urlData.path_.startsWith('')) return urlData;
+		}
+
+		if (urlData.domain_ === 'play.pandorashowdown.net') {
+			// CloudFlare
+			if (urlData.path_) urlData.path_ = urlData.path_.replace(/^\/resources\/(?!hotlink-ok\/)/, '/resources/hotlink-ok/');
+		} else if (urlData.domain_ === 'pandora.xiaotai.org') {
+			urlData.scheme_ = 'https';
+			if (urlData.port_ === '5000') urlData.port_ = '5443';
+		} else if (!urlData.scheme_ && !urlData.domain_ && !urlData.query_ && !urlData.fragment_ && !urlData.paramCache && !urlData.port_) {
+			// Relative URI
+			if (urlData.path_ && urlData.path_.startsWith('/')) return urlData;
+		}
+
+		if ((!urlData.scheme_ || urlData.scheme_ === 'http') && DOMAIN_SUPPORTS_HTTPS(urlData.domain_)) {
+			urlData.scheme_ = 'https';
+		}  else if ((urlData.scheme === 'https' || !urlData.scheme_) && DOMAIN_DOWNGRADES_HTTPS(urlData.domain_)) {
+			urlData.scheme_ = 'http';
+		}
+		return urlData;
+	};
+})());
+
+dexes['base'] = new BattleDex();
+dexes['base'].BattleDex = BattleDex;
+
+// "gen6" is an alias for the current base data
+dexes['gen6'] = dexes['base'];
+
+module.exports = dexes['gen6'];

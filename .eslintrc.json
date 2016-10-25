@@ -14,7 +14,7 @@
 	"globals": {
 		"CSS": false,
 		"Config": false, "Monitor": false, "toId": false, "Tools": false, "LoginServer": false,
-		"Users": false, "Punishments": false, "Rooms": false, "Verifier": false, "Chat": false, "Simulator": false,
+		"Users": false, "Punishments": false, "Rooms": false, "Verifier": false, "Chat": false,
 		"Tournaments": false, "Dnsbl": false, "Sockets": false, "TeamValidator": false, "Ladders": false, "Messages": false,
 		"Plugins": false, "battleEngineFakeProcess": false, "battleProtoCache": false,
 		"splint": false, "toUserName": false,

@@ -420,6 +420,7 @@ exports.commands = {
 	inv: 'invite',
 	invite: function (target, room, user) {
 		if (!target) return this.parse('/help invite');
+		if (!this.canTalk()) return;
 		if (room) target = this.splitTarget(target) || room.id;
 		let targetRoom = Rooms.search(target);
 		if (targetRoom && !targetRoom.checkModjoin(user)) {
@@ -2400,8 +2401,6 @@ exports.commands = {
 	 *********************************************************/
 
 	hotpatch: function (target, room, user) {
-
-
 	},
 	hotpatchhelp: ["Hot-patching the game engine allows you to update parts of Showdown without interrupting currently-running battles. Requires: ~",
 		"Hot-patching has greater memory requirements than restarting.",
