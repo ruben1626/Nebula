@@ -17,7 +17,7 @@ global.Config = require('./config/config');
 
 const FakeProcess = require('./fake-process');
 const ProcessManager = require('./process-manager');
-const BattleEngine = require('./battle-engine').Battle;
+const BattleEngine = require('./battle-engine');
 
 class SimulatorManager extends ProcessManager {
 	onMessageUpstream(message) {
