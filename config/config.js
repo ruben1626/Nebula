@@ -1,7 +1,8 @@
-// The server port - the port to run Pokemon Showdown under h
-//exports.port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
-//exports.bindaddress = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
-exports.port = 8000;
+'use strict';
+
+// The server port - the port to run Pokemon Showdown under
+exports.port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
+exports.bindaddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 
 // proxyip - proxy IPs with trusted X-Forwarded-For headers
 //   This can be either false (meaning not to trust any proxies) or an array
@@ -15,14 +16,16 @@ exports.proxyip = ['127.0.0.0/8'];
 //   in every Random Battle team.
 exports.potd = '';
 exports.superAdmins = {
-	"fenrir": 1,
+	__proto__: null,
+	'fenrir': 1,
+	'fenriis': 1,
 };
 
 // crash guard - write errors to log file instead of crashing
 //   This is normally not recommended - if Node wants to crash, the
 //   server needs to be restarted
-//   Unfortunately, socket.io bug 409 requires some sort of crash guard
-//   https://github.com/LearnBoost/socket.io/issues/609
+//   However, most people want the server to stay online even if there is a
+//   crash, so this option is provided
 exports.crashguard = true;
 
 // login server data - don't forget the http:// and the trailing slash
@@ -30,20 +33,22 @@ exports.crashguard = true;
 //   Don't change this setting - there aren't any other login servers right now
 exports.loginserver = 'http://play.pokemonshowdown.com/';
 exports.loginserverkeyalgo = "RSA-SHA1";
-exports.loginserverpublickeyid = 2;
-exports.loginserverpublickey = "-----BEGIN RSA PUBLIC KEY-----\n" +
-	"MIICCgKCAgEAtFldA2rTCsPgqsp1odoH9vwhf5+QGIlOJO7STyY73W2+io33cV7t\n" +
-	"ReNuzs75YBkZ3pWoDn2be0eb2UqO8dM3xN419FdHNORQ897K9ogoeSbLNQwyA7XB\n" +
-	"N/wpAg9NpNu00wce2zi3/+4M/2H+9vlv2/POOj1epi6cD5hjVnAuKsuoGaDcByg2\n" +
-	"EOullPh/00TkEkcyYtaBknZpED0lt/4ekw16mjHKcbo9uFiw+tu5vv7DXOkfciW+\n" +
-	"9ApyYbNksC/TbDIvJ2RjzR9G33CPE+8J+XbS7U1jPvdFragCenz+B3AiGcPZwT66\n" +
-	"dvHAOYRus/w5ELswOVX/HvHUb/GRrh4blXWUDn4KpjqtlwqY4H2oa+h9tEENCk8T\n" +
-	"BWmv3gzGBM5QcehNsyEi9+1RUAmknqJW0QOC+kifbjbo/qtlzzlSvtbr4MwghCFe\n" +
-	"1EfezeNAtqwvICznq8ebsGETyPSqI7fSbpmVULkKbebSDw6kqDnQso3iLjSX9K9C\n" +
-	"0rwxwalCs/YzgX9Eq4jdx6yAHd7FNGEx4iu8qM78c7GKCisygZxF8kd0B7V7a5UO\n" +
-	"wdlWIlTxJ2dfCnnJBFEt/wDsL54q8KmGbzOTvRq5uz/tMvs6ycgLVgA9r1xmVU+1\n" +
-	"6lMr2wdSzyG7l3X3q1XyQ/CT5IP4unFs5HKpG31skxlfXv5a7KW5AfsCAwEAAQ==\n" +
-	"-----END RSA PUBLIC KEY-----\n";
+exports.loginserverpublickeyid = 4;
+exports.loginserverpublickey = `-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAzfWKQXg2k8c92aiTyN37
+dl76iW0aeAighgzeesdar4xZT1A9yzLpj2DgR8F8rh4R32/EVOPmX7DCf0bYWeh3
+QttP0HVKKKfsncJZ9DdNtKj1vWdUTklH8oeoIZKs54dwWgnEFKzb9gxqu+z+FJoQ
+vPnvfjCRUPA84O4kqKSuZT2qiWMFMWNQPXl87v+8Atb+br/WXvZRyiLqIFSG+ySn
+Nwx6V1C8CA1lYqcPcTfmQs+2b4SzUa8Qwkr9c1tZnXlWIWj8dVvdYtlo0sZZBfAm
+X71Rsp2vwEleSFKV69jj+IzAfNHRRw+SADe3z6xONtrJOrp+uC/qnLNuuCfuOAgL
+dnUVFLX2aGH0Wb7ZkriVvarRd+3otV33A8ilNPIoPb8XyFylImYEnoviIQuv+0VW
+RMmQlQ6RMZNr6sf9pYMDhh2UjU11++8aUxBaso8zeSXC9hhp7mAa7OTxts1t3X57
+72LqtHHEzxoyLj/QDJAsIfDmUNAq0hpkiRaXb96wTh3IyfI/Lqh+XmyJuo+S5GSs
+RhlSYTL4lXnj/eOa23yaqxRihS2MT9EZ7jNd3WVWlWgExIS2kVyZhL48VA6rXDqr
+Ko0LaPAMhcfETxlFQFutoWBRcH415A/EMXJa4FqYa9oeXWABNtKkUW0zrQ194btg
+Y929lRybWEiKUr+4Yw2O1W0CAwEAAQ==
+-----END PUBLIC KEY-----
+`;
 
 // crashguardemail - if the server has been running for more than an hour
 //   and crashes, send an email using these settings, rather than locking down
@@ -63,6 +68,13 @@ exports.loginserverpublickey = "-----BEGIN RSA PUBLIC KEY-----\n" +
 	to: 'admin@example.com',
 	subject: 'Pokemon Showdown has crashed!'
 };**/
+
+// basic name filter - removes characters used for impersonation
+//   The basic name filter removes Unicode characters that can be used for impersonation,
+//   like the upside-down exclamation mark (looks like an i), the Greek omicron (looks
+//   like an o), etc. Disable only if you need one of the alphabets it disables, such as
+//   Greek or Cyrillic.
+exports.disablebasicnamefilter = true;
 
 // report joins and leaves - shows messages like "<USERNAME> joined"
 //   Join and leave messages are small and consolidated, so there will never
@@ -89,11 +101,19 @@ exports.reportbattles = false;
 //   Note that the feature of turning this off is deprecated.
 exports.reportbattlejoins = true;
 
-// moderated chat - prevent unvoiced users from speaking
-//   This should only be enabled in special situations, such as temporarily
-//   when you're dealing with huge influxes of spammy users.
+// whitelist - prevent users below a certain group from doing things
+//   For the modchat settings, false will allow any user to participate, while a string
+//   with a group symbol will restrict it to that group and above. The string
+//   'autoconfirmed' is also supported for chatmodchat and battlemodchat, to restrict
+//   chat to autoconfirmed users.
+//   This is usually intended to be used as a whitelist feature - set these to '+' and
+//   voice every user you want whitelisted on the server.
+
+// chat modchat - default minimum group for speaking in chatrooms; changeable with /modchat
 exports.chatmodchat = false;
+// battle modchat - default minimum group for speaking in battles; changeable with /modchat
 exports.battlemodchat = false;
+// pm modchat - minimum group for PMing other users, challenging other users, and laddering
 exports.pmmodchat = false;
 
 // forced timer - force the timer on for all battles
@@ -162,10 +182,9 @@ exports.customavatars = {
 	//'userid': 'customavatar.png'
 };
 
-// Tournament announcements
-// When tournaments are created in rooms listed below, they will be announced in
-// the server's main tournament room (either the specified tourroom or by default
-// the room 'tournaments')
+// tourroom - specify a room to receive tournament announcements (defaults to
+// the room 'tournaments').
+// tourannouncements - announcements are only allowed in these rooms
 exports.tourroom = '';
 exports.tourannouncements = [/* roomids */];
 
@@ -177,7 +196,7 @@ exports.appealurl = '';
 // replsocketprefix - the prefix for the repl sockets to be listening on
 // replsocketmode - the file mode bits to use for the repl sockets
 exports.replsocketprefix = './logs/repl/';
-exports.replsocketmode = 0700;
+exports.replsocketmode = 0o600;
 
 // permissions and groups:
 //   Each entry in `grouplist' is a seperate group. Some of the members are "special"
@@ -207,12 +226,13 @@ exports.replsocketmode = 0700;
 //     - promote: Promoting and demoting. Will only work if the target user's current
 //                  group and target group are both in jurisdiction.
 //     - room<rank>: /roompromote to <rank> (eg. roomvoice)
+//     - makeroom: Create/delete chatrooms, and set modjoin/roomdesc/privacy
+//     - editroom: Set modjoin/privacy only for battles/groupchats
 //     - ban: Banning and unbanning.
 //     - mute: Muting and unmuting.
 //     - lock: locking (ipmute) and unlocking.
 //     - receivemutedpms: Receive PMs from muted users.
 //     - forcerename: /fr command.
-//     - redirect: /redir command.
 //     - ip: IP checking.
 //     - alts: Alt checking.
 //     - modlog: view the moderator logs.
@@ -226,6 +246,9 @@ exports.replsocketmode = 0700;
 //     - tournaments: creating tournaments (/tour new, settype etc.)
 //     - tournamentsmoderation: /tour dq, autodq, end etc.
 //     - tournamentsmanagement: enable/disable tournaments.
+//     - minigame: make minigames (hangman, polls, etc.).
+//     - game: make games.
+//     - gamemanagement: enable/disable games and minigames.
 exports.grouplist = [
 	{
 		symbol: '~',
@@ -241,15 +264,21 @@ exports.grouplist = [
 		inherit: '@',
 		jurisdiction: '@u',
 		promote: 'u',
+		roomowner: true,
+		roombot: true,
+		roommod: true,
+		roomdriver: true,
 		forcewin: true,
 		declare: true,
 		modchatall: true,
 		rangeban: true,
+		makeroom: true,
+		editroom: true,
 		potd: true,
 		disableladder: true,
 		globalonly: true,
 		tournamentsmanagement: true,
-		rank: 7,
+		gamemanagement: true,
 	},
 	{
 		symbol: '#',
@@ -257,12 +286,15 @@ exports.grouplist = [
 		name: "Room Owner",
 		inherit: '@',
 		jurisdiction: 'u',
+		roombot: true,
 		roommod: true,
 		roomdriver: true,
+		editroom: true,
 		declare: true,
 		modchatall: true,
 		roomonly: true,
 		tournamentsmanagement: true,
+		gamemanagement: true,
 	},
 	{
 		symbol: '\u2605',
@@ -272,8 +304,18 @@ exports.grouplist = [
 		roomvoice: true,
 		modchat: true,
 		roomonly: true,
-		privateroom: true,
+		editroom: true,
 		joinbattle: true,
+		nooverride: true,
+	},
+	{
+		symbol: '*',
+		id: "bot",
+		name: "Bot",
+		inherit: '@',
+		jurisdiction: 'u',
+		declare: true,
+		addhtml: true,
 	},
 	{
 		symbol: '@',
@@ -288,6 +330,7 @@ exports.grouplist = [
 		ip: true,
 		alts: '@u',
 		tournaments: true,
+		game: true,
 	},
 	{
 		symbol: '%',
@@ -295,10 +338,7 @@ exports.grouplist = [
 		name: "Driver",
 		inherit: '\u2295',
 		jurisdiction: 'u',
-		announce: true,
-		warn: true,
-		kick: true,
-		mute: true,
+		mute: '\u2605u',
 		lock: true,
 		forcerename: true,
 		timer: true,
@@ -309,6 +349,7 @@ exports.grouplist = [
 		tournamentsmoderation: true,
 		jeopardy: true,
 		joinbattle: true,
+		minigame: true,
 	},
 	{
 		symbol: '\u00A5',
@@ -316,6 +357,7 @@ exports.grouplist = [
 		name: "Youtuber",
 		inherit: '\u2295',
 		jurisdiction: 'u',
+		announce: true,
 		youtube: true,
 		warn: true,
 		kick: true,
@@ -333,19 +375,17 @@ exports.grouplist = [
 		id: "voice",
 		name: "Voice",
 		inherit: '$',
-		joinbattle: true,
-		broadcast: true,
 	},
 	{
 		symbol: '$',
 		id: "destacado",
 		name: "Destacado",
 		inherit: ' ',
+		alts: 's',
 		broadcast: true,
 	},
 	{
 		symbol: ' ',
 		ip: 's',
-		alts: 's',
 	},
 ];
