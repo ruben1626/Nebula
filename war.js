@@ -236,7 +236,7 @@ exports.leaveTeamTour = function (room, user) {
 	if (!wars[roomId].teamAMembers[userId] && !wars[roomId].teamBMembers[userId]) return 'No estabas inscrito en la guerra.';
 	if (wars[roomId].tourRound !== 0) {
 		if (!exports.dqTeamTour(room, user, 'cmd')) return 'Ya habías sido descalificado o pasado a la siguiente ronda';
-		Rooms.rooms[roomId].addRaw('<b>' + user + '</b> se ha autodescalificado de la guerra.');
+		Rooms.get(roomId).addRaw('<b>' + user + '</b> se ha autodescalificado de la guerra.');
 		if (exports.isRoundEnded(roomId)) {
 			exports.autoEnd(roomId);
 		}
@@ -311,7 +311,7 @@ exports.newRound = function (room) {
 	wars[roomId].matchups = matchups;
 	wars[roomId].byes = byes;
 	++wars[roomId].tourRound;
-	Rooms.rooms[roomId].addRaw(exports.viewTourStatus(roomId));
+	Rooms.get(roomId).addRaw(exports.viewTourStatus(roomId));
 };
 
 exports.autoEnd = function (room) {
@@ -363,7 +363,7 @@ exports.autoEnd = function (room) {
 		wars[roomId].teamBMembers = {};
 		wars[roomId].teamBMembers[toId(wars[roomId].authB)] = 1;
 		++wars[roomId].tourRound;
-		Rooms.rooms[roomId].addRaw(exports.viewTourStatus(roomId));
+		Rooms.get(roomId).addRaw(exports.viewTourStatus(roomId));
 		return;
 	}
 	//raw of end
@@ -375,7 +375,7 @@ exports.autoEnd = function (room) {
 	} else if (scoreA === scoreB) {
 		htmlEndTour = '<br><hr /><h2><font color="green"><center>&iexcl;La guerra de formato ' + wars[roomId].format + ' entre <font color="black">' + wars[roomId].teamA + '</font> y <font color="black">' + wars[roomId].teamB + '</font> ha terminado en Empate!</center></font></h2><hr />';
 	}
-	Rooms.rooms[roomId].addRaw(exports.viewTourStatus(roomId) + htmlEndTour);
+	Rooms.get(roomId).addRaw(exports.viewTourStatus(roomId) + htmlEndTour);
 	let addpoints = Clans.setWarResult(wars[roomId].teamA, wars[roomId].teamB, scoreA, scoreB);
 	Clans.logWarData(wars[roomId].teamA, wars[roomId].teamB, scoreA, scoreB, wars[roomId].type, wars[roomId].format, addpoints['A'], wars[roomId].tourRound);
 	Clans.logWarData(wars[roomId].teamB, wars[roomId].teamA, scoreB, scoreA, wars[roomId].type, wars[roomId].format, addpoints['B'], wars[roomId].tourRound);
@@ -572,12 +572,12 @@ let cmds = {
 			case 'standard':
 				War.newTeamTour(room.id, 'standard', format, size, Chat.escapeHTML(params[4]), Chat.escapeHTML(params[5]));
 				this.logModCommand(user.name + " ha iniciado una guerra standard entre los clanes " + toId(params[4]) + " y " + toId(params[5]) + " en formato " + format + ".");
-				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra standard en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b>Para unirse a la war: <button name="send" value="/war join">/war join</button></b><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la guerra.</b></font>');
+				Rooms.get(room.id).addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra standard en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b>Para unirse a la war: <button name="send" value="/war join">/war join</button></b><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la guerra.</b></font>');
 				break;
 			case 'total':
 				War.newTeamTour(room.id, 'total', format, size, Chat.escapeHTML(params[4]), Chat.escapeHTML(params[5]));
 				this.logModCommand(user.name + " ha iniciado una guerra total entre los clanes " + toId(params[4]) + " y " + toId(params[5]) + " en formato " + format + ".");
-				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra total en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b>Para unirse a la war: <button name="send" value="/war join">/war join</button></b><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la guerra.</b></font>');
+				Rooms.get(room.id).addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra total en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b>Para unirse a la war: <button name="send" value="/war join">/war join</button></b><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la guerra.</b></font>');
 				break;
 			case 'lineups':
 				if (params.length < 8) return this.sendReply("Usage: /war new, lineups, [tier/multitier], [tamano], [clanA], [clanB], [capitanA], [capitanB]");
@@ -592,7 +592,7 @@ let cmds = {
 				if (toId(targetClan) !== toId(params[5])) return this.sendReply("El usuario " + Chat.escapeHTML(params[7]) + " no pertenece al clan del que se le asigna capitan.");
 				War.newTeamTour(room.id, 'lineups', format, size, Chat.escapeHTML(params[4]), Chat.escapeHTML(params[5]), userCapA.name, userCapB.name);
 				this.logModCommand(user.name + " ha iniciado una guerra con alineaciones entre los clanes " + toId(params[4]) + " y " + toId(params[5]) + " en formato " + format + ".");
-				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra por Alineaciones en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b><font color="orange">Capitanes de equipo: </font>' + userCapA.name + ' y ' + userCapB.name + '</font></b> <br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><b><font color="red">Recuerda que debes mantener tu nombre durante toda la duración del torneo.</font> <br />Los capitales deben usar /war reg, [miembro1], [miembro2]... para registrar las alineaciones.</b>');
+				Rooms.get(room.id).addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra por Alineaciones en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b><font color="orange">Capitanes de equipo: </font>' + userCapA.name + ' y ' + userCapB.name + '</font></b> <br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><b><font color="red">Recuerda que debes mantener tu nombre durante toda la duración del torneo.</font> <br />Los capitales deben usar /war reg, [miembro1], [miembro2]... para registrar las alineaciones.</b>');
 				break;
 			default:
 				return this.sendReply("El tipo de war debe ser uno de estos: [standard/total/lineups]");
@@ -605,7 +605,7 @@ let cmds = {
 			var tourData = War.getTourData(roomId);
 			if (!tourData) return this.sendReply("No había ninguna guerra en esta sala.");
 			this.logModCommand(user.name + " ha cancelado la guerra entre " + toId(tourData.teamA) + " y " + toId(tourData.teamB) + ".");
-			Rooms.rooms[room.id].addRaw('<hr /><center><h2><font color="green">' + user.name + ' ha cancelado la guerra entre ' + tourData.teamA + " y " + tourData.teamB + '.</h2></font></center><hr />');
+			Rooms.get(room.id).addRaw('<hr /><center><h2><font color="green">' + user.name + ' ha cancelado la guerra entre ' + tourData.teamA + " y " + tourData.teamB + '.</h2></font></center><hr />');
 			War.endTeamTour(roomId);
 			break;
 		case 'j':
@@ -616,11 +616,11 @@ let cmds = {
 			var tourData = War.getTourData(roomId);
 			var freePlaces = War.getFreePlaces(roomId);
 			if (freePlaces > 0) {
-				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> se ha unido a la guerra. Quedan ' + freePlaces + ' plazas.');
+				Rooms.get(room.id).addRaw('<b>' + user.name + '</b> se ha unido a la guerra. Quedan ' + freePlaces + ' plazas.');
 			} else {
-				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> se ha unido a la guerra. Comienza la guerra!');
+				Rooms.get(room.id).addRaw('<b>' + user.name + '</b> se ha unido a la guerra. Comienza la guerra!');
 				War.startTeamTour(roomId);
-				Rooms.rooms[room.id].addRaw(War.viewTourStatus(roomId));
+				Rooms.get(room.id).addRaw(War.viewTourStatus(roomId));
 			}
 			break;
 		case 'l':
@@ -629,7 +629,7 @@ let cmds = {
 			var err = War.leaveTeamTour(roomId, user.name);
 			if (err) return this.sendReply(err);
 			var freePlaces = War.getFreePlaces(roomId);
-			Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> ha salido de la guerra. Quedan ' + freePlaces + ' plazas.');
+			Rooms.get(room.id).addRaw('<b>' + user.name + '</b> ha salido de la guerra. Quedan ' + freePlaces + ' plazas.');
 			break;
 		case 'auth':
 			if (!this.can('tournamentsmoderation', room)) return false;
@@ -657,8 +657,8 @@ let cmds = {
 			if (toId(user.name) !== toId(tourData.authA) && toId(user.name) !== toId(tourData.authB)) return this.sendReply("Debes ser Capitan de uno de los dos clanes para hacer esto.");
 			var err = War.regParticipants(roomId, user.name, target);
 			if (err) return this.sendReply(err);
-			if (toId(user.name) === toId(tourData.authA)) Rooms.rooms[room.id].addRaw(user.name + ' ha registrado la alinación para ' + tourData.teamA + '.');
-			if (toId(user.name) === toId(tourData.authB)) Rooms.rooms[room.id].addRaw(user.name + ' ha registrado la alinación para ' + tourData.teamB + '.');
+			if (toId(user.name) === toId(tourData.authA)) Rooms.get(room.id).addRaw(user.name + ' ha registrado la alinación para ' + tourData.teamA + '.');
+			if (toId(user.name) === toId(tourData.authB)) Rooms.get(room.id).addRaw(user.name + ' ha registrado la alinación para ' + tourData.teamB + '.');
 			break;
 		case 'empezar':
 		case 'begin':
@@ -671,7 +671,7 @@ let cmds = {
 			var freePlaces = War.getFreePlaces(roomId);
 			if (freePlaces > 0) return this.sendReply("Aún quedan plazas libres.");
 			War.startTeamTour(roomId);
-			Rooms.rooms[room.id].addRaw(War.viewTourStatus(roomId));
+			Rooms.get(room.id).addRaw(War.viewTourStatus(roomId));
 			break;
 		case 'size':
 			if (!this.can('tournamentsmoderation', room)) return false;
@@ -680,11 +680,11 @@ let cmds = {
 			if (err) return this.sendReply(err);
 			var freePlaces = War.getFreePlaces(roomId);
 			if (freePlaces > 0) {
-				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> ha cambiado el tama&ntilde;o de la guerra a ' + parseInt(params[1]) + '. Quedan ' + freePlaces + ' plazas.');
+				Rooms.get(room.id).addRaw('<b>' + user.name + '</b> ha cambiado el tama&ntilde;o de la guerra a ' + parseInt(params[1]) + '. Quedan ' + freePlaces + ' plazas.');
 			} else {
-				Rooms.rooms[room.id].addRaw('<b>' + user.name + '</b> ha cambiado el tama&ntilde;o de la guerra a ' + parseInt(params[1]) + '. Comienza la guerra!');
+				Rooms.get(room.id).addRaw('<b>' + user.name + '</b> ha cambiado el tama&ntilde;o de la guerra a ' + parseInt(params[1]) + '. Comienza la guerra!');
 				War.startTeamTour(roomId);
-				Rooms.rooms[room.id].addRaw(War.viewTourStatus(roomId));
+				Rooms.get(room.id).addRaw(War.viewTourStatus(roomId));
 			}
 			break;
 		case 'disqualify':
@@ -764,8 +764,7 @@ Rooms.global.startBattle = function (p1, p2, format, rated, p1team, p2team) {
 	if (matchup) {
 		newRoom.war = 1;
 		War.setActiveMatchup(matchup.tourId, matchup.matchupId, newRoom.id);
-		Rooms.rooms[matchup.tourId].addRaw("<a href=\"/" + newRoom.id + "\" class=\"ilink\"><b>La batalla entre " + p1.name + " y " + p2.name + " ha comenzado.</b></a>");
-		Rooms.rooms[matchup.tourId].update();
+		Rooms.get(matchup.tourId).addRaw("<a href=\"/" + newRoom.id + "\" class=\"ilink\"><b>La batalla entre " + p1.name + " y " + p2.name + " ha comenzado.</b></a>").update();
 	}
 	//end tour
 
@@ -784,12 +783,12 @@ Rooms.BattleRoom.prototype.win = function (winner) {
 
 			if (!losser) {
 				//tie
-				Rooms.rooms[matchup.tourId].addRaw('La batalla entre <b>' + this.p1.name + '</b> y ' + this.p2.name + '</b> ha terminado en empate. Inicien otra batalla.');
+				Rooms.get(matchup.tourId).addRaw('La batalla entre <b>' + this.p1.name + '</b> y ' + this.p2.name + '</b> ha terminado en empate. Inicien otra batalla.');
 				War.invalidate(matchup.tourId, matchup.matchupId);
 			} else {
-				Rooms.rooms[matchup.tourId].addRaw('<b>' + winner + '</b> ha ganado su batalla contra ' + losser + '.</b>');
+				Rooms.get(matchup.tourId).addRaw('<b>' + winner + '</b> ha ganado su batalla contra ' + losser + '.</b>');
 				War.dqTeamTour(matchup.tourId, losser);
-				Rooms.rooms[matchup.tourId].update();
+				Rooms.get(matchup.tourId).update();
 			}
 		}
 	}

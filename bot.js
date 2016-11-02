@@ -109,22 +109,18 @@ function joinServer() {
 			bot.avatar = config.customavatars;
 
 			if (config.join === true) {
-				Users.users[bot.userid] = bot;
-				for (let room in Rooms.rooms) {
-					if (room != 'global' && Rooms.rooms[room]) {
-						bot.roomCount[room] = 1;
-						Rooms.rooms[room].users[Users.users[bot.userid]] = Users.users[bot.userid];
-					}
-				}
+				Users.users.set(bot.userid, bot);
+				Rooms.rooms.values().forEach(room => {
+					if (room.id === 'global') return;
+					bot.roomCount[room.id] = 1;
+					room.users[Users.users[bot.userid]] = bot;
+				});
 			} else {
-				Users.users[bot.userid] = bot;
+				const targetUser = Users.get(config.name);
+				Users.users.set(bot.userid, bot);
 				for (let index in config.rooms) {
-					if (Rooms.rooms[config.rooms[index]]) {
-						Users.get(config.name).joinRoom(Rooms.get(config.rooms[index]));
-						//continue;
-						//bot.roomCount[config.rooms[index]] = 1;
-						//Rooms.rooms[config.rooms[index]].users[Users.users[bot.userid]] = Users.users[bot.userid];
-					}
+					const targetRoom = Rooms.get(config.rooms[index]);
+					targetUser.joinRoom(targetRoom);
 				}
 			}
 			delete Users.users[i];
@@ -135,9 +131,10 @@ function joinServer() {
 function runProgModChat() {
 	let timeNow = new Date();
 	for (let i = 0; i < config.rooms.length; i++) {
-		if (!Rooms.rooms[config.rooms[i]]) continue;
-		Chat.parse("/modchat " + progModChat[timeNow.getHours()], Rooms.rooms[config.rooms[i]], Users.get(config.name), Users.get(config.name).connections[0]);
-		Rooms.rooms[config.rooms[i]].update();
+		const targetRoom = Rooms.get(config.rooms[i]);
+		if (!targetRoom) continue;
+		Chat.parse("/modchat " + progModChat[timeNow.getHours()], targetRoom, Users.get(config.name), Users.get(config.name).connections[0]);
+		targetRoom.update();
 	}
 }
 
@@ -171,7 +168,7 @@ let parse = {
 		let isPM = false;
 		if (!room || !room.users) {
 			isPM = true;
-			room = Rooms.rooms['lobby'];
+			room = Rooms.get('lobby');
 		}
 		if (botBannedUsers[toId(user.name)] && !user.can('staff')) {
 			Chat.parse(('/ban' + ' ' + user.userid + ', Ban Permanente'), room, Users.get(config.name), Users.get(config.name).connections[0]);
@@ -882,12 +879,14 @@ let commands = {
 	autojoin: function (target, room, user, connection) {
 		if (!user.can('hotpatch')) return;
 		let rooms = "";
-		for (let id in Rooms.rooms) {
-			if (id !== 'global' && (Rooms.rooms[id].isOfficial || id === 'staff' || id === 'test') && !Rooms.get(id).users[Bot.config.name]) {
-				Users.get(Bot.config.name).joinRoom(Rooms.get(id));
+		Rooms.rooms.values().forEach(room => {
+			if (room.id === 'global') return;
+			if (room.users[Bot.config.name]) return;
+			if (room.isOfficial || room.id === 'staff' || room.id === 'test') {
+				Users.get(Bot.config.name).joinRoom(room);
 				rooms += id + ", ";
 			}
-		}
+		});
 		let botDelay = (Math.floor(Math.random() * 6) * 1000);
 		setTimeout(function () {
 			connection.sendTo(room, Bot.config.name + ' has joined these rooms: ' + rooms);

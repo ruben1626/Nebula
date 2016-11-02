@@ -508,7 +508,7 @@ exports.commands = {
 	},
 
 	casino: function (target, room, user) {
-		if (room.id !== 'casino' && Rooms.rooms['casino'] && !Rooms.rooms['casino'].users[user.userid]) {
+		if (room.id !== 'casino' && Rooms.rooms.has('casino') && !user.inRooms.has('casino')) {
 			user.joinRoom('casino');
 			return;
 		}

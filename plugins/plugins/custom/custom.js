@@ -92,7 +92,7 @@ exports.commands = {
 		let nonOfficial = ['<hr><b><font color="#000b5e" size="2">Salas no-oficiales:</font></b><br><br>'];
 		let privateRoom = ['<hr><b><font color="#5e0019" size="2">Salas privadas:</font></b><br><br>'];
 		while (len--) {
-			let _room = Rooms.rooms[rooms[(rooms.length - len) - 1]];
+			let _room = Rooms.get(rooms[(rooms.length - len) - 1]);
 			if (_room.type === 'chat') {
 				if (_room.isOfficial) {
 					official.push(('<a href="/' + _room.title + '" class="ilink">' + _room.title + '</a> |'));

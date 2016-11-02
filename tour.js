@@ -22,27 +22,28 @@ exports.tour = function (t) {
 		timerLoop: function () {
 			setTimeout(function () {
 				tour.currentSeconds++;
-				for (let i in tour.timers) {
-					let c = tour.timers[i];
+				for (let id in tour.timers) {
+					const room = Rooms.get(id);
+					const c = tour.timers[id];
 					let secondsNeeded = c.time * 60;
 					let secondsElapsed = tour.currentSeconds - c.startTime;
 					let difference = secondsNeeded - secondsElapsed;
 					if (difference < 1) {
-						delete tour.timers[i];
-						if (tour[i].players.length < 3) {
-							Rooms.rooms[i].addRaw("<h3>El torneo fue cancelado por falta de jugadores.</h3>").update();
-							tour.reset(i);
+						delete tour.timers[id];
+						if (tour[id].players.length < 3) {
+							room.addRaw("<h3>El torneo fue cancelado por falta de jugadores.</h3>").update();
+							tour.reset(id);
 						} else {
-							if (tour[i].status === 1) {
-								tour[i].size = tour[i].players.length;
-								tour.reportdue(Rooms.rooms[i]);
-								tour.start(i);
+							if (tour[id].status === 1) {
+								tour[id].size = tour[id].players.length;
+								tour.reportdue(room);
+								tour.start(id);
 							}
 						}
 					} else {
 						let fraction = secondsElapsed / secondsNeeded;
 						if (fraction === 0.25 || fraction === 0.5 || fraction === 0.75) {
-							Rooms.rooms[i].addRaw("<i>El torneo comenzará en " + difference + " segundo" + (difference === 1 ? '' : 's') + ".</i>").update();
+							room.addRaw("<i>El torneo comenzará en " + difference + " segundo" + (difference === 1 ? '' : 's') + ".</i>").update();
 						}
 					}
 				}
@@ -119,7 +120,7 @@ exports.tour = function (t) {
 			for (let i in tour) {
 				let c = tour[i];
 				if (typeof c === "object") {
-					let r = Rooms.rooms[i];
+					const r = Rooms.get(i);
 					if (c.status === 1 && !r.isPrivate && !r.staffRoom) {
 						html += '<button name="joinRoom" value="' + i + '">' + Chat.escapeHTML(r.title) + ' - ' + Chat.escapeHTML(Tools.data.Formats[c.tier].name) + '</button> ';
 					}
@@ -295,10 +296,9 @@ exports.tour = function (t) {
 				//user not in tour
 				return -1;
 			} else {
-				let bid = tour[rid].battles[key];
-				if (Rooms.rooms[bid]) {
-					Rooms.rooms[bid].tournament = false;
-				}
+				const battleId = tour[rid].battles[key];
+				const room = Rooms.get(battleId);
+				if (room) room.tournament = false;
 				r[key][2] = r[key][winner];
 				tour[rid].winners.push(r[key][winner]);
 				tour[rid].losers.push(r[key][loser]);
@@ -345,8 +345,9 @@ exports.tour = function (t) {
 
 			tour[rid].roundNum++;
 			tour[rid].status = 2;
-			let html = tour.roundTable(Rooms.rooms[rid]);
-			Rooms.rooms[rid].addRaw(html);
+			const room = Rooms.get(rid);
+			const html = tour.roundTable(room);
+			room.addRaw(html);
 		},
 		nextRound: function (rid) {
 			let w = tour[rid].winners;
@@ -360,16 +361,17 @@ exports.tour = function (t) {
 
 			if (w.length === 1) {
 				//end tour
-				Rooms.rooms[rid].addRaw('<h2><font color="green">Felicidades <font color="black">' + Chat.escapeHTML(tour.toUserName(w[0])) + '</font>!  Has ganado el torneo de formato ' + Tools.data.Formats[tour[rid].tier].name + '!</font></h2>' + '<br><font color="blue"><b>Segundo Lugar:</b></font> ' + Chat.escapeHTML(tour.toUserName(l[0])) + '<hr />');
-				if (tour[rid].size >= 3 && Rooms.rooms[rid].isOfficial) {
+				const room = Rooms.get(rid);
+				room.addRaw('<h2><font color="green">Felicidades <font color="black">' + Chat.escapeHTML(tour.toUserName(w[0])) + '</font>!  Has ganado el torneo de formato ' + Tools.data.Formats[tour[rid].tier].name + '!</font></h2>' + '<br><font color="blue"><b>Segundo Lugar:</b></font> ' + Chat.escapeHTML(tour.toUserName(l[0])) + '<hr />');
+				if (tour[rid].size >= 3 && room.isOfficial) {
 					const moneyFirst = tour[rid].size * 10;
 					const moneySecond = Math.floor(moneyFirst / 2);
 					Shop.giveMoney(tour.username(w[0]), moneyFirst);
 					Shop.giveMoney(tour.username(l[0]), moneySecond);
-					Rooms.rooms[rid].addRaw(Chat.escapeHTML(tour.toUserName(w[0])) + ' ha recibido ' + moneyFirst + ' pd por ganar el torneo!');
-					Rooms.rooms[rid].addRaw(Chat.escapeHTML(tour.toUserName(l[0])) + ' ha recibido ' + moneySecond + ' pd por quedar segundo!');
+					room.addRaw(Chat.escapeHTML(tour.toUserName(w[0])) + ' ha recibido ' + moneyFirst + ' pd por ganar el torneo!');
+					room.addRaw(Chat.escapeHTML(tour.toUserName(l[0])) + ' ha recibido ' + moneySecond + ' pd por quedar segundo!');
 				}
-				Rooms.rooms[rid].update();
+				room.update();
 				tour[rid].status = 0;
 			} else {
 				let p = Tools.shuffle(w.slice());
@@ -378,8 +380,8 @@ exports.tour = function (t) {
 					let p2 = p1 + 1;
 					tour[rid].round.push([p[p1], p[p2], undefined]);
 				}
-				let html = tour.roundTable(Rooms.rooms[rid]);
-				Rooms.rooms[rid].addRaw(html).update();
+				let html = tour.roundTable(room);
+				room.addRaw(html).update();
 			}
 		},
 		link: function (tourbattle, innerHTML) {
@@ -480,8 +482,8 @@ let cmds = {
 		tour[rid].status = 1;
 		tour[rid].players = [];
 
-		Rooms.rooms[rid].addRaw('<hr /><h2><font color="green">' + Chat.escapeHTML(user.name) + ' ha iniciado un torneo de formato ' + Tools.data.Formats[tempTourTier].name + '. Si deseas unirte escribe </font> <font color="red">/j</font> <font color="steelblue">.</font></h2><b><font color="blueviolet">Jugadores:</font></b> ' + targets[1] + '<br /><font color="blue"><b>FORMATO:</b></font> ' + Tools.data.Formats[tempTourTier].name + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante todo el torneo.</b></font>');
-		if (tour.timers[rid]) Rooms.rooms[rid].addRaw('<i>El torneo empezara en ' + tour.timers[rid].time + ' minuto' + (tour.timers[rid].time === 1 ? '' : 's') + '.<i>');
+		room.addRaw('<hr /><h2><font color="green">' + Chat.escapeHTML(user.name) + ' ha iniciado un torneo de formato ' + Tools.data.Formats[tempTourTier].name + '. Si deseas unirte escribe </font> <font color="red">/j</font> <font color="steelblue">.</font></h2><b><font color="blueviolet">Jugadores:</font></b> ' + targets[1] + '<br /><font color="blue"><b>FORMATO:</b></font> ' + Tools.data.Formats[tempTourTier].name + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante todo el torneo.</b></font>');
+		if (tour.timers[rid]) room.addRaw('<i>El torneo empezara en ' + tour.timers[rid].time + ' minuto' + (tour.timers[rid].time === 1 ? '' : 's') + '.<i>');
 	},
 
 	endtour: function (target, room, user, connection) {
@@ -836,14 +838,15 @@ let cmds = {
 		if (room.type !== 'battle') return this.sendReply('Solo puedes hacer esto en una sala de batalla.');
 		if (!room.tournament) return this.sendReply('Esta no es una batalla oficial de torneo.');
 		if (!tour.highauth(user, room)) return this.sendReply('No tienes suficiente poder para utilizar este comando.');
-		let rid = room.tournament;
+		const rid = room.tournament;
+		const tournamentRoom = Rooms.get(rid);
 		let c = tour[rid];
 		if (c.status === 2) {
 			for (let x in c.round) {
 				if (!c.round[x] || c.round[x][2] !== -1) continue;
 				if (c.round[x].indexOf(room.p1.userid) !== -1 && c.round[x].indexOf(room.p2.userid) !== -1) {
 					c.round[x][2] = undefined;
-					Rooms.rooms[rid].addRaw("La batalla entre " + '<b>' + Chat.escapeHTML(room.p1.name) + '</b>' + " y " + '<b>' + Chat.escapeHTML(room.p2.name) + '</b>' + " ha sido " + '<b>' + "invalidada" + '</b>' + ' por ' + Chat.escapeHTML(user.name));
+					tournamentRoom.addRaw("La batalla entre " + '<b>' + Chat.escapeHTML(room.p1.name) + '</b>' + " y " + '<b>' + Chat.escapeHTML(room.p2.name) + '</b>' + " ha sido " + '<b>' + "invalidada" + '</b>' + ' por ' + Chat.escapeHTML(user.name));
 					break;
 				}
 			}
@@ -864,7 +867,8 @@ Rooms.global.startBattle = function (p1, p2, format, p1team, p2team, options) {
 	let formaturlid = format.toLowerCase().replace(/[^a-z0-9]+/g, '');
 	if (!options.rated) {
 		for (let i in tour) {
-			let c = tour[i];
+			const c = tour[i];
+			const tournamentRoom = Rooms.get(i);
 			if (c.status === 2 && format === c.tier.toLowerCase()) {
 				for (let x in c.round) {
 					if (c.round[x][2]) continue;
@@ -872,7 +876,7 @@ Rooms.global.startBattle = function (p1, p2, format, p1team, p2team, options) {
 						newRoom.tournament = i;
 						c.battles[x] = "battle-" + formaturlid + "-" + this.lastBattle;
 						c.round[x][2] = -1;
-						Rooms.rooms[i].addRaw("<a href=\"/" + c.battles[x] + "\" class=\"ilink\"><b>La batalla de torneo entre " + Chat.escapeHTML(p1.name) + " y " + Chat.escapeHTML(p2.name) + " ha comenzado.</b></a>").update();
+						tournamentRoom.addRaw("<a href=\"/" + c.battles[x] + "\" class=\"ilink\"><b>La batalla de torneo entre " + Chat.escapeHTML(p1.name) + " y " + Chat.escapeHTML(p2.name) + " ha comenzado.</b></a>").update();
 						break;
 					}
 				}
@@ -897,17 +901,18 @@ Rooms.BattleRoom.prototype.win = function (winner) {
 		} else if (playerIds[1] !== winnerid) {
 			istie = true;
 		}
-		let c = tour[rid];
+		const c = tour[rid];
+		const tournamentRoom = Rooms.get(rid);
 		if (c.status === 2) {
 			for (let x in c.round) {
 				if (!c.round[x] || c.round[x][2] !== -1) continue;
 				if (c.round[x].indexOf(this.p1.userid) !== -1 && c.round[x].indexOf(this.p2.userid) !== -1) {
 					if (istie) {
 						c.round[x][2] = undefined;
-						Rooms.rooms[rid].addRaw("La batalla entre " + '<b>' + Chat.escapeHTML(tour.toUserName(this.p1.name)) + '</b>' + " y " + '<b>' + Chat.escapeHTML(tour.toUserName(this.p2.name)) + '</b>' + " terminó en un " + '<b>' + "empate." + '</b>' + " Por favor inicien otra batalla.").update();
+						tournamentRoom.addRaw("La batalla entre " + '<b>' + Chat.escapeHTML(tour.toUserName(this.p1.name)) + '</b>' + " y " + '<b>' + Chat.escapeHTML(tour.toUserName(this.p2.name)) + '</b>' + " terminó en un " + '<b>' + "empate." + '</b>' + " Por favor inicien otra batalla.").update();
 					} else {
 						tour.lose(loserid, rid);
-						Rooms.rooms[rid].addRaw('<b>' + Chat.escapeHTML(tour.toUserName(winnerid)) + '</b> ha ganado su batalla contra ' + Chat.escapeHTML(tour.toUserName(loserid)) + '.</b>').update();
+						tournamentRoom.addRaw('<b>' + Chat.escapeHTML(tour.toUserName(winnerid)) + '</b> ha ganado su batalla contra ' + Chat.escapeHTML(tour.toUserName(loserid)) + '.</b>').update();
 						let r = c.round;
 						let cc = 0;
 						for (let y in r) {

@@ -102,11 +102,12 @@ exports.commands = {
 			if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
 			if (params.length !== 2) return this.sendReply("Usa el comando así: /buy chatroom,[nombre]");
 			var id = toId(params[1]);
-			if (Rooms.rooms[id]) return this.sendReply("La sala '" + params[1] + "' ya exsiste. Usa otro nombre.");
+			if (Rooms.rooms.has(id)) return this.sendReply("La sala '" + params[1] + "' ya exsiste. Usa otro nombre.");
 			if (Rooms.global.addChatRoom(params[1])) {
-				if (!Rooms.rooms[id].auth) Rooms.rooms[id].auth = Rooms.rooms[id].chatRoomData.auth = {};
-				Rooms.rooms[id].auth[toId(user.name)] = '#';
-				if (Rooms.rooms[id].chatRoomData) Rooms.global.writeChatRoomData();
+				const newRoom = Rooms.get(id);
+				if (!newRoom.auth) newRoom.auth = newRoom.chatRoomData.auth = {};
+				newRoom.auth[toId(user.name)] = '#';
+				if (newRoom.chatRoomData) Rooms.global.writeChatRoomData();
 				Shop.removeMoney(user.name, prize);
 				return this.sendReply("La sala '" + params[1] + "' fue creada con éxito. Únete usando /join " + id);
 			}
@@ -286,7 +287,7 @@ exports.commands = {
 				return '‽' + this.name;
 			}
 			if (roomid) {
-				let room = Rooms.rooms[roomid];
+				let room = Rooms.get(roomid);
 				if (room.isMuted(this)) {
 					return '!' + this.name;
 				}
@@ -312,7 +313,7 @@ exports.commands = {
 				return '‽' + this.name;
 			}
 			if (roomid) {
-				let room = Rooms.rooms[roomid];
+				let room = Rooms.get(roomid);
 				if (room.isMuted(this)) {
 					return '!' + this.name;
 				}
