@@ -18,7 +18,7 @@ const url = require('url');
 const fs = require('fs');
 
 const CSS_SRC_PATH = path.resolve(__dirname, 'config', 'custom.template.css');
-const CSS_OUT_PATH = path.resolve(__dirname, 'config', 'custom.css');
+const CSS_OUT_PATH = path.resolve(DATA_DIR, 'custom.css');
 
 let TimeoutError = function (message) {
 	Error.captureStackTrace(this, TimeoutError);
