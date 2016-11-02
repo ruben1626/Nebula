@@ -28,6 +28,7 @@ exports.onLoad = function () {
 function updateColor() {
 	fs.writeFileSync(filepath, JSON.stringify(customColors));
 	deployCSS();
+	LoginServer.request('invalidatecss', {}, () => {});
 }
 
 function deployCSS() {
@@ -39,7 +40,6 @@ function deployCSS() {
 
 	const fileContent = fs.readFileSync('config/custom.template.css', 'utf8');
 	fs.writeFileSync('config/custom.css', fileContent.replace('<!-- Custom Colors -->', newCss));
-	LoginServer.request('invalidatecss', {}, () => {});
 }
 
 function generateCSS(name, color) {
@@ -102,7 +102,7 @@ exports.commands = {
 	},
 	customcolorhelp: [
 		`/customcolor [usuario], [color] - Otorga al usuario indicado el color especificado.`,
-		`/customcolor [usuario], delete - Elimina el color personalizado del usuario indicado.`
+		`/customcolor [usuario], delete - Elimina el color personalizado del usuario indicado.`,
 	],
 
 	colorpreview: 'checkcolor',

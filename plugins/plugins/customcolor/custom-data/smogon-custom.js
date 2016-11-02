@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
 	'theimmortal': 'taco',
 	'bmelts': 'testmelts',
@@ -138,5 +140,5 @@ module.exports = {
 	'nv': 'larvitar',
 	'iyarito': 'gengarito',
 	'speks': 'goojna',
-	'cathy': '' //{color: '#ff5cb6'}
+	'cathy': '',
 };

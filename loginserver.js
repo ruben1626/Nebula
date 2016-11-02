@@ -12,8 +12,11 @@
 const LOGIN_SERVER_TIMEOUT = 30000;
 const LOGIN_SERVER_BATCH_TIME = 1000;
 
+const path = require('path');
 const http = require("http");
 const url = require('url');
+
+const CSS_SRC_PATH = path.resolve(__dirname, 'config', 'custom.template.css');
 
 let TimeoutError = function (message) {
 	Error.captureStackTrace(this, TimeoutError);
@@ -234,7 +237,12 @@ LoginServer.TimeoutError = TimeoutError;
 if (Config.remoteladder) LoginServer.ladderupdateServer = new LoginServerInstance();
 LoginServer.prepreplayServer = new LoginServerInstance();
 
-require('fs').watchFile('./config/custom.css', (curr, prev) => {
+require('fs').watchFile(CSS_SRC_PATH, (curr, prev) => {
+	Plugins.forEach(plugin => {
+		if (typeof plugin.deploy === 'function') {
+			plugin.deploy(CSS_SRC_PATH);
+		}
+	});
 	LoginServer.request('invalidatecss', {}, () => {});
 });
 LoginServer.request('invalidatecss', {}, () => {});
