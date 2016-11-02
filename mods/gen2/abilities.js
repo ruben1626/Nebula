@@ -1,6 +1,9 @@
 /**
  * Gen 2 had no abilities whatsoever.
  */
+
+'use strict';
+
 exports.BattleAbilities = {
 	"None": {
 		desc: "This Pokemon has no ability.",
@@ -8,6 +11,6 @@ exports.BattleAbilities = {
 		id: "none",
 		name: "None",
 		rating: 1,
-		num: 1
-	}
+		num: 1,
+	},
 };

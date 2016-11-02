@@ -1,16 +1,13 @@
-var battle;
-var assert = require('assert');
+'use strict';
+
+const assert = require('./../../assert');
+const common = require('./../../common');
+
+let battle;
 
 describe('Inverse Battle', function () {
-	var battleCounter = 0;
-
-	beforeEach(function () {
-		battle = BattleEngine.Battle.construct('battle-inverse-' + battleCounter++, 'inversebattle');
-	});
-
-	afterEach(function () {
-		battle.destroy();
-	});
+	beforeEach(() => (battle = common.mod('inverse').createBattle()));
+	afterEach(() => battle.destroy());
 
 	it('should change natural resistances into weaknesses', function () {
 		battle.join('p1', 'Guest 1', 1, [{species: "Hariyama", ability: 'guts', moves: ['vitalthrow']}]);

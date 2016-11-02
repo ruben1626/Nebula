@@ -1,8 +1,10 @@
-var assert = require('assert');
+'use strict';
 
-var userUtils = require('./../../dev-tools/users-utils.js');
-var Connection = userUtils.Connection;
-var User = userUtils.User;
+const assert = require('assert');
+
+let userUtils = require('./../../dev-tools/users-utils');
+let Connection = userUtils.Connection;
+let User = userUtils.User;
 
 describe('Users features', function () {
 	describe('Users', function () {
@@ -15,21 +17,72 @@ describe('Users features', function () {
 				assert.strictEqual(Users.get, Users);
 			});
 		});
+		describe('connections', function () {
+			it('should be a Map', function () {
+				assert.ok(Users.connections instanceof Map);
+			});
+		});
 		describe('users', function () {
-			it('should have null prototype', function () {
-				assert.strictEqual(Object.getPrototypeOf(Users.users), null);
+			it('should be a Map', function () {
+				assert.ok(Users.users instanceof Map);
+			});
+		});
+		describe('Connection', function () {
+			describe('#onDisconnect', function () {
+				beforeEach(function () {
+					this.connection = new Connection('127.0.0.1');
+					this.connection.user = new User(this.connection);
+					this.connection.user.name = 'Morfent';
+					this.connection.user.userid = 'morfent';
+				});
+
+				afterEach(function () {
+					this.connection.destroy();
+				});
+
+				it('should remove the connection from Users.connections', function () {
+					let connectionid = Users.connections.id;
+					this.connection.destroy();
+					assert.strictEqual(Users.connections.has(connectionid), false);
+				});
+
+				it('should destroy any user on the connection as well', function () {
+					let userid = this.connection.user.userid;
+					this.connection.destroy();
+					assert.strictEqual(Users.users.has(userid), false);
+				});
 			});
 
-			it('should not have a native `constructor`', function () {
-				assert.ok(Users.users.constructor === undefined || Users.users.constructor instanceof Users.User);
+			describe('#joinRoom', function () {
+				beforeEach(function () {
+					this.connection = new Connection('127.0.0.1');
+				});
+
+				afterEach(function () {
+					this.connection.destroy();
+				});
+
+				it('should join a room if not already present', function () {
+					this.connection.joinRoom(Rooms.lobby);
+					assert.ok(this.connection.inRooms.has('lobby'));
+				});
+			});
+
+			describe('#leaveRoom', function () {
+				it('should leave a room that is present', function () {
+					this.connection = new Connection('127.0.0.1');
+					this.connection.joinRoom(Rooms.lobby);
+					this.connection.leaveRoom(Rooms.lobby);
+					assert.ok(!this.connection.inRooms.has('lobby'));
+				});
 			});
 		});
 		describe('User', function () {
 			describe('#disconnectAll', function () {
-				[1, 2].forEach(function (totalConnections) {
+				for (let totalConnections of [1, 2]) {
 					it('should drop all ' + totalConnections + ' connection(s) and mark as inactive', function () {
-						var user = new User();
-						var iterations = totalConnections;
+						let user = new User();
+						let iterations = totalConnections;
 						while (--iterations) user.mergeConnection(new Connection());
 
 						user.disconnectAll();
@@ -38,55 +91,55 @@ describe('Users features', function () {
 					});
 
 					it('should unref all ' + totalConnections + ' connection(s)', function () {
-						var user = new User();
-						var iterations = totalConnections;
+						let user = new User();
+						let iterations = totalConnections;
 						while (--iterations) user.mergeConnection(new Connection());
 
-						var connections = user.connections.slice();
+						let connections = user.connections.slice();
 
 						user.disconnectAll();
-						for (var i = 0; i < totalConnections; i++) {
-							assert.strictEqual(Users.connections[connections[i].id], undefined);
+						for (let i = 0; i < totalConnections; i++) {
+							assert.ok(!Users.connections.has(connections[i].id));
 						}
 					});
 
 					it('should clear `user` property for all ' + totalConnections + ' connection(s)', function () {
-						var user = new User();
-						var iterations = totalConnections;
+						let user = new User();
+						let iterations = totalConnections;
 						while (--iterations) user.mergeConnection(new Connection());
-						var connections = user.connections.slice();
+						let connections = user.connections.slice();
 
 						user.disconnectAll();
-						for (var i = 0; i < totalConnections; i++) {
+						for (let i = 0; i < totalConnections; i++) {
 							assert.strictEqual(connections[i].user, null);
 						}
 					});
-				});
+				}
 			});
 			describe('#ban', function () {
 				afterEach(function () {
-					for (var ip in Users.bannedIps) {
+					for (let ip in Users.bannedIps) {
 						delete Users.bannedIps[ip];
 					}
 				});
 
 				it('should disconnect every user at that IP', function () {
-					var users = ['127.0.0.1', '127.0.0.1'].map(function (ip) {return new User(new Connection(ip));});
-					users[0].ban();
+					let users = ['127.0.0.1', '127.0.0.1'].map(ip => new User(new Connection(ip)));
+					Punishments.ban(users[0]);
 					assert.strictEqual(users[0].connected, false);
 					assert.strictEqual(users[1].connected, false);
 				});
 
 				it('should not disconnect users at other IPs', function () {
-					var users = ['127.0.0.1', '127.0.0.2'].map(function (ip) {return new User(new Connection(ip));});
-					users[0].ban();
+					let users = ['127.0.0.1', '127.0.0.2'].map(ip => new User(new Connection(ip)));
+					Punishments.ban(users[0]);
 					assert.strictEqual(users[1].connected, true);
 				});
 
 				it('should update IP count properly', function () {
-					var user = new User();
-					user.ban();
-					for (var ip in user.ips) {
+					let user = new User();
+					Punishments.ban(user);
+					for (let ip in user.ips) {
 						assert.strictEqual(user.ips[ip], 0);
 					}
 				});

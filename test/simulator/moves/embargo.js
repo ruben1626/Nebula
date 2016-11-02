@@ -1,5 +1,9 @@
-var assert = require('assert');
-var battle;
+'use strict';
+
+const assert = require('./../../assert');
+const common = require('./../../common');
+
+let battle;
 
 describe('Embargo', function () {
 	afterEach(function () {
@@ -7,7 +11,7 @@ describe('Embargo', function () {
 	});
 
 	it('should negate residual healing events', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Lopunny", ability: 'limber', item: 'leftovers', moves: ['bellydrum']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Giratina", ability: 'pressure', moves: ['embargo']}]);
 		battle.commitDecisions();
@@ -15,7 +19,7 @@ describe('Embargo', function () {
 	});
 
 	it('should prevent items from being consumed', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Lopunny", ability: 'limber', item: 'chopleberry', moves: ['bulkup']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Golem", ability: 'noguard', moves: ['embargo', 'lowkick']}]);
 		battle.commitDecisions();
@@ -25,7 +29,7 @@ describe('Embargo', function () {
 	});
 
 	it('should ignore the effects of items that disable moves', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Lopunny", ability: 'limber', item: 'assaultvest', moves: ['protect']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Golem", ability: 'noguard', moves: ['embargo']}]);
 		battle.commitDecisions();
@@ -34,7 +38,7 @@ describe('Embargo', function () {
 	});
 
 	it('should cause Fling to fail', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Lopunny", ability: 'limber', item: 'seaincense', moves: ['fling']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Sableye", ability: 'prankster', moves: ['embargo']}]);
 		battle.commitDecisions();
@@ -42,7 +46,7 @@ describe('Embargo', function () {
 	});
 
 	it('should not prevent Pokemon from Mega Evolving', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Lopunny", ability: 'limber', item: 'lopunnite', moves: ['bulkup']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Golem", ability: 'noguard', moves: ['embargo', 'rest']}]);
 		battle.commitDecisions();

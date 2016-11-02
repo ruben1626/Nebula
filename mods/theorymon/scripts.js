@@ -1,3 +1,5 @@
+'use strict';
+
 exports.BattleScripts = {
 	init: function () {
 		this.modData('Pokedex', 'archeops').abilities['1'] = 'Vital Spirit';
@@ -6,14 +8,11 @@ exports.BattleScripts = {
 		this.modData('Pokedex', 'moltres').abilities['1'] = 'Magic Guard';
 		this.modData('Pokedex', 'abomasnowmega').abilities['0'] = 'Technician';
 		this.modData('Pokedex', 'cradily').abilities['1'] = 'Sand Stream';
-		this.modData('Pokedex', 'froslass').abilities['1'] = 'Prankster';
 		this.modData('Learnsets', 'absol').learnset.partingshot = ['6T'];
 		this.modData('Pokedex', 'goodra').abilities['1'] = 'Protean';
 		this.modData('Pokedex', 'entei').abilities['1'] = 'Defiant';
-		this.modData('Pokedex', 'milotic').abilities['H'] = 'Multiscale';
 		this.modData('Pokedex', 'empoleon').abilities['1'] = 'Lightning Rod';
 		this.modData('Learnsets', 'reuniclus').learnset.voltswitch = ['6T'];
-		this.modData('Pokedex', 'steelixmega').abilities['0'] = 'Arena Trap';
 		this.modData('Pokedex', 'audinomega').abilities['0'] = 'Simple';
 		this.modData('Learnsets', 'ampharos').learnset.wish = ['6T'];
 		this.modData('Pokedex', 'absolmega').types = ['Dark', 'Fairy'];
@@ -25,7 +24,6 @@ exports.BattleScripts = {
 		this.modData('Learnsets', 'pidgeot').learnset.focusblast = ['6T'];
 		this.modData('Pokedex', 'granbull').abilities['1'] = 'Fur Coat';
 		this.modData('Pokedex', 'aggronmega').types = ['Steel', 'Dragon'];
-		this.modData('Learnsets', 'floatzel').learnset.bellydrum = ['6T'];
 		this.modData('Pokedex', 'forretress').abilities['1'] = 'Water Absorb';
 		this.modData('Learnsets', 'bronzong').learnset.recover = ['6T'];
 		this.modData('Learnsets', 'sandslash').learnset.thousandarrows = ['6T'];
@@ -34,16 +32,37 @@ exports.BattleScripts = {
 		this.modData('Pokedex', 'cacturne').abilities['1'] = 'Sand Rush';
 		this.modData('Pokedex', 'beedrillmega').types = ['Bug', 'Ground'];
 		this.modData('Pokedex', 'swanna').abilities['1'] = 'Gale Wings';
-		this.modData('Pokedex', 'kyurem').abilities['1'] = 'Sheer Force';
 		this.modData('Pokedex', 'donphan').types = ['Ground', 'Fairy'];
 		this.modData('Pokedex', 'virizion').abilities['1'] = 'Trace';
 		this.modData('Pokedex', 'gastrodon').abilities['H'] = 'Poison Heal';
 		this.modData('Learnsets', 'krookodile').learnset.dragondance = ['6T'];
-		this.modData('Pokedex', 'torterra').abilities['1'] = 'Drought';
+		this.modData('Pokedex', 'latiosmega').types = ['Dragon', 'Ghost'];
+		this.modData('Pokedex', 'latiosmega').abilities['0'] = 'Analytic';
 		this.modData('Pokedex', 'banettemega').types = ['Ghost', 'Fighting'];
 		this.modData('Learnsets', 'banette').learnset.drainpunch = ['6T'];
+		this.modData('Pokedex', 'torterra').abilities['1'] = 'Drought';
 		this.modData('Pokedex', 'muk').types = ['Poison', 'Dark'];
 		this.modData('Pokedex', 'muk').abilities['0'] = 'Regenerator';
-		this.modData('Pokedex', 'cameruptmega').abilities['0'] = 'Desolate Land';
-	}
+		this.modData('Pokedex', 'zoroark').types = ['Dark', 'Fighting'];
+		this.modData('Learnsets', 'zoroark').learnset.vacuumwave = ['6T'];
+		this.modData('Learnsets', 'jolteon').learnset.spikes = ['6T'];
+		this.modData('Pokedex', 'cobalion').abilities['1'] = 'Magnet Pull';
+		this.modData('Learnsets', 'sceptile').learnset.seedflare = ['6T'];
+		this.modData('Pokedex', 'gogoat').abilities['1'] = 'Thick Fat';
+		this.modData('Pokedex', 'houndoommega').abilities['0'] = 'Rattled';
+		this.modData('Learnsets', 'houndoom').learnset.moonblast = ['6T'];
+		this.modData('Pokedex', 'tentacruel').abilities['0'] = 'Iron Barbs';
+		this.modData('Learnsets', 'tentacruel').learnset.recover = ['6T'];
+		this.modData('Pokedex', 'stunfisk').abilities['1'] = 'Regenerator';
+		this.modData('Learnsets', 'stunfisk').learnset.voltswitch = ['6T'];
+		this.modData('Pokedex', 'crobat').abilities['1'] = 'Intimidate';
+		this.modData('Pokedex', 'xatu').types = ['Steel', 'Flying'];
+		this.modData('Learnsets', 'xatu').learnset.flashcannon = ['6T'];
+		this.modData('Pokedex', 'meloetta').abilities['1'] = 'Prankster';
+		this.modData('Learnsets', 'escavalier').learnset.trickroom = ['6T'];
+		this.modData('Learnsets', 'escavalier').learnset.uturn = ['6T'];
+		this.modData('Pokedex', 'cresselia').types = ['Fairy', 'Ghost'];
+		this.modData('Pokedex', 'yanmega').types = ['Bug', 'Ground'];
+		this.modData('Learnsets', 'yanmega').learnset.earthpower = ['6T'];
+	},
 };

@@ -1,13 +1,13 @@
 {
-  "name": "Pokemon-Showdown",
+  "name": "pokemon-showdown",
+  "preferGlobal": true,
+  "description": "The server for the Pokémon Showdown battle simulator",
   "version": "0.10.2",
   "dependencies": {
-    "sockjs": "0.3.15",
-    "sugar": "1.4.1"
+    "sockjs": "0.3.18"
   },
   "optionalDependencies": {
     "cloud-env": "0.1.1",
-    "es6-shim": "0.32.2",
     "http-proxy": "0.10.0",
     "nodemailer": "1.4.0",
     "node-static": "0.7.7"
@@ -16,15 +16,15 @@
     "ofe": "0.1.2"
   },
   "engines": {
-    "node": "> 0.10.1"
+    "node": ">=6.0.0"
   },
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "gulp && mocha"
+    "test": "eslint --rulesdir=dev-tools/eslint --cache *.js chat-plugins/ config/ data/ dev-tools/ mods/ tournaments/ test/ && mocha"
   },
-  "bin": "./app.js",
-  "homepage": "http://play.pokemonshowdown.com",
+  "bin": "./pokemon-showdown",
+  "homepage": "http://pokemonshowdown.com",
   "repository": {
     "type": "git",
     "url": "https://github.com/Zarel/Pokemon-Showdown.git"
@@ -49,16 +49,9 @@
   "private": true,
   "license": "MIT",
   "devDependencies": {
-    "cache-swap": "~0.2.1",
-    "gulp": "~3.9.0",
-    "gulp-cache": "~0.3.0",
-    "gulp-jshint": "~1.11.2",
-    "gulp-jscs": "~2.0.0",
-    "gulp-replace": "~0.5.3",
-    "jshint-stylish": "~2.0.1",
-    "mocha": "~2.3.2",
-    "lazypipe": "~1.0.1",
-    "merge-stream": "~1.0.0",
-    "jscs": "~2.1.1"
+    "eslint": "^3.2.2",
+    "mocha": "^3.0.0",
+    "mock-fs": "3.10.0",
+    "fuzzur": "0.1.2"
   }
 }

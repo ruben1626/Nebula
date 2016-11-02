@@ -1,9 +1,12 @@
+'use strict';
+
 exports.BattleFormats = {
 	pokemon: {
-		effectType: 'Banlist',
+		effectType: 'ValidatorRule',
+		name: 'Pokemon',
 		onValidateSet: function (set, format) {
-			var template = this.getTemplate(set.species);
-			var problems = [];
+			let template = this.getTemplate(set.species);
+			let problems = [];
 			if (set.species === set.name) delete set.name;
 
 			if (template.gen > this.gen) {
@@ -12,8 +15,8 @@ exports.BattleFormats = {
 				problems.push(set.species + ' is not a real Pokemon.');
 			}
 			if (set.moves) {
-				for (var i = 0; i < set.moves.length; i++) {
-					var move = this.getMove(set.moves[i]);
+				for (let i = 0; i < set.moves.length; i++) {
+					let move = this.getMove(set.moves[i]);
 					if (move.gen > this.gen) {
 						problems.push(move.name + ' does not exist in gen ' + this.gen + '.');
 					} else if (move.isNonstandard) {
@@ -75,12 +78,13 @@ exports.BattleFormats = {
 			set.shiny = false;
 
 			return problems;
-		}
+		},
 	},
 	standard: {
-		effectType: 'Banlist',
+		effectType: 'ValidatorRule',
+		name: 'Standard',
 		ruleset: ['Sleep Clause Mod', 'Freeze Clause Mod', 'Species Clause', 'OHKO Clause', 'Evasion Moves Clause', 'HP Percentage Mod', 'Cancel Mod'],
-		banlist: ['Unreleased', 'Illegal', 'Tradeback', 'Dig', 'Fly',
+		banlist: ['Unreleased', 'Illegal', 'Dig', 'Fly',
 			'Kakuna + Poison Sting + Harden', 'Kakuna + String Shot + Harden',
 			'Beedrill + Poison Sting + Harden', 'Beedrill + String Shot + Harden',
 			'Nidoking + Fury Attack + Thrash',
@@ -88,22 +92,22 @@ exports.BattleFormats = {
 			'Eevee + Tackle + Growl',
 			'Vaporeon + Tackle + Growl',
 			'Jolteon + Tackle + Growl', 'Jolteon + Focus Energy + Thunder Shock',
-			'Flareon + Tackle + Growl', 'Flareon + Focus Energy + Ember'
+			'Flareon + Tackle + Growl', 'Flareon + Focus Energy + Ember',
 		],
 		onValidateSet: function (set) {
 			// limit one of each move in Standard
-			var moves = [];
+			let moves = [];
 			if (set.moves) {
-				var hasMove = {};
-				for (var i = 0; i < set.moves.length; i++) {
-					var move = this.getMove(set.moves[i]);
-					var moveid = move.id;
+				let hasMove = {};
+				for (let i = 0; i < set.moves.length; i++) {
+					let move = this.getMove(set.moves[i]);
+					let moveid = move.id;
 					if (hasMove[moveid]) continue;
 					hasMove[moveid] = true;
 					moves.push(set.moves[i]);
 				}
 			}
 			set.moves = moves;
-		}
-	}
+		},
+	},
 };

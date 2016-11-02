@@ -1,14 +1,16 @@
+'use strict';
+
 exports.BattleStatuses = {
 	slp: {
 		inherit: true,
 		onSwitchIn: function (target) {
 			this.effectData.time = this.effectData.startTime;
-		}
+		},
 	},
 	partiallytrapped: {
 		inherit: true,
 		onResidual: function (pokemon) {
-			if (this.effectData.source && (!this.effectData.source.isActive || this.effectData.source.hp <= 0)) {
+			if (this.effectData.source && (!this.effectData.source.isActive || this.effectData.source.hp <= 0 || !this.effectData.source.activeTurns)) {
 				delete pokemon.volatiles['partiallytrapped'];
 				return;
 			}
@@ -17,7 +19,7 @@ exports.BattleStatuses = {
 			} else {
 				this.damage(pokemon.maxhp / 16);
 			}
-		}
+		},
 	},
 	stall: {
 		// Protect, Detect, Endure counter
@@ -29,7 +31,7 @@ exports.BattleStatuses = {
 		onStallMove: function () {
 			// this.effectData.counter should never be undefined here.
 			// However, just in case, use 1 if it is undefined.
-			var counter = this.effectData.counter || 1;
+			let counter = this.effectData.counter || 1;
 			if (counter >= 256) {
 				// 2^32 - special-cased because Battle.random(n) can't handle n > 2^16 - 1
 				return (this.random() * 4294967296 < 1);
@@ -42,7 +44,7 @@ exports.BattleStatuses = {
 				this.effectData.counter *= 2;
 			}
 			this.effectData.duration = 2;
-		}
+		},
 	},
 	gem: {
 		duration: 1,
@@ -50,6 +52,6 @@ exports.BattleStatuses = {
 		onBasePower: function (basePower, user, target, move) {
 			this.debug('Gem Boost');
 			return this.chainModify(1.5);
-		}
-	}
+		},
+	},
 };

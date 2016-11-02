@@ -1,51 +1,53 @@
+'use strict';
+
 exports.BattleMovedex = {
 	"acid": {
 		inherit: true,
 		secondary: {
 			chance: 33,
 			boosts: {
-				def: -1
-			}
-		}
+				def: -1,
+			},
+		},
 	},
 	aurorabeam: {
 		inherit: true,
 		secondary: {
 			chance: 33,
 			boosts: {
-				atk: -1
-			}
-		}
+				atk: -1,
+			},
+		},
 	},
 	bind: {
 		inherit: true,
-		onBeforeMove: function () {}
+		onBeforeMove: function () {},
 	},
 	bubble: {
 		inherit: true,
 		secondary: {
 			chance: 33,
 			boosts: {
-				spe: -1
-			}
-		}
+				spe: -1,
+			},
+		},
 	},
 	bubblebeam: {
 		inherit: true,
 		secondary: {
 			chance: 33,
 			boosts: {
-				spe: -1
-			}
-		}
+				spe: -1,
+			},
+		},
 	},
 	clamp: {
 		inherit: true,
-		onBeforeMove: function () {}
+		onBeforeMove: function () {},
 	},
 	firespin: {
 		inherit: true,
-		onBeforeMove: function () {}
+		onBeforeMove: function () {},
 	},
 	highjumpkick: {
 		inherit: true,
@@ -55,7 +57,7 @@ exports.BattleMovedex = {
 			if (target.type !== 'ghost') {
 				this.directDamage(1, source);
 			}
-		}
+		},
 	},
 	jumpkick: {
 		inherit: true,
@@ -63,7 +65,7 @@ exports.BattleMovedex = {
 		shortDesc: "User takes 1 HP damage if miss.",
 		onMoveFail: function (target, source, move) {
 			this.damage(1, source);
-		}
+		},
 	},
 	leechseed: {
 		inherit: true,
@@ -74,21 +76,21 @@ exports.BattleMovedex = {
 			},
 			onAfterMoveSelfPriority: 1,
 			onAfterMoveSelf: function (pokemon) {
-				var leecher = pokemon.side.foe.active[pokemon.volatiles['leechseed'].sourcePosition];
+				let leecher = pokemon.side.foe.active[pokemon.volatiles['leechseed'].sourcePosition];
 				if (!leecher || leecher.fainted || leecher.hp <= 0) {
 					this.debug('Nothing to leech into');
 					return;
 				}
-				var toLeech = this.clampIntRange(Math.floor(pokemon.maxhp / 16), 1);
-				var damage = this.damage(toLeech, pokemon, leecher);
+				let toLeech = this.clampIntRange(Math.floor(pokemon.maxhp / 16), 1);
+				let damage = this.damage(toLeech, pokemon, leecher);
 				if (damage) this.heal(damage, leecher, pokemon);
-			}
-		}
+			},
+		},
 	},
 	rage: {
 		inherit: true,
 		self: {
-			volatileStatus: 'rage'
+			volatileStatus: 'rage',
 		},
 		effect: {
 			// Rage lock
@@ -107,8 +109,8 @@ exports.BattleMovedex = {
 					this.boost({atk:1});
 				}
 			},
-			onMoveFail: function () {}
-		}
+			onMoveFail: function () {},
+		},
 	},
 	recover: {
 		inherit: true,
@@ -118,7 +120,7 @@ exports.BattleMovedex = {
 				return false;
 			}
 			this.heal(Math.floor(target.maxhp / 2), target, target);
-		}
+		},
 	},
 	rest: {
 		inherit: true,
@@ -131,7 +133,7 @@ exports.BattleMovedex = {
 			target.statusData.startTime = 2;
 			this.heal(target.maxhp); // Aeshetic only as the healing happens after you fall asleep in-game
 			this.add('-status', target, 'slp', '[from] move: Rest');
-		}
+		},
 	},
 	softboiled: {
 		inherit: true,
@@ -142,7 +144,7 @@ exports.BattleMovedex = {
 				return false;
 			}
 			this.heal(Math.floor(target.maxhp / 2), target, target);
-		}
+		},
 	},
 	substitute: {
 		inherit: true,
@@ -163,8 +165,8 @@ exports.BattleMovedex = {
 					return null;
 				}
 				if (move.category === 'Status') {
-					var SubBlocked = {
-						leechseed:1, lockon:1, mindreader:1, nightmare:1
+					let SubBlocked = {
+						leechseed:1, lockon:1, mindreader:1, nightmare:1,
 					};
 					if (move.status || move.boosts || move.volatileStatus === 'confusion' || SubBlocked[move.id]) {
 						this.add('-activate', target, 'Substitute', '[block] ' + move.name);
@@ -173,7 +175,7 @@ exports.BattleMovedex = {
 					return;
 				}
 				if (move.volatileStatus && target === source) return;
-				var damage = this.getDamage(source, target, move);
+				let damage = this.getDamage(source, target, move);
 				if (!damage) return null;
 				damage = this.runEvent('SubDamage', target, source, move, damage);
 				if (!damage) return damage;
@@ -186,11 +188,14 @@ exports.BattleMovedex = {
 				} else {
 					this.add('-activate', target, 'Substitute', '[damage]');
 				}
-				if (move.recoil) {
-					this.damage(Math.round(damage * move.recoil[0] / move.recoil[1]), source, target, 'recoil');
-				}
-				if (move.drain) {
-					this.heal(Math.ceil(damage * move.drain[0] / move.drain[1]), source, target, 'drain');
+				// Drain/recoil does not happen if the substitute breaks
+				if (target.volatiles['substitute']) {
+					if (move.recoil) {
+						this.damage(Math.round(damage * move.recoil[0] / move.recoil[1]), source, target, 'recoil');
+					}
+					if (move.drain) {
+						this.heal(Math.ceil(damage * move.drain[0] / move.drain[1]), source, target, 'drain');
+					}
 				}
 				this.runEvent('AfterSubDamage', target, source, move, damage);
 				// Add here counter damage
@@ -201,14 +206,14 @@ exports.BattleMovedex = {
 			},
 			onEnd: function (target) {
 				this.add('-end', target, 'Substitute');
-			}
+			},
 		},
 		secondary: false,
 		target: "self",
-		type: "Normal"
+		type: "Normal",
 	},
 	wrap: {
 		inherit: true,
-		onBeforeMove: function () {}
-	}
+		onBeforeMove: function () {},
+	},
 };

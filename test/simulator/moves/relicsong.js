@@ -1,5 +1,9 @@
-var assert = require('assert');
-var battle;
+'use strict';
+
+const assert = require('./../../assert');
+const common = require('./../../common');
+
+let battle;
 
 describe('Relic Song', function () {
 	afterEach(function () {
@@ -7,15 +11,23 @@ describe('Relic Song', function () {
 	});
 
 	it('should transform Meloetta into its Pirouette forme', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Meloetta", ability: 'serenegrace', moves: ['relicsong']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Registeel", ability: 'clearbody', moves: ['rest']}]);
 		battle.commitDecisions();
 		assert.strictEqual(battle.p1.active[0].template.speciesid, 'meloettapirouette');
 	});
 
+	it('should transform Meloetta-Pirouette into its Aria forme', function () {
+		battle = common.createBattle();
+		battle.join('p1', 'Guest 1', 1, [{species: "Meloetta-Pirouette", ability: 'serenegrace', moves: ['relicsong']}]);
+		battle.join('p2', 'Guest 2', 1, [{species: "Registeel", ability: 'clearbody', moves: ['rest']}]);
+		battle.commitDecisions();
+		assert.strictEqual(battle.p1.active[0].template.speciesid, 'meloetta');
+	});
+
 	it('should pierce through substitutes', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Deoxys-Attack", ability: 'victorystar', item: 'laggingtail', moves: ['splash', 'relicsong']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Caterpie", level: 2, ability: 'naturalcure', item: 'focussash', moves: ['substitute', 'rest']}]);
 		battle.commitDecisions();
@@ -31,10 +43,10 @@ describe('Relic Song [Gen 5]', function () {
 	});
 
 	it('should not pierce through substitutes', function () {
-		battle = BattleEngine.Battle.construct('battle-relicsong-bw', 'gen5customgame');
-		battle.join('p1', 'Guest 1', 1, [{species: "Deoxys-Attack", ability: 'victorystar', item: 'laggingtail', moves: ['splash', 'relicsong']}]);
-		battle.join('p2', 'Guest 2', 1, [{species: "Caterpie", level: 2, ability: 'naturalcure', item: 'focussash', moves: ['substitute', 'rest']}]);
-		battle.commitDecisions();
+		battle = common.gen(5).createBattle([
+			[{species: "Deoxys-Attack", ability: 'victorystar', item: 'laggingtail', moves: ['splash', 'relicsong']}],
+			[{species: "Caterpie", level: 2, ability: 'naturalcure', item: 'focussash', moves: ['substitute', 'rest']}],
+		]);
 		battle.commitDecisions();
 		battle.choose('p1', 'move 2');
 		battle.choose('p2', 'move 2');
@@ -42,9 +54,10 @@ describe('Relic Song [Gen 5]', function () {
 	});
 
 	it('should transform Meloetta into its Pirouette forme even if it hits a substitute', function () {
-		battle = BattleEngine.Battle.construct();
-		battle.join('p1', 'Guest 1', 1, [{species: "Meloetta", ability: 'serenegrace', moves: ['relicsong']}]);
-		battle.join('p2', 'Guest 2', 1, [{species: "Registeel", ability: 'prankster', moves: ['substitute']}]);
+		battle = common.createBattle([
+			[{species: "Meloetta", ability: 'serenegrace', moves: ['relicsong']}],
+			[{species: "Registeel", ability: 'prankster', moves: ['substitute']}],
+		]);
 		battle.commitDecisions();
 		assert.strictEqual(battle.p1.active[0].template.speciesid, 'meloettapirouette');
 	});

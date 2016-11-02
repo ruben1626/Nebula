@@ -1,9 +1,12 @@
+'use strict';
+
 exports.BattleFormats = {
 	pokemon: {
-		effectType: 'Banlist',
+		effectType: 'ValidatorRule',
+		name: 'Pokemon',
 		onValidateSet: function (set, format) {
-			var template = this.getTemplate(set.species);
-			var problems = [];
+			let template = this.getTemplate(set.species);
+			let problems = [];
 			if (set.species === set.name) delete set.name;
 
 			if (template.gen > this.gen) {
@@ -11,10 +14,10 @@ exports.BattleFormats = {
 			} else if (template.isNonstandard) {
 				problems.push(set.species + ' is not a real Pokemon.');
 			}
-			var hasHP = false;
-			var hasSD = false;
+			let hasHP = false;
+			let hasSD = false;
 			if (set.item) {
-				var item = this.getItem(set.item);
+				let item = this.getItem(set.item);
 				if (item.gen > this.gen) {
 					problems.push(item.name + ' does not exist in gen ' + this.gen + '.');
 				} else if (item.isNonstandard) {
@@ -22,8 +25,8 @@ exports.BattleFormats = {
 				}
 			}
 			if (set.moves) {
-				for (var i = 0; i < set.moves.length; i++) {
-					var move = this.getMove(set.moves[i]);
+				for (let i = 0; i < set.moves.length; i++) {
+					let move = this.getMove(set.moves[i]);
 					if (move.gen > this.gen) {
 						problems.push(move.name + ' does not exist in gen ' + this.gen + '.');
 					} else if (move.isNonstandard) {
@@ -54,7 +57,7 @@ exports.BattleFormats = {
 				if (!set.ivs) {
 					set.ivs = {hp: 30, atk: 30, def: 30, spa: 30, spd: 30, spe: 30};
 				} else {
-					for (var iv in set.ivs) {
+					for (let iv in set.ivs) {
 						// Since Gen 2 has 0-15 DVs that increase 2 points, we only want pair numbers
 						if (set.ivs[iv] % 2 !== 0) set.ivs[iv]--;
 						// This shouldn't even be possible
@@ -66,7 +69,7 @@ exports.BattleFormats = {
 				// Calculate all the IV oddness on gen 2.
 				// If you use Marowak with Thick Club, we'll be gentle enough to deal with your Attack DVs.
 				// This is only done because the gen 6 Teambuilder is confusing, using IVs and all.
-				var marowakClub = false;
+				let marowakClub = false;
 				if (toId(set.item) === 'thickclub' && set.species === 'Marowak' && hasSD) {
 					set.ivs.atk = 26;
 					marowakClub = true;
@@ -85,21 +88,21 @@ exports.BattleFormats = {
 				// Deal with female IVs.
 				if (!template.gender) {
 					set.gender = 'M';
-					// 0001 (1 DV = 2 IV) Gender value 1:7
+					// 0-1 (1 DV = 2 IV) Gender value 1:7
 					if (template.genderRatio && template.genderRatio.F === 0.125 && set.ivs.atk < 3) {
-						 set.gender = 'F';
+						set.gender = 'F';
 					}
-					// 0010 (2 DV = 4 IV) Gender value 1:3
-					if (template.genderRatio && template.genderRatio.F === 0.25 && set.ivs.atk < 5) {
-						 set.gender = 'F';
+					// 0-3 (3 DV = 6 IV) Gender value 1:3
+					if (template.genderRatio && template.genderRatio.F === 0.25 && set.ivs.atk < 7) {
+						set.gender = 'F';
 					}
-					// 0011 (3 DV = 6 IV) Gender value 1:1
-					if (!template.genderRatio && set.ivs.atk < 7) {
-						 set.gender = 'F';
+					// 0-7 (7 DV = 14 IV) Gender value 1:1
+					if (template.genderRatio && template.genderRatio.F === 0.5 && set.ivs.atk < 15) {
+						set.gender = 'F';
 					}
-					// 0100 (4 DV = 8 IV) Gender value 3:1
-					if (template.genderRatio && template.genderRatio.F === 0.75 && set.ivs.atk < 9) {
-						 set.gender = 'F';
+					// 0-11 (11 DV = 22 IV) Gender value 3:1
+					if (template.genderRatio && template.genderRatio.F === 0.75 && set.ivs.atk < 23) {
+						set.gender = 'F';
 					}
 				}
 
@@ -111,10 +114,11 @@ exports.BattleFormats = {
 			set.nature = 'Serious';
 
 			return problems;
-		}
+		},
 	},
 	standard: {
-		effectType: 'Banlist',
+		effectType: 'ValidatorRule',
+		name: 'Standard',
 		ruleset: ['Sleep Clause Mod', 'Species Clause', 'OHKO Clause', 'Evasion Moves Clause', 'HP Percentage Mod', 'Cancel Mod'],
 		banlist: ['Unreleased', 'Illegal',
 			'Hypnosis + Perish Song + Mean Look',
@@ -126,22 +130,22 @@ exports.BattleFormats = {
 			'Sleep Powder + Perish Song + Mean Look',
 			'Sleep Powder + Perish Song + Spider Web',
 			'Spore + Perish Song + Mean Look',
-			'Spore + Perish Song + Spider Web'
+			'Spore + Perish Song + Spider Web',
 		],
 		onValidateSet: function (set) {
 			// limit one of each move in Standard
-			var moves = [];
+			let moves = [];
 			if (set.moves) {
-				var hasMove = {};
-				for (var i = 0; i < set.moves.length; i++) {
-					var move = this.getMove(set.moves[i]);
-					var moveid = move.id;
+				let hasMove = {};
+				for (let i = 0; i < set.moves.length; i++) {
+					let move = this.getMove(set.moves[i]);
+					let moveid = move.id;
 					if (hasMove[moveid]) continue;
 					hasMove[moveid] = true;
 					moves.push(set.moves[i]);
 				}
 			}
 			set.moves = moves;
-		}
-	}
+		},
+	},
 };

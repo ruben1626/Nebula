@@ -1,5 +1,9 @@
-var assert = require('assert');
-var battle;
+'use strict';
+
+const assert = require('./../../assert');
+const common = require('./../../common');
+
+let battle;
 
 describe('Multiscale', function () {
 	afterEach(function () {
@@ -7,11 +11,11 @@ describe('Multiscale', function () {
 	});
 
 	it('should halve damage when it is at full health', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Dragonite", ability: 'multiscale', moves: ['splash']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Gyarados", ability: 'moxie', moves: ['incinerate']}]);
-		var damage, curhp;
-		var pokemon = battle.p1.active[0];
+		let damage, curhp;
+		let pokemon = battle.p1.active[0];
 		battle.commitDecisions();
 		damage = pokemon.maxhp - pokemon.hp;
 		curhp = pokemon.hp;
@@ -21,11 +25,11 @@ describe('Multiscale', function () {
 	});
 
 	it('should be suppressed by Mold Breaker', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Dragonite", ability: 'multiscale', moves: ['splash']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Gyarados", ability: 'moldbreaker', moves: ['incinerate']}]);
-		var damage, curhp;
-		var pokemon = battle.p1.active[0];
+		let damage, curhp;
+		let pokemon = battle.p1.active[0];
 		battle.commitDecisions();
 		damage = pokemon.maxhp - pokemon.hp;
 		curhp = pokemon.hp;

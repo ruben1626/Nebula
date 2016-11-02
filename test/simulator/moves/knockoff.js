@@ -1,5 +1,9 @@
-var assert = require('assert');
-var battle;
+'use strict';
+
+const assert = require('./../../assert');
+const common = require('./../../common');
+
+let battle;
 
 describe('Knock Off', function () {
 	afterEach(function () {
@@ -7,7 +11,7 @@ describe('Knock Off', function () {
 	});
 
 	it('should remove most items', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Mew", ability: 'synchronize', moves: ['knockoff']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Blissey", ability: 'naturalcure', item: 'shedshell', moves: ['softboiled']}]);
 		battle.commitDecisions();
@@ -15,7 +19,7 @@ describe('Knock Off', function () {
 	});
 
 	it('should not remove plates from Arceus', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Mew", ability: 'synchronize', moves: ['knockoff']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Arceus", ability: 'download', item: 'flameplate', moves: ['swordsdance']}]);
 		battle.commitDecisions();
@@ -23,7 +27,7 @@ describe('Knock Off', function () {
 	});
 
 	it('should not remove drives from Genesect', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Mew", ability: 'synchronize', moves: ['knockoff']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Genesect", ability: 'download', item: 'dousedrive', moves: ['shiftgear']}]);
 		battle.commitDecisions();
@@ -31,7 +35,7 @@ describe('Knock Off', function () {
 	});
 
 	it('should not remove correctly held mega stones', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Mew", ability: 'synchronize', moves: ['knockoff']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Scizor", ability: 'technician', item: 'scizorite', moves: ['swordsdance']}]);
 		battle.commitDecisions();
@@ -39,7 +43,7 @@ describe('Knock Off', function () {
 	});
 
 	it('should remove wrong mega stones', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Mew", ability: 'synchronize', moves: ['knockoff']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Scizor", ability: 'technician', item: 'audinite', moves: ['swordsdance']}]);
 		battle.commitDecisions();
@@ -47,7 +51,7 @@ describe('Knock Off', function () {
 	});
 
 	it('should not remove items if the user faints mid-move', function () {
-		battle = BattleEngine.Battle.construct();
+		battle = common.createBattle();
 		battle.join('p1', 'Guest 1', 1, [{species: "Shedinja", ability: 'wonderguard', moves: ['knockoff']}]);
 		battle.join('p2', 'Guest 2', 1, [{species: "Ferrothorn", ability: 'ironbarbs', item: 'rockyhelmet', moves: ['curse']}]);
 		battle.commitDecisions();
