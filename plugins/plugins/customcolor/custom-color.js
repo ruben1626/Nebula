@@ -30,6 +30,7 @@ function updateColor() {
 	let newCss = '/* COLORS START */\n';
 
 	for (let name in customColors) {
+		if (name in mainCustomColors && customColors[name] === mainCustomColors[name]) continue;
 		newCss += generateCSS(name, customColors[name]);
 	}
 	newCss += '/* COLORS END */\n';
@@ -88,10 +89,10 @@ exports.commands = {
 		if (!colorData) return this.errorReply(`${parts[1]} no es un color válido.`);
 		const colorHex = colorData.toString('hex');
 
-		Plugins.Colors.load({[targetUserid]: colorHex});
+		Plugins.Colors.load({[targetUserid]: {color: colorHex}});
 		this.sendReply(`|raw|Has otorgado un color personalizado a ${Plugins.Colors.apply(targetUserid).bold()}.`);
 		Rooms('staff').addRaw(Chat.html`${parts[0]} obtuvo un <strong><font color="${colorHex}">color personalizado</font></strong> de ${user.name}.`).update();
-		this.privateModCommand(`(${parts[0]} obtuvo un color personalizado: '${parts[1]}' de parte de ${user.name}.)`);
+		this.privateModCommand(`(${parts[0]} obtuvo un color personalizado ${colorData.getName('es')}: ${colorHex} de parte de ${user.name}.)`);
 
 		customColors[targetUserid] = colorHex;
 		updateColor();
