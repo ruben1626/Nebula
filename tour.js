@@ -350,6 +350,8 @@ exports.tour = function (t) {
 			room.addRaw(html);
 		},
 		nextRound: function (rid) {
+			const room = Rooms.get(rid);
+
 			let w = tour[rid].winners;
 			let l = tour[rid].losers;
 			tour[rid].roundNum++;
@@ -361,7 +363,6 @@ exports.tour = function (t) {
 
 			if (w.length === 1) {
 				//end tour
-				const room = Rooms.get(rid);
 				room.addRaw('<h2><font color="green">Felicidades <font color="black">' + Chat.escapeHTML(tour.toUserName(w[0])) + '</font>!  Has ganado el torneo de formato ' + Tools.data.Formats[tour[rid].tier].name + '!</font></h2>' + '<br><font color="blue"><b>Segundo Lugar:</b></font> ' + Chat.escapeHTML(tour.toUserName(l[0])) + '<hr />');
 				if (tour[rid].size >= 3 && room.isOfficial) {
 					const moneyFirst = tour[rid].size * 10;
