@@ -41,7 +41,7 @@ exports.commands = {
 		if (!target) return this.sendReply("No has especificado ninguna medalla.");
 		let medalData = League.getMedalData(target);
 		if (!medalData) return this.sendReply("La medalla especificada no existe.");
-		return this.sendReplyBox('<b>' + Tools.escapeHTML(medalData.name) + ':</b><br /><img src="' + encodeURI(medalData.image) + '" title="' + Tools.escapeHTML(medalData.name) + '" width="' + Tools.escapeHTML(medalData.width) + '" height="' + Tools.escapeHTML(medalData.height) + '" />&nbsp;');
+		return this.sendReplyBox('<b>' + Chat.escapeHTML(medalData.name) + ':</b><br /><img src="' + encodeURI(medalData.image) + '" title="' + Chat.escapeHTML(medalData.name) + '" width="' + Chat.escapeHTML(medalData.width) + '" height="' + Chat.escapeHTML(medalData.height) + '" />&nbsp;');
 	},
 
 	newmedal: 'addmedal',
@@ -106,7 +106,7 @@ exports.commands = {
 		if (medalId) return this.sendReply(userT + " no es miembro de ninguna liga del servidor.");
 		let medalData = League.getMedalData(medalId);
 		if (!medalData) return this.sendReply("La medalla especificada no existe.");
-		return this.sendReplyBox(userT + ' puede hacer entrega de: <b>' + Tools.escapeHTML(medalData.name) + ':</b><br /><br /><img src="' + encodeURI(medalData.image) + '" title="' + Tools.escapeHTML(medalData.name) + '" width="' + Tools.escapeHTML(medalData.width) + '" height="' + Tools.escapeHTML(medalData.height) + '" />&nbsp;');
+		return this.sendReplyBox(userT + ' puede hacer entrega de: <b>' + Chat.escapeHTML(medalData.name) + ':</b><br /><br /><img src="' + encodeURI(medalData.image) + '" title="' + Chat.escapeHTML(medalData.name) + '" width="' + Chat.escapeHTML(medalData.width) + '" height="' + Chat.escapeHTML(medalData.height) + '" />&nbsp;');
 	},
 
 	qmedals: function (target, room, user, connection) {

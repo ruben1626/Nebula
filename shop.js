@@ -72,7 +72,7 @@ exports.deleteValues = function (text) {
 };
 
 exports.getPokemonId = function (text) {
-	let textReturn = Tools.escapeHTML(text);
+	let textReturn = Chat.escapeHTML(text);
 	textReturn = textReturn.toLowerCase();
 	textReturn = textReturn.trim();
 	return textReturn;

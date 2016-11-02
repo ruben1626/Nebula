@@ -533,24 +533,24 @@ let cmds = {
 			if (!format) return this.sendReply("Formato no válido.");
 			switch (toId(params[1])) {
 			case 'standard':
-				teamTour.newTeamTour(room.id, 'standard', format, size, Tools.escapeHTML(params[4]), Tools.escapeHTML(params[5]));
+				teamTour.newTeamTour(room.id, 'standard', format, size, Chat.escapeHTML(params[4]), Chat.escapeHTML(params[5]));
 				this.logModCommand(user.name + " ha iniciado torneo standard entre los equipos " + toId(params[4]) + " y " + toId(params[5]) + " en formato " + format + ".");
-				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado un Torneo de Equipos Standard en formato ' + format + ' entre ' + Tools.escapeHTML(params[4]) + " y " + Tools.escapeHTML(params[5]) + '.</font></h2> <button name="send" value="/tt join, ' + Tools.escapeHTML(params[4]) + '">Jugar con ' + Tools.escapeHTML(params[4]) + '</button>&nbsp;<button name="send" value="/tt join, ' + Tools.escapeHTML(params[5]) + '">Jugar con ' + Tools.escapeHTML(params[5]) + '</button><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración del torneo.</b></font>');
+				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado un Torneo de Equipos Standard en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2> <button name="send" value="/tt join, ' + Chat.escapeHTML(params[4]) + '">Jugar con ' + Chat.escapeHTML(params[4]) + '</button>&nbsp;<button name="send" value="/tt join, ' + Chat.escapeHTML(params[5]) + '">Jugar con ' + Chat.escapeHTML(params[5]) + '</button><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración del torneo.</b></font>');
 				break;
 			case 'total':
-				teamTour.newTeamTour(room.id, 'total', format, size, Tools.escapeHTML(params[4]), Tools.escapeHTML(params[5]));
+				teamTour.newTeamTour(room.id, 'total', format, size, Chat.escapeHTML(params[4]), Chat.escapeHTML(params[5]));
 				this.logModCommand(user.name + " ha iniciado torneo total entre los equipos " + toId(params[4]) + " y " + toId(params[5]) + " en formato " + format + ".");
-				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado un Torneo de Equipos Total en formato ' + format + ' entre ' + Tools.escapeHTML(params[4]) + " y " + Tools.escapeHTML(params[5]) + '.</font></h2> <button name="send" value="/tt join, ' + Tools.escapeHTML(params[4]) + '">Jugar con ' + Tools.escapeHTML(params[4]) + '</button>&nbsp;<button name="send" value="/tt join, ' + Tools.escapeHTML(params[5]) + '">Jugar con ' + Tools.escapeHTML(params[5]) + '</button><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración del torneo.</b></font>');
+				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado un Torneo de Equipos Total en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2> <button name="send" value="/tt join, ' + Chat.escapeHTML(params[4]) + '">Jugar con ' + Chat.escapeHTML(params[4]) + '</button>&nbsp;<button name="send" value="/tt join, ' + Chat.escapeHTML(params[5]) + '">Jugar con ' + Chat.escapeHTML(params[5]) + '</button><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración del torneo.</b></font>');
 				break;
 			case 'lineups':
 				if (params.length < 8) return this.sendReply("Usage: /teamtour new, lineups, [tier/multitier], [tamano], [equipoA], [equipoB], [capitan1], [capitan2]");
 				var userCapA = Users.getExact(params[6]);
-				if (!userCapA) return this.sendReply("El usuario " + Tools.escapeHTML(params[6]) + " no está disponible.");
+				if (!userCapA) return this.sendReply("El usuario " + Chat.escapeHTML(params[6]) + " no está disponible.");
 				var userCapB = Users.getExact(params[7]);
-				if (!userCapB) return this.sendReply("El usuario " + Tools.escapeHTML(params[7]) + " no está disponible.");
-				teamTour.newTeamTour(room.id, 'lineups', format, size, Tools.escapeHTML(params[4]), Tools.escapeHTML(params[5]), userCapA.name, userCapB.name);
+				if (!userCapB) return this.sendReply("El usuario " + Chat.escapeHTML(params[7]) + " no está disponible.");
+				teamTour.newTeamTour(room.id, 'lineups', format, size, Chat.escapeHTML(params[4]), Chat.escapeHTML(params[5]), userCapA.name, userCapB.name);
 				this.logModCommand(user.name + " ha iniciado torneo con alineaciones entre los equipos " + toId(params[4]) + " y " + toId(params[5]) + " en formato " + format + ".");
-				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado un Torneo de Equipos con Alineaciones en formato ' + format + ' entre ' + Tools.escapeHTML(params[4]) + " y " + Tools.escapeHTML(params[5]) + '.</font></h2><b><font color="orange">Capitanes de equipo: </font>' + userCapA.name + ' y ' + userCapB.name + '</font></b> <br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración del torneo. <br />Los capitales deben usar /tt reg, [miembro1], [miembro2]... para registrar las alineaciones.</b></font>');
+				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado un Torneo de Equipos con Alineaciones en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b><font color="orange">Capitanes de equipo: </font>' + userCapA.name + ' y ' + userCapB.name + '</font></b> <br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración del torneo. <br />Los capitales deben usar /tt reg, [miembro1], [miembro2]... para registrar las alineaciones.</b></font>');
 				break;
 			default:
 				return this.sendReply("El tipo de tour debe ser uno de estos: [standard/total/lineups]");
@@ -596,9 +596,9 @@ let cmds = {
 			if (!this.can('tournamentsmoderation', room)) return false;
 			if (params.length < 3) return this.sendReply("Usage: /teamtour auth, [Capitan1], [Capitan2]");
 			var userCapA = Users.getExact(params[1]);
-			if (!userCapA) return this.sendReply("El usuario " + Tools.escapeHTML(params[6]) + " no está disponible.");
+			if (!userCapA) return this.sendReply("El usuario " + Chat.escapeHTML(params[6]) + " no está disponible.");
 			var userCapB = Users.getExact(params[2]);
-			if (!userCapB) return this.sendReply("El usuario " + Tools.escapeHTML(params[7]) + " no está disponible.");
+			if (!userCapB) return this.sendReply("El usuario " + Chat.escapeHTML(params[7]) + " no está disponible.");
 			var err = teamTour.setAuth(roomId, params[1], params[2]);
 			if (err) return this.sendReply(err);
 			this.privateModCommand('(' + user.name + ' ha cambiado los Capitanes del torneo de Equipos.)');

@@ -194,11 +194,11 @@ exports.commands = {
 		}
 		let pokeData = '<hr />';
 		for (let t in tcData.pokemon) {
-			pokeData += '<img src="http://play.pokemonshowdown.com/sprites/xyani/' + Tools.escapeHTML(Shop.getPokemonId(tcData.pokemon[t])) + '.gif" width="auto" /> &nbsp;';
+			pokeData += '<img src="http://play.pokemonshowdown.com/sprites/xyani/' + Chat.escapeHTML(Shop.getPokemonId(tcData.pokemon[t])) + '.gif" width="auto" /> &nbsp;';
 		}
 		if (tcData.nPokemon === 0) pokeData = '';
-		if (room.id === 'lobby') return this.sendReply('|raw|<div class="infobox infobox-limited"><center><h2>' + userName + '</h2><img src="' + encodeURI(tcData.image) + '" width="80" height="80" title="' + userName + '" /><br /><br /><b>"' + Tools.escapeHTML(tcData.phrase) + '"</b>' + pokeData + '</center></div>');
-		this.sendReplyBox('<center><h2>' + userName + '</h2><img src="' + encodeURI(tcData.image) + '" width="80" height="80" title="' + userName + '" /><br /><br /><b>"' + Tools.escapeHTML(tcData.phrase) + '"</b>' + pokeData + '</center>');
+		if (room.id === 'lobby') return this.sendReply('|raw|<div class="infobox infobox-limited"><center><h2>' + userName + '</h2><img src="' + encodeURI(tcData.image) + '" width="80" height="80" title="' + userName + '" /><br /><br /><b>"' + Chat.escapeHTML(tcData.phrase) + '"</b>' + pokeData + '</center></div>');
+		this.sendReplyBox('<center><h2>' + userName + '</h2><img src="' + encodeURI(tcData.image) + '" width="80" height="80" title="' + userName + '" /><br /><br /><b>"' + Chat.escapeHTML(tcData.phrase) + '"</b>' + pokeData + '</center>');
 	},
 
 	givemoney: function (target, room, user) {
@@ -346,7 +346,7 @@ exports.commands = {
 		if (!target) return this.sendReply("Usage: /botphrase texto");
 		if (toId(target) === 'off') return this.sendReply("Usage: /botphrase texto");
 		if (target.length > 150) return this.sendReply("La frase es demasiado larga. Debe ser menor a 150 caracteres.");
-		Shop.changeBotPhrase(user.name, Tools.escapeHTML(target));
+		Shop.changeBotPhrase(user.name, Chat.escapeHTML(target));
 		return this.sendReply("Frase modificada con exito.");
 	},
 
@@ -414,7 +414,7 @@ exports.commands = {
 		let pokemonList = {};
 		let pokemonId = '';
 		for (let h in params) {
-			pokemonId = Tools.escapeHTML(params[h]);
+			pokemonId = Chat.escapeHTML(params[h]);
 			if (pokemonId.length > 20) return this.sendReply("Alguno de los nombres de los Pokemon era muy largo.");
 			pokemonList[h] = pokemonId;
 		}
@@ -432,7 +432,7 @@ exports.commands = {
 		if (!tcData.customTC) return this.sendReply("Tu tarjeta no es personalizada.");
 		if (!target) {
 			this.sendReply('Html de tu Tarjeta de entrenador:');
-			this.sendReplyBox(Tools.escapeHTML(tcData.customHtml));
+			this.sendReplyBox(Chat.escapeHTML(tcData.customHtml));
 			return;
 		}
 		if (target.length > 1000) return this.sendReply("Tu código es demasiado largo. Contacta con un administrador para modificar la TC custom.");

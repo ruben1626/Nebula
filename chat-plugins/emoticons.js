@@ -79,7 +79,7 @@ function parseEmoticons(message, room, user, pm) {
 	if (!match) return false;
 
 	// escape HTML
-	message = Tools.escapeHTML(message);
+	message = Chat.escapeHTML(message);
 
 	// add emotes
 	message = message.replace(patternRegex, function (match) {

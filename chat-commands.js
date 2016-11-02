@@ -292,15 +292,15 @@ let commands = exports.commands = {
 				targetRoom.chatRoomData.isPrivate = true;
 				Rooms.global.writeChatRoomData();
 				if (Rooms('upperstaff')) {
-					Rooms('upperstaff').add('|raw|<div class="broadcast-green">Private chat room created: <b>' + Tools.escapeHTML(target) + '</b></div>').update();
+					Rooms('upperstaff').add('|raw|<div class="broadcast-green">Private chat room created: <b>' + Chat.escapeHTML(target) + '</b></div>').update();
 				}
 				return this.sendReply("The private chat room '" + target + "' was created.");
 			} else {
 				if (Rooms('staff')) {
-					Rooms('staff').add('|raw|<div class="broadcast-green">Public chat room created: <b>' + Tools.escapeHTML(target) + '</b></div>').update();
+					Rooms('staff').add('|raw|<div class="broadcast-green">Public chat room created: <b>' + Chat.escapeHTML(target) + '</b></div>').update();
 				}
 				if (Rooms('upperstaff')) {
-					Rooms('upperstaff').add('|raw|<div class="broadcast-green">Public chat room created: <b>' + Tools.escapeHTML(target) + '</b></div>').update();
+					Rooms('upperstaff').add('|raw|<div class="broadcast-green">Public chat room created: <b>' + Chat.escapeHTML(target) + '</b></div>').update();
 				}
 				return this.sendReply("The chat room '" + target + "' was created.");
 			}
@@ -373,7 +373,7 @@ let commands = exports.commands = {
 		if (/^[0-9]+$/.test(title)) {
 			titleHTML = groupChatLink;
 		} else {
-			titleHTML = Tools.escapeHTML(title) + ' <small style="font-weight:normal;font-size:9pt">' + groupChatLink + '</small>';
+			titleHTML = Chat.escapeHTML(title) + ' <small style="font-weight:normal;font-size:9pt">' + groupChatLink + '</small>';
 		}
 		let targetRoom = Rooms.createChatRoom(roomid, '[G] ' + title, {
 			isPersonal: true,
@@ -521,7 +521,7 @@ let commands = exports.commands = {
 		if (!target) {
 			if (!this.canBroadcast()) return;
 			if (!room.desc) return this.sendReply("This room does not have a description set.");
-			this.sendReplyBox("The room description is: " + Tools.escapeHTML(room.desc));
+			this.sendReplyBox("The room description is: " + Chat.escapeHTML(room.desc));
 			return;
 		}
 		if (!this.can('declare')) return false;
@@ -557,7 +557,7 @@ let commands = exports.commands = {
 			this.sendReply('|raw|<div class="infobox infobox-limited">' + room.introMessage + '</div>');
 			if (!this.broadcasting && user.can('declare', null, room)) {
 				this.sendReply('Source:');
-				this.sendReplyBox('<code>/roomintro ' + Tools.escapeHTML(room.introMessage) + '</code>');
+				this.sendReplyBox('<code>/roomintro ' + Chat.escapeHTML(room.introMessage) + '</code>');
 			}
 			return;
 		}
@@ -591,7 +591,7 @@ let commands = exports.commands = {
 			this.sendReply('|raw|<div class="infobox">' + room.staffMessage + '</div>');
 			if (user.can('ban', null, room)) {
 				this.sendReply('Source:');
-				this.sendReplyBox('<code>/staffintro ' + Tools.escapeHTML(room.staffMessage) + '</code>');
+				this.sendReplyBox('<code>/staffintro ' + Chat.escapeHTML(room.staffMessage) + '</code>');
 			}
 			return;
 		}
@@ -883,7 +883,7 @@ let commands = exports.commands = {
 		if (room.bannedUsers[userid] && room.bannedIps[targetUser.latestIp]) return this.sendReply("User " + targetUser.name + " is already banned from room " + room.id + ".");
 		if (targetUser in room.users) {
 			targetUser.popup(
-				"|html|<p>" + Tools.escapeHTML(user.name) + " has banned you from the room " + room.id + ".</p>" + (target ? "<p>Reason: " + Tools.escapeHTML(target) + "</p>" : "") +
+				"|html|<p>" + Chat.escapeHTML(user.name) + " has banned you from the room " + room.id + ".</p>" + (target ? "<p>Reason: " + Chat.escapeHTML(target) + "</p>" : "") +
 				"<p>To appeal the ban, PM the staff member that banned you" + (room.auth ? " or a room owner. </p><p><button name=\"send\" value=\"/roomauth " + room.id + "\">List Room Staff</button></p>" : ".</p>")
 			);
 		}
@@ -1478,7 +1478,7 @@ let commands = exports.commands = {
 		if (!room.modchat) {
 			this.add("|raw|<div class=\"broadcast-blue\"><b>Moderated chat was disabled!</b><br />Anyone may talk now.</div>");
 		} else {
-			let modchat = Tools.escapeHTML(room.modchat);
+			let modchat = Chat.escapeHTML(room.modchat);
 			this.add("|raw|<div class=\"broadcast-red\"><b>Moderated chat was set to " + modchat + "!</b><br />Only users of rank " + modchat + " and higher can talk.</div>");
 		}
 		this.logModCommand(user.name + " set modchat to " + room.modchat);
@@ -1496,7 +1496,7 @@ let commands = exports.commands = {
 
 		if (!this.canTalk()) return;
 
-		this.add('|raw|<div class="broadcast-blue"><b>' + Tools.escapeHTML(target) + '</b></div>');
+		this.add('|raw|<div class="broadcast-blue"><b>' + Chat.escapeHTML(target) + '</b></div>');
 		this.logModCommand(user.name + " declared " + target);
 	},
 	declarehelp: ["/declare [message] - Anonymously announces a message. Requires: # & ~"],
@@ -1673,7 +1673,7 @@ let commands = exports.commands = {
 			stdout = stdout.split('\n').map(function (line) {
 				let bracketIndex = line.indexOf(']');
 				var parenIndex = line.indexOf(')');
-				if (bracketIndex < 0) return Tools.escapeHTML(line);
+				if (bracketIndex < 0) return Chat.escapeHTML(line);
 				let time = line.slice(1, bracketIndex);
 				let timestamp = new Date(time).format('{yyyy}-{MM}-{dd} {hh}:{mm}{tt}');
 				var parenIndex = line.indexOf(')');
@@ -1682,7 +1682,7 @@ let commands = exports.commands = {
 					let url = Config.modloglink(time, roomid);
 					if (url) timestamp = '<a href="' + url + '">' + timestamp + '</a>';
 				}
-				return '<small>[' + timestamp + '] (' + roomid + ')</small>' + Tools.escapeHTML(line.slice(parenIndex + 1));
+				return '<small>[' + timestamp + '] (' + roomid + ')</small>' + Chat.escapeHTML(line.slice(parenIndex + 1));
 			}).join('<br />');
 			if (lines) {
 				if (!stdout) {

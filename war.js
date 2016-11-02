@@ -570,29 +570,29 @@ let cmds = {
 			params[5] = Clans.getClanName(params[5]);
 			switch (toId(params[1])) {
 			case 'standard':
-				War.newTeamTour(room.id, 'standard', format, size, Tools.escapeHTML(params[4]), Tools.escapeHTML(params[5]));
+				War.newTeamTour(room.id, 'standard', format, size, Chat.escapeHTML(params[4]), Chat.escapeHTML(params[5]));
 				this.logModCommand(user.name + " ha iniciado una guerra standard entre los clanes " + toId(params[4]) + " y " + toId(params[5]) + " en formato " + format + ".");
-				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra standard en formato ' + format + ' entre ' + Tools.escapeHTML(params[4]) + " y " + Tools.escapeHTML(params[5]) + '.</font></h2><b>Para unirse a la war: <button name="send" value="/war join">/war join</button></b><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la guerra.</b></font>');
+				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra standard en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b>Para unirse a la war: <button name="send" value="/war join">/war join</button></b><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la guerra.</b></font>');
 				break;
 			case 'total':
-				War.newTeamTour(room.id, 'total', format, size, Tools.escapeHTML(params[4]), Tools.escapeHTML(params[5]));
+				War.newTeamTour(room.id, 'total', format, size, Chat.escapeHTML(params[4]), Chat.escapeHTML(params[5]));
 				this.logModCommand(user.name + " ha iniciado una guerra total entre los clanes " + toId(params[4]) + " y " + toId(params[5]) + " en formato " + format + ".");
-				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra total en formato ' + format + ' entre ' + Tools.escapeHTML(params[4]) + " y " + Tools.escapeHTML(params[5]) + '.</font></h2><b>Para unirse a la war: <button name="send" value="/war join">/war join</button></b><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la guerra.</b></font>');
+				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra total en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b>Para unirse a la war: <button name="send" value="/war join">/war join</button></b><br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><font color="red"><b>Recuerda que debes mantener tu nombre durante toda la duración de la guerra.</b></font>');
 				break;
 			case 'lineups':
 				if (params.length < 8) return this.sendReply("Usage: /war new, lineups, [tier/multitier], [tamano], [clanA], [clanB], [capitanA], [capitanB]");
 				var targetClan;
 				var userCapA = Users.getExact(params[6]);
-				if (!userCapA) return this.sendReply("El usuario " + Tools.escapeHTML(params[6]) + " no está disponible.");
+				if (!userCapA) return this.sendReply("El usuario " + Chat.escapeHTML(params[6]) + " no está disponible.");
 				targetClan = Clans.findClanFromMember(userCapA.name);
-				if (toId(targetClan) !== toId(params[4])) return this.sendReply("El usuario " + Tools.escapeHTML(params[6]) + " no pertenece al clan del que se le asigna capitan.");
+				if (toId(targetClan) !== toId(params[4])) return this.sendReply("El usuario " + Chat.escapeHTML(params[6]) + " no pertenece al clan del que se le asigna capitan.");
 				var userCapB = Users.getExact(params[7]);
-				if (!userCapB) return this.sendReply("El usuario " + Tools.escapeHTML(params[7]) + " no está disponible.");
+				if (!userCapB) return this.sendReply("El usuario " + Chat.escapeHTML(params[7]) + " no está disponible.");
 				targetClan = Clans.findClanFromMember(userCapB.name);
-				if (toId(targetClan) !== toId(params[5])) return this.sendReply("El usuario " + Tools.escapeHTML(params[7]) + " no pertenece al clan del que se le asigna capitan.");
-				War.newTeamTour(room.id, 'lineups', format, size, Tools.escapeHTML(params[4]), Tools.escapeHTML(params[5]), userCapA.name, userCapB.name);
+				if (toId(targetClan) !== toId(params[5])) return this.sendReply("El usuario " + Chat.escapeHTML(params[7]) + " no pertenece al clan del que se le asigna capitan.");
+				War.newTeamTour(room.id, 'lineups', format, size, Chat.escapeHTML(params[4]), Chat.escapeHTML(params[5]), userCapA.name, userCapB.name);
 				this.logModCommand(user.name + " ha iniciado una guerra con alineaciones entre los clanes " + toId(params[4]) + " y " + toId(params[5]) + " en formato " + format + ".");
-				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra por Alineaciones en formato ' + format + ' entre ' + Tools.escapeHTML(params[4]) + " y " + Tools.escapeHTML(params[5]) + '.</font></h2><b><font color="orange">Capitanes de equipo: </font>' + userCapA.name + ' y ' + userCapB.name + '</font></b> <br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><b><font color="red">Recuerda que debes mantener tu nombre durante toda la duración del torneo.</font> <br />Los capitales deben usar /war reg, [miembro1], [miembro2]... para registrar las alineaciones.</b>');
+				Rooms.rooms[room.id].addRaw('<hr /><h2><font color="green">' + user.name + ' ha iniciado una guerra por Alineaciones en formato ' + format + ' entre ' + Chat.escapeHTML(params[4]) + " y " + Chat.escapeHTML(params[5]) + '.</font></h2><b><font color="orange">Capitanes de equipo: </font>' + userCapA.name + ' y ' + userCapB.name + '</font></b> <br /><b><font color="blueviolet">Jugadores por equipo:</font></b> ' + size + '<br /><font color="blue"><b>FORMATO:</b></font> ' + format + '<hr /><br /><b><font color="red">Recuerda que debes mantener tu nombre durante toda la duración del torneo.</font> <br />Los capitales deben usar /war reg, [miembro1], [miembro2]... para registrar las alineaciones.</b>');
 				break;
 			default:
 				return this.sendReply("El tipo de war debe ser uno de estos: [standard/total/lineups]");
@@ -637,13 +637,13 @@ let cmds = {
 			var targetClan;
 			var tourData = War.getTourData(roomId);
 			var userCapA = Users.getExact(params[1]);
-			if (!userCapA) return this.sendReply("El usuario " + Tools.escapeHTML(params[1]) + " no está disponible.");
+			if (!userCapA) return this.sendReply("El usuario " + Chat.escapeHTML(params[1]) + " no está disponible.");
 			targetClan = Clans.findClanFromMember(userCapA.name);
-			if (toId(targetClan) !== toId(tourData.teamA)) return this.sendReply("El usuario " + Tools.escapeHTML(params[1]) + " no pertenece al clan del que se le asigna capitan.");
+			if (toId(targetClan) !== toId(tourData.teamA)) return this.sendReply("El usuario " + Chat.escapeHTML(params[1]) + " no pertenece al clan del que se le asigna capitan.");
 			var userCapB = Users.getExact(params[2]);
-			if (!userCapB) return this.sendReply("El usuario " + Tools.escapeHTML(params[2]) + " no está disponible.");
+			if (!userCapB) return this.sendReply("El usuario " + Chat.escapeHTML(params[2]) + " no está disponible.");
 			targetClan = Clans.findClanFromMember(userCapB.name);
-			if (toId(targetClan) !== toId(tourData.teamB)) return this.sendReply("El usuario " + Tools.escapeHTML(params[2]) + " no pertenece al clan del que se le asigna capitan.");
+			if (toId(targetClan) !== toId(tourData.teamB)) return this.sendReply("El usuario " + Chat.escapeHTML(params[2]) + " no pertenece al clan del que se le asigna capitan.");
 			var err = War.setAuth(roomId, params[1], params[2]);
 			if (err) return this.sendReply(err);
 			this.privateModCommand('(' + user.name + ' ha cambiado los Capitanes de la guerra actual)');

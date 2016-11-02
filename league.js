@@ -155,24 +155,24 @@ exports.getMedalRaw = function (userId) {
 		aux = ''; aux2 = '';
 		for (let n in league[i].leaders) {
 			if (medal.users[userId][n] && league[i].leaders[n].rank === "g") {
-				aux += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Tools.escapeHTML(medal.data[n].name) + '" width="' + Tools.escapeHTML(medal.data[n].width) + '" height="' + Tools.escapeHTML(medal.data[n].height) + '" />&nbsp;';
+				aux += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Chat.escapeHTML(medal.data[n].name) + '" width="' + Chat.escapeHTML(medal.data[n].width) + '" height="' + Chat.escapeHTML(medal.data[n].height) + '" />&nbsp;';
 				registeredMedals[n] = 1;
 			} else if (medal.users[userId][n] && league[i].leaders[n].rank === "e") {
-				aux2 += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Tools.escapeHTML(medal.data[n].name) + '" width="' + Tools.escapeHTML(medal.data[n].width) + '" height="' + Tools.escapeHTML(medal.data[n].height) + '" />&nbsp;';
+				aux2 += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Chat.escapeHTML(medal.data[n].name) + '" width="' + Chat.escapeHTML(medal.data[n].width) + '" height="' + Chat.escapeHTML(medal.data[n].height) + '" />&nbsp;';
 				registeredMedals[n] = 1;
 			}
 		}
 		if (aux !== '' && aux2 === '') {
-			leagueMedals += "<h3>" + Tools.escapeHTML(league[i].name) + "</h3>" + aux + "<br />";
+			leagueMedals += "<h3>" + Chat.escapeHTML(league[i].name) + "</h3>" + aux + "<br />";
 		} else if (aux === '' && aux2 !== '') {
-			leagueMedals += "<h3>" + Tools.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br />";
+			leagueMedals += "<h3>" + Chat.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br />";
 		} else if (aux !== '' && aux2 !== '') {
-			leagueMedals += "<h3>" + Tools.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br /><br />" + aux + "<br />";
+			leagueMedals += "<h3>" + Chat.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br /><br />" + aux + "<br />";
 		}
 	}
 	for (let j in medal.users[userId]) {
 		if (!registeredMedals[j]) {
-			generic += '<img src="' + encodeURI(medal.data[j].image) + '" title="' + Tools.escapeHTML(medal.data[j].name) + '" width="' + Tools.escapeHTML(medal.data[j].width) + '" height="' + Tools.escapeHTML(medal.data[j].height) + '" />&nbsp;';
+			generic += '<img src="' + encodeURI(medal.data[j].image) + '" title="' + Chat.escapeHTML(medal.data[j].name) + '" width="' + Chat.escapeHTML(medal.data[j].width) + '" height="' + Chat.escapeHTML(medal.data[j].height) + '" />&nbsp;';
 		}
 	}
 	if (generic !== '') generic += "<br />";
@@ -189,24 +189,24 @@ exports.getMedalQuery = function (userId) {
 		aux = ''; aux2 = '';
 		for (let n in league[i].leaders) {
 			if (medal.users[userId][n] && league[i].leaders[n].rank === "g") {
-				aux += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Tools.escapeHTML(medal.data[n].name) + '" width="' + Tools.escapeHTML(medal.data[n].width) + '" height="' + Tools.escapeHTML(medal.data[n].height) + '" />&nbsp;';
+				aux += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Chat.escapeHTML(medal.data[n].name) + '" width="' + Chat.escapeHTML(medal.data[n].width) + '" height="' + Chat.escapeHTML(medal.data[n].height) + '" />&nbsp;';
 				registeredMedals[n] = 1;
 			} else if (medal.users[userId][n] && league[i].leaders[n].rank === "e") {
-				aux2 += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Tools.escapeHTML(medal.data[n].name) + '" width="' + Tools.escapeHTML(medal.data[n].width) + '" height="' + Tools.escapeHTML(medal.data[n].height) + '" />&nbsp;';
+				aux2 += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Chat.escapeHTML(medal.data[n].name) + '" width="' + Chat.escapeHTML(medal.data[n].width) + '" height="' + Chat.escapeHTML(medal.data[n].height) + '" />&nbsp;';
 				registeredMedals[n] = 1;
 			}
 		}
 		if (aux !== '' && aux2 === '') {
-			leagueMedals += "<h3>" + Tools.escapeHTML(league[i].name) + "</h3>" + aux + "<br />";
+			leagueMedals += "<h3>" + Chat.escapeHTML(league[i].name) + "</h3>" + aux + "<br />";
 		} else if (aux === '' && aux2 !== '') {
-			leagueMedals += "<h3>" + Tools.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br />";
+			leagueMedals += "<h3>" + Chat.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br />";
 		} else if (aux !== '' && aux2 !== '') {
-			leagueMedals += "<h3>" + Tools.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br /><br />" + aux + "<br />";
+			leagueMedals += "<h3>" + Chat.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br /><br />" + aux + "<br />";
 		}
 	}
 	for (let j in medal.users[userId]) {
 		if (!registeredMedals[j]) {
-			generic += '<img src="' + encodeURI(medal.data[j].image) + '" title="' + Tools.escapeHTML(medal.data[j].name) + '" width="' + Tools.escapeHTML(medal.data[j].width) + '" height="' + Tools.escapeHTML(medal.data[j].height) + '" />&nbsp;';
+			generic += '<img src="' + encodeURI(medal.data[j].image) + '" title="' + Chat.escapeHTML(medal.data[j].name) + '" width="' + Chat.escapeHTML(medal.data[j].width) + '" height="' + Chat.escapeHTML(medal.data[j].height) + '" />&nbsp;';
 		}
 	}
 	if (generic !== '') generic += "<br />";
@@ -334,7 +334,7 @@ exports.getLeagueTable = function (leagueId) {
 		if (league[leagueId].leaders[i].rank === "e") {
 			e = true;
 			html += Clans.getUserDiv(league[leagueId].leaders[i].user) + '&nbsp;&nbsp;';
-			if (medal.data[i]) medalHTML += '<img src="' + encodeURI(medal.data[i].image) + '" title="' + Tools.escapeHTML(medal.data[i].name) + '" width="' + Tools.escapeHTML(medal.data[i].width) + '" height="' + Tools.escapeHTML(medal.data[i].height) + '" />&nbsp;';
+			if (medal.data[i]) medalHTML += '<img src="' + encodeURI(medal.data[i].image) + '" title="' + Chat.escapeHTML(medal.data[i].name) + '" width="' + Chat.escapeHTML(medal.data[i].width) + '" height="' + Chat.escapeHTML(medal.data[i].height) + '" />&nbsp;';
 		}
 	}
 	if (!e) html += '<i>(vacio)</i>';
@@ -343,7 +343,7 @@ exports.getLeagueTable = function (leagueId) {
 		if (league[leagueId].leaders[i].rank === "g") {
 			g = true;
 			html += Clans.getUserDiv(league[leagueId].leaders[i].user) + '&nbsp;&nbsp;';
-			if (medal.data[i]) medalHTML += '<img src="' + encodeURI(medal.data[i].image) + '" title="' + Tools.escapeHTML(medal.data[i].name) + '" width="' + Tools.escapeHTML(medal.data[i].width) + '" height="' + Tools.escapeHTML(medal.data[i].height) + '" />&nbsp;';
+			if (medal.data[i]) medalHTML += '<img src="' + encodeURI(medal.data[i].image) + '" title="' + Chat.escapeHTML(medal.data[i].name) + '" width="' + Chat.escapeHTML(medal.data[i].width) + '" height="' + Chat.escapeHTML(medal.data[i].height) + '" />&nbsp;';
 		}
 	}
 	if (!g) html += '<i>(vacio)</i>';

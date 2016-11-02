@@ -94,7 +94,7 @@
 			} else {
 				nMembers = membersClan.length;
 			}
-			clansTable += '<tr><td><center>' + Tools.escapeHTML(Clans.getClanName(m)) + '</center></td><td><center>' + Tools.escapeHTML(auxRating.compname) + '</center></td><td><center>' + nMembers + '</center></td><td><center>' + '<button name="send" value="/join ' + Tools.escapeHTML(auxRating.sala) + '" target="_blank">' + Tools.escapeHTML(auxRating.sala) + '</button>' + '</center></td><td><center>' + (auxRating.wins + auxRating.losses + auxRating.draws) + '</center></td><td><center>' + auxRating.rating + '</center></td></tr>';
+			clansTable += '<tr><td><center>' + Chat.escapeHTML(Clans.getClanName(m)) + '</center></td><td><center>' + Chat.escapeHTML(auxRating.compname) + '</center></td><td><center>' + nMembers + '</center></td><td><center>' + '<button name="send" value="/join ' + Chat.escapeHTML(auxRating.sala) + '" target="_blank">' + Chat.escapeHTML(auxRating.sala) + '</button>' + '</center></td><td><center>' + (auxRating.wins + auxRating.losses + auxRating.draws) + '</center></td><td><center>' + auxRating.rating + '</center></td></tr>';
 		}
 		clansTable += '</table>';
 		this.sendReply("|raw| " + clansTable);
@@ -140,7 +140,7 @@
 		}
 
 		this.sendReplyBox(
-			"<center><big><big><b>Jerarquía del clan " + Tools.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + leaderClanSource + subLeaderClanSource + oficialClanSource + memberClanSource + '</center>'
+			"<center><big><big><b>Jerarquía del clan " + Chat.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + leaderClanSource + subLeaderClanSource + oficialClanSource + memberClanSource + '</center>'
 		);
 	},
 
@@ -174,7 +174,7 @@
 			nMembers = membersClan.length;
 		}
 		this.sendReplyBox(
-			"<strong>Miembros del clan " + Tools.escapeHTML(Clans.getClanName(target)) + ":</strong> " + Clans.getAuthMembers(target, "all") + '<br /><br /><strong>Número de miembros: ' + nMembers + '</strong>'
+			"<strong>Miembros del clan " + Chat.escapeHTML(Clans.getClanName(target)) + ":</strong> " + Clans.getAuthMembers(target, "all") + '<br /><br /><strong>Número de miembros: ' + nMembers + '</strong>'
 		);
 	},
 	invitacionesclan: function (target, room, user) {
@@ -199,7 +199,7 @@
 			return;
 		}
 		this.sendReplyBox(
-			"<strong>Invitaciones pendientes del clan " + Tools.escapeHTML(Clans.getClanName(target)) + ":</strong> " + Tools.escapeHTML(Clans.getInvitations(target).sort().join(", "))
+			"<strong>Invitaciones pendientes del clan " + Chat.escapeHTML(Clans.getClanName(target)) + ":</strong> " + Chat.escapeHTML(Clans.getInvitations(target).sort().join(", "))
 		);
 	},
 	clan: 'getclan',
@@ -234,7 +234,7 @@
 		if (clan.sala === "none") {
 			salaClanSource = 'Aún no establecida.';
 		} else {
-			salaClanSource = '<button name="send" value="/join ' + Tools.escapeHTML(clan.sala) + '" target="_blank">' + Tools.escapeHTML(clan.sala) + '</button>';
+			salaClanSource = '<button name="send" value="/join ' + Chat.escapeHTML(clan.sala) + '" target="_blank">' + Chat.escapeHTML(clan.sala) + '</button>';
 		}
 		let clanTitle = "";
 		if (memberClanProfile) {
@@ -254,14 +254,14 @@
 		let medalsClan = '';
 		if (clan.medals) {
 			for (let u in clan.medals) {
-				medalsClan += '<img id="' + u + '" src="' + encodeURI(clan.medals[u].logo) + '" width="32" title="' + Tools.escapeHTML(clan.medals[u].desc) + '" />&nbsp;&nbsp;';
+				medalsClan += '<img id="' + u + '" src="' + encodeURI(clan.medals[u].logo) + '" width="32" title="' + Chat.escapeHTML(clan.medals[u].desc) + '" />&nbsp;&nbsp;';
 			}
 		}
 		this.sendReplyBox(
 			'<div class="fichaclan">' +
-			'<h4><center><p> <br />' + Tools.escapeHTML(clanTitle) + '</center></h4><hr width="90%" />' +
+			'<h4><center><p> <br />' + Chat.escapeHTML(clanTitle) + '</center></h4><hr width="90%" />' +
 			'<table width="90%" border="0" align="center"><tr><td width="180" rowspan="2"><div align="center"><img src="' + encodeURI(clan.logo) +
-			'" width="160" height="160" /></div></td><td height="64" align="left" valign="middle"><span class="lemaclan">' + Tools.escapeHTML(clan.lema) +
+			'" width="160" height="160" /></div></td><td height="64" align="left" valign="middle"><span class="lemaclan">' + Chat.escapeHTML(clan.lema) +
 			'</span></td> </tr>  <tr>    <td align="left" valign="middle"><strong>Sala Propia</strong>: ' + salaClanSource +
 			' <p style="font-style: normal;font-size: 16px;"><strong>Puntuación</strong>:&nbsp;' + clan.rating +
 			' (' + clan.wins + ' Victorias, ' + clan.losses + ' Derrotas, ' + clan.draws + ' Empates)<br />' +
@@ -460,7 +460,7 @@
 			this.sendReply("Could not add the user to the clan. Does the clan exist or is the user already in another clan?");
 		}		else {
 			this.sendReply("User: " + user.name + " successfully added to the clan.");
-			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(user.name) + " se ha unido al clan: " + Tools.escapeHTML(Clans.getClanName(params[0])) + '</div>');
+			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Chat.escapeHTML(user.name) + " se ha unido al clan: " + Chat.escapeHTML(Clans.getClanName(params[0])) + '</div>');
 		}
 	},
 
@@ -628,7 +628,7 @@
 			this.sendReply("El clan no existe o no has sido invitado a este.");
 		}		else {
 			this.sendReply("Te has unido correctamente al clan" + clanpropio);
-			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(user.name) + " se ha unido al clan: " + Tools.escapeHTML(Clans.getClanName(params[0])) + '</div>');
+			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Chat.escapeHTML(user.name) + " se ha unido al clan: " + Chat.escapeHTML(Clans.getClanName(params[0])) + '</div>');
 		}
 	},
 	inviteclear: 'borrarinvitaciones',
@@ -662,7 +662,7 @@
 			this.sendReply("Could not remove the user from the clan. Does the clan exist or has the user already been removed from it?");
 		}		else {
 			this.sendReply("User: " + params[1] + " successfully removed from the clan.");
-			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(params[1]) + " ha abandonado el clan: " + Tools.escapeHTML(Clans.getClanName(params[0])) + '</div>');
+			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Chat.escapeHTML(params[1]) + " ha abandonado el clan: " + Chat.escapeHTML(Clans.getClanName(params[0])) + '</div>');
 		}
 	},
 
@@ -722,7 +722,7 @@
 			 this.sendReply("Error al intentar salir del clan.");
 		} else {
 			this.sendReply("Has salido del clan" + clanUser);
-			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Tools.escapeHTML(user.name) + " ha abandonado el clan: " + Tools.escapeHTML(Clans.getClanName(clanUser)) + '</div>');
+			Rooms.rooms.lobby.add('|raw|<div class="clans-user-join">' + Chat.escapeHTML(user.name) + " ha abandonado el clan: " + Chat.escapeHTML(Clans.getClanName(clanUser)) + '</div>');
 		}
 	},
 
@@ -781,7 +781,7 @@
 		let f = new Date();
 		let dateWar = f.getDate() + '-' + f.getMonth() + ' ' + f.getHours() + 'h';
 		this.sendReply(
-			"|raw| <center><big><big><b>Ultimas Wars del clan " + Tools.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + Clans.getWarLogTable(target) + '<br /> Fecha del servidor: ' + dateWar + '</center>'
+			"|raw| <center><big><big><b>Ultimas Wars del clan " + Chat.escapeHTML(Clans.getClanName(target)) + "</b></big></big> <br /><br />" + Clans.getWarLogTable(target) + '<br /> Fecha del servidor: ' + dateWar + '</center>'
 		);
 	},
 

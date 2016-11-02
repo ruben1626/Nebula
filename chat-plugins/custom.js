@@ -32,10 +32,10 @@ exports.commands = {
 
 		let targets = target.split(',');
 		if (targets.length !== 2) {
-			return this.sendReply('|raw|<center><img src="' + Tools.escapeHTML(targets[0]) + '" alt="" width="50%"/></center>');
+			return this.sendReply('|raw|<center><img src="' + Chat.escapeHTML(targets[0]) + '" alt="" width="50%"/></center>');
 		}
 		if (parseInt(targets[1]) <= 0 || parseInt(targets[1]) > 100) return this.parse('Usage: /image link, size (1-100)');
-		this.sendReply('|raw|<center><img src="' + Tools.escapeHTML(targets[0]) + '" alt="" width="' + toId(targets[1]) + '%"/></center>');
+		this.sendReply('|raw|<center><img src="' + Chat.escapeHTML(targets[0]) + '" alt="" width="' + toId(targets[1]) + '%"/></center>');
 	},
 
 	cssedit: function (target, room, user, connection) {

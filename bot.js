@@ -612,7 +612,7 @@ let commands = {
 		if (!this.can('bottell')) return;
 		let parts = target.split(',');
 		if (parts.length < 2) return;
-		this.parse('/tell ' + toId(parts[0]) + ', ' + Tools.escapeHTML(parts[1]));
+		this.parse('/tell ' + toId(parts[0]) + ', ' + Chat.escapeHTML(parts[1]));
 		this.sendReply('Mensaje enviado a: ' + parts[0] + '.');
 	},
 
