@@ -916,7 +916,7 @@ class BattleRoom extends Room {
 		if (this.rated) {
 			let rated = this.rated;
 			if (global.Shop) {
-				var moneyWinner = 8; if (toId(this.format) === 'ou') moneyWinner = 16; Shop.giveMoney(winner, moneyWinner); this.addRaw(`${winner} ha recibido ${moneyWinner} pd por ganar.`);
+				let moneyWinner = 8; if (toId(this.format) === 'ou') moneyWinner = 16; Shop.giveMoney(winner, moneyWinner); this.addRaw(`${winner} ha recibido ${moneyWinner} pd por ganar.`);
 			}
 
 			this.rated = false;

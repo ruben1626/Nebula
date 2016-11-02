@@ -2,30 +2,35 @@ const pdDataFile = DATA_DIR + 'shopmoney.json';
 const tcDataFile = DATA_DIR + 'tcards.json';
 const symbolsDataFile = DATA_DIR + 'symbolauth.json';
 const avatarsDataFile = DATA_DIR + 'shopavatars.json';
-const botPhraseDataFile =  DATA_DIR + 'botphrases.json';
+const botPhraseDataFile = DATA_DIR + 'botphrases.json';
 
-var fs = require('fs');
+let fs = require('fs');
 
-if (!fs.existsSync(pdDataFile))
+if (!fs.existsSync(pdDataFile))	{
 	fs.writeFileSync(pdDataFile, '{}');
+}
 
-if (!fs.existsSync(tcDataFile))
+if (!fs.existsSync(tcDataFile))	{
 	fs.writeFileSync(tcDataFile, '{}');
-	
-if (!fs.existsSync(symbolsDataFile))
-	fs.writeFileSync(symbolsDataFile, '{}');
-	
-if (!fs.existsSync(avatarsDataFile))
-	fs.writeFileSync(avatarsDataFile, '{}');
-	
-if (!fs.existsSync(botPhraseDataFile))
-	fs.writeFileSync(botPhraseDataFile, '{}');
+}
 
-var money = JSON.parse(fs.readFileSync(pdDataFile).toString());
-var trainerCards = JSON.parse(fs.readFileSync(tcDataFile).toString());
-var customSymbols = JSON.parse(fs.readFileSync(symbolsDataFile).toString());
-var boughtAvatars = JSON.parse(fs.readFileSync(avatarsDataFile).toString());
-var botPhrase = JSON.parse(fs.readFileSync(botPhraseDataFile).toString());
+if (!fs.existsSync(symbolsDataFile))	{
+	fs.writeFileSync(symbolsDataFile, '{}');
+}
+
+if (!fs.existsSync(avatarsDataFile))	{
+	fs.writeFileSync(avatarsDataFile, '{}');
+}
+
+if (!fs.existsSync(botPhraseDataFile))	{
+	fs.writeFileSync(botPhraseDataFile, '{}');
+}
+
+let money = JSON.parse(fs.readFileSync(pdDataFile).toString());
+let trainerCards = JSON.parse(fs.readFileSync(tcDataFile).toString());
+let customSymbols = JSON.parse(fs.readFileSync(symbolsDataFile).toString());
+let boughtAvatars = JSON.parse(fs.readFileSync(avatarsDataFile).toString());
+let botPhrase = JSON.parse(fs.readFileSync(botPhraseDataFile).toString());
 
 exports.money = money;
 exports.trainerCards = trainerCards;
@@ -54,7 +59,7 @@ function writePhrasesData() {
 }
 
 exports.deleteValues = function (text) {
-	var textReturn = text;
+	let textReturn = text;
 	textReturn = textReturn.replace("lue=", "kek=");
 	textReturn = textReturn.replace("Lue=", "kek=");
 	textReturn = textReturn.replace("LUe=", "kek=");
@@ -67,7 +72,7 @@ exports.deleteValues = function (text) {
 };
 
 exports.getPokemonId = function (text) {
-	var textReturn = Tools.escapeHTML(text);
+	let textReturn = Tools.escapeHTML(text);
 	textReturn = textReturn.toLowerCase();
 	textReturn = textReturn.trim();
 	return textReturn;
@@ -75,14 +80,14 @@ exports.getPokemonId = function (text) {
 
 //money
 exports.getUserMoney = function (user) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!money[userId]) return 0;
 	return parseInt(money[userId]);
 };
 
 exports.giveMoney = function (user, pds) {
-	var userId = toId(user);
-	var pokeDolars = parseInt(pds);
+	let userId = toId(user);
+	let pokeDolars = parseInt(pds);
 	if (!money[userId]) money[userId] = 0;
 	money[userId] += pokeDolars;
 	writePdData();
@@ -90,8 +95,8 @@ exports.giveMoney = function (user, pds) {
 };
 
 exports.removeMoney = function (user, pds) {
-	var userId = toId(user);
-	var pokeDolars = parseInt(pds);
+	let userId = toId(user);
+	let pokeDolars = parseInt(pds);
 	if (!money[userId]) money[userId] = 0;
 	if (money[userId] < pokeDolars) return false;
 	money[userId] += (-pokeDolars);
@@ -100,9 +105,9 @@ exports.removeMoney = function (user, pds) {
 };
 
 exports.transferMoney = function (userA, userB, pds) {
-	var userAId = toId(userA);
-	var userBId = toId(userB);
-	var pokeDolars = parseInt(pds);
+	let userAId = toId(userA);
+	let userBId = toId(userB);
+	let pokeDolars = parseInt(pds);
 	if (!money[userAId]) money[userAId] = 0;
 	if (!money[userBId]) money[userBId] = 0;
 	if (money[userAId] < pokeDolars) return false;
@@ -113,13 +118,13 @@ exports.transferMoney = function (userA, userB, pds) {
 };
 //symbols
 exports.symbolPermision = function (user) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!customSymbols[userId]) return false;
 	return true;
 };
 
 exports.setSymbolPermision = function (user, permision) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (permision && !customSymbols[userId]) {
 		customSymbols[userId] = 1;
 	} else if (!permision && customSymbols[userId]) {
@@ -127,12 +132,12 @@ exports.setSymbolPermision = function (user, permision) {
 	} else {
 		return false;
 	}
-	writeSymbolsData()
+	writeSymbolsData();
 	return true;
 };
 //trainer cards
 exports.getTrainerCard = function (user) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!trainerCards[userId]) return false;
 	return {
 		customTC: trainerCards[userId].customTC,
@@ -140,12 +145,12 @@ exports.getTrainerCard = function (user) {
 		pokemon: trainerCards[userId].pokemon,
 		nPokemon: trainerCards[userId].nPokemon,
 		phrase: trainerCards[userId].phrase,
-		image: trainerCards[userId].image
+		image: trainerCards[userId].image,
 	};
 };
 
 exports.giveTrainerCard = function (user) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (trainerCards[userId]) return false;
 	trainerCards[userId] = {
 		customTC: false,
@@ -153,14 +158,14 @@ exports.giveTrainerCard = function (user) {
 		pokemon: {},
 		nPokemon: 0,
 		phrase: 'Frase de la Tarjeta de Entrenador',
-		image: 'http://play.pokemonshowdown.com/sprites/trainers/1.png'
+		image: 'http://play.pokemonshowdown.com/sprites/trainers/1.png',
 	};
 	writeTcData();
 	return true;
 };
 
 exports.removeTrainerCard = function (user) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!trainerCards[userId]) return false;
 	delete trainerCards[userId];
 	writeTcData();
@@ -168,13 +173,13 @@ exports.removeTrainerCard = function (user) {
 };
 
 exports.getTrainerCardList = function () {
-	var html = 'Lista de TCs: ';
+	let html = 'Lista de TCs: ';
 	html += Object.keys(trainerCards).join(", ");
 	return html;
 };
 
 exports.imageTrainerCard = function (user, image) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!trainerCards[userId]) return false;
 	trainerCards[userId].image = image;
 	writeTcData();
@@ -182,7 +187,7 @@ exports.imageTrainerCard = function (user, image) {
 };
 
 exports.phraseTrainerCard = function (user, phrase) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!trainerCards[userId]) return false;
 	trainerCards[userId].phrase = phrase;
 	writeTcData();
@@ -190,11 +195,11 @@ exports.phraseTrainerCard = function (user, phrase) {
 };
 
 exports.pokemonTrainerCard = function (user, pokemonData) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!trainerCards[userId]) return false;
-	var nPokemonGiven = 0;
+	let nPokemonGiven = 0;
 	trainerCards[userId].pokemon = {};
-	for (var d in pokemonData) {
+	for (let d in pokemonData) {
 		if (nPokemonGiven < trainerCards[userId].nPokemon) {
 			trainerCards[userId].pokemon[nPokemonGiven] = pokemonData[d];
 		}
@@ -205,7 +210,7 @@ exports.pokemonTrainerCard = function (user, pokemonData) {
 };
 
 exports.nPokemonTrainerCard = function (user, value) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!trainerCards[userId]) return false;
 	trainerCards[userId].nPokemon = value;
 	writeTcData();
@@ -213,7 +218,7 @@ exports.nPokemonTrainerCard = function (user, value) {
 };
 
 exports.htmlTrainerCard = function (user, htmlSource) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!trainerCards[userId]) return false;
 	trainerCards[userId].customHtml = htmlSource;
 	writeTcData();
@@ -221,7 +226,7 @@ exports.htmlTrainerCard = function (user, htmlSource) {
 };
 
 exports.setCustomTrainerCard = function (user, value) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!trainerCards[userId]) return false;
 	trainerCards[userId].customTC = value;
 	writeTcData();
@@ -229,7 +234,7 @@ exports.setCustomTrainerCard = function (user, value) {
 };
 //avatars
 exports.addPendingAvatar = function (user, url) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (boughtAvatars[userId]) return 'Ya tenias una solicitud de avatar pendiente, espera a que sea revisada por un administrador.';
 	boughtAvatars[userId] = url;
 	writeAvatarsData();
@@ -237,7 +242,7 @@ exports.addPendingAvatar = function (user, url) {
 };
 
 exports.deletePendingAvatar = function (user, url) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (!boughtAvatars[userId]) return 'El usuario no estaba en la lista de avatares pendientes.';
 	delete boughtAvatars[userId];
 	writeAvatarsData();
@@ -245,8 +250,8 @@ exports.deletePendingAvatar = function (user, url) {
 };
 
 exports.getPendingAvatars = function () {
-	var html = '';
-	for (var i in boughtAvatars) {
+	let html = '';
+	for (let i in boughtAvatars) {
 		html += '<b>' + i + '</b>: <a href="' + boughtAvatars[i] + '">' + boughtAvatars[i] + '</a><br />';
 	}
 	if (html === '') html = 'No hay avatares pendientes';
@@ -254,13 +259,13 @@ exports.getPendingAvatars = function () {
 };
 //bot
 exports.getBotPhrase = function (user) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (botPhrase[userId]) return botPhrase[userId];
 	return false;
 };
 
 exports.changeBotPhrase = function (user, text) {
-	var userId = toId(user);
+	let userId = toId(user);
 	if (botPhrase[userId] && toId(text) === 'off') {
 		delete botPhrase[userId];
 	} else {

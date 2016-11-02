@@ -11,29 +11,32 @@
 const botBannedWordsDataFile = './config/botbannedwords.json';
 const botBannedUsersDataFile = './config/botbannedusers.json';
 const progModChatDataFile = './config/progmodchat.json';
-var fs = require('fs');
-var defaultProgModChat = ['off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off'];
+let fs = require('fs');
+let defaultProgModChat = ['off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off', 'off'];
 
-if (!fs.existsSync(botBannedWordsDataFile))
+if (!fs.existsSync(botBannedWordsDataFile))	{
 	fs.writeFileSync(botBannedWordsDataFile, '{}');
-	
-if (!fs.existsSync(botBannedUsersDataFile))
+}
+
+if (!fs.existsSync(botBannedUsersDataFile))	{
 	fs.writeFileSync(botBannedUsersDataFile, '{}');
-	
-if (!fs.existsSync(progModChatDataFile))
+}
+
+if (!fs.existsSync(progModChatDataFile))	{
 	fs.writeFileSync(progModChatDataFile, JSON.stringify(defaultProgModChat));
-	
-var botBannedWords = JSON.parse(fs.readFileSync(botBannedWordsDataFile).toString());
-var botBannedUsers = JSON.parse(fs.readFileSync(botBannedUsersDataFile).toString());
-var progModChat = JSON.parse(fs.readFileSync(progModChatDataFile).toString());
+}
+
+let botBannedWords = JSON.parse(fs.readFileSync(botBannedWordsDataFile).toString());
+let botBannedUsers = JSON.parse(fs.readFileSync(botBannedUsersDataFile).toString());
+let progModChat = JSON.parse(fs.readFileSync(progModChatDataFile).toString());
 exports.botBannedWords = botBannedWords;
 exports.botBannedUsers = botBannedUsers;
 
-var battleInProgress = {};
+let battleInProgress = {};
 exports.inBattle = false;
 exports.acceptChallegesDenied = function (user, format) {
-	if (!(format in {'challengecupmetronome':1, 'randombattle':1, 'randomoumonotype':1, 'randominversebattle':1,'randomskybattle':1, 'randomubers':1, 'randomlc':1, 'randomcap':1, 'randomhaxmons':1})) return 'Debido a mi configuración actual, no acepto retos de formato ' + format;
-	if (battleInProgress[toId(user.name)])  return 'Ya estoy en una batalla contigo, espera a que termine para retarme de nuevo.';
+	if (!(format in {'challengecupmetronome':1, 'randombattle':1, 'randomoumonotype':1, 'randominversebattle':1, 'randomskybattle':1, 'randomubers':1, 'randomlc':1, 'randomcap':1, 'randomhaxmons':1})) return 'Debido a mi configuración actual, no acepto retos de formato ' + format;
+	if (battleInProgress[toId(user.name)]) return 'Ya estoy en una batalla contigo, espera a que termine para retarme de nuevo.';
 	if (user.can('joinbattle')) return 'auth';
 	if (exports.inBattle) return 'Estoy ocupado en otra batalla, retame cuando esta termine.';
 	return false;
@@ -54,12 +57,12 @@ if (!botBannedWords.links) {
 	botBannedWords = {
 		chars: [],
 		links: [],
-		inapropiate: []
+		inapropiate: [],
 	};
 	writeBotData();
 }
 
-var config = {
+let config = {
 	name: 'LumenBoTTT',
 	userid: function () {
 		return toId(this.name);
@@ -72,12 +75,12 @@ var config = {
 		2: 'mute',
 		3: 'hourmute',
 		4: 'hourmute',
-		5: 'lock'
+		5: 'lock',
 	},
 	privaterooms: ['staff'],
 	hosting: {},
 	laddering: true,
-	ladderPercentage: 70
+	ladderPercentage: 70,
 };
 
 /**
@@ -90,13 +93,12 @@ var config = {
 
 function joinServer() {
 	if (process.uptime() > 5) return; // to avoid running this function again when reloading
-	var worker = new(require('./fake-process.js').FakeProcess)();
+	let worker = new (require('./fake-process.js').FakeProcess)();
 	Users.socketConnect(worker.server, undefined, '1', '254.254.254.254');
 
-	for (var i in Users.users) {
+	for (let i in Users.users) {
 		if (Users.users[i].connections[0].ip === '254.254.254.254') {
-
-			var bot = Users.users[i];
+			let bot = Users.users[i];
 
 			bot.name = config.name;
 			bot.named = true;
@@ -108,15 +110,15 @@ function joinServer() {
 
 			if (config.join === true) {
 				Users.users[bot.userid] = bot;
-				for (var room in Rooms.rooms) {
-					if (room != 'global'&& Rooms.rooms[room]) {
+				for (let room in Rooms.rooms) {
+					if (room != 'global' && Rooms.rooms[room]) {
 						bot.roomCount[room] = 1;
 						Rooms.rooms[room].users[Users.users[bot.userid]] = Users.users[bot.userid];
 					}
 				}
 			} else {
 				Users.users[bot.userid] = bot;
-				for (var index in config.rooms) {
+				for (let index in config.rooms) {
 					if (Rooms.rooms[config.rooms[index]]) {
 						Users.get(config.name).joinRoom(Rooms.get(config.rooms[index]));
 						//continue;
@@ -131,20 +133,20 @@ function joinServer() {
 }
 
 function runProgModChat() {
-	var timeNow = new Date();
-	for (var i = 0; i < config.rooms.length; i++) {
+	let timeNow = new Date();
+	for (let i = 0; i < config.rooms.length; i++) {
 		if (!Rooms.rooms[config.rooms[i]]) continue;
 		CommandParser.parse("/modchat " + progModChat[timeNow.getHours()], Rooms.rooms[config.rooms[i]], Users.get(config.name), Users.get(config.name).connections[0]);
 		Rooms.rooms[config.rooms[i]].update();
 	}
-};
+}
 
 function initProgModChat() {
 	setTimeout(function () {
 		runProgModChat();
 	}, 1000 * 5);
-	var loop = function () {
-		var f = new Date();
+	let loop = function () {
+		let f = new Date();
 		setTimeout(function () {
 			runProgModChat();
 			loop();
@@ -161,12 +163,12 @@ const FLOOD_MESSAGE_TIME = 6 * 1000;
 const MIN_CAPS_LENGTH = 18;
 const MIN_CAPS_PROPORTION = 0.8;
 
-var parse = {
+let parse = {
 
 	chatData: {},
 
 	processChatData: function (user, room, connection, message) {
-		var isPM = false;
+		let isPM = false;
 		if (!room || !room.users) {
 			isPM = true;
 			room = Rooms.rooms['lobby'];
@@ -176,34 +178,36 @@ var parse = {
 			return false;
 		}
 		if ((user.userid === config.userid() || !room.users[config.userid()]) && !isPM) return true;
-		var botUser = Users.get(config.userid());
+		let botUser = Users.get(config.userid());
 		if (!botUser || !botUser.connected || botUser.locked) return true;
 		//this.sendReply('Leido mensaje de ' + user.name + ': ' + message);
-		var cmds = this.processBotCommands(user, room, connection, message, isPM);
+		let cmds = this.processBotCommands(user, room, connection, message, isPM);
 		if (isPM) return true;
 		if (cmds) return false;
 
 		message = message.trim().replace(/ +/g, " "); // removes extra spaces so it doesn't trigger stretching
 		this.updateSeen(user.userid, 'c', room.title);
-		var time = Date.now();
-		if (!this.chatData[user]) this.chatData[user] = {
-			zeroTol: 0,
-			lastSeen: '',
-			seenAt: time
-		};
-		if (!this.chatData[user][room]) this.chatData[user][room] = {
-			times: [],
-			points: 0,
-			lastAction: 0
-		};
+		let time = Date.now();
+		if (!this.chatData[user]) {
+			this.chatData[user] = {
+				zeroTol: 0,
+				lastSeen: '',
+				seenAt: time,
+			};}
+		if (!this.chatData[user][room]) {
+			this.chatData[user][room] = {
+				times: [],
+				points: 0,
+				lastAction: 0,
+			};}
 
 		this.chatData[user][room].times.push(time);
 
 		if (user.can('staff', room)) return true; //do not mod staff users
 
-		var pointVal = 0;
-		var muteMessage = '';
-		
+		let pointVal = 0;
+		let muteMessage = '';
+
 		//moderation for banned words
 		for (var d = 0; d < botBannedWords.links.length; d++) {
 			if (message.toLowerCase().indexOf(botBannedWords.links[d]) > -1) {
@@ -214,7 +218,7 @@ var parse = {
 				}
 			}
 		}
-		
+
 		for (var d = 0; d < botBannedWords.chars.length; d++) {
 			if (message.toLowerCase().indexOf(botBannedWords.chars[d]) > -1) {
 				if (pointVal < 2) {
@@ -224,7 +228,7 @@ var parse = {
 				}
 			}
 		}
-		
+
 		for (var d = 0; d < botBannedWords.inapropiate.length; d++) {
 			if (message.toLowerCase().indexOf(botBannedWords.inapropiate[d]) > -1) {
 				if (pointVal < 1) {
@@ -236,7 +240,7 @@ var parse = {
 		}
 
 		// moderation for flooding (more than x lines in y seconds)
-		var isFlooding = (this.chatData[user][room].times.length >= FLOOD_MESSAGE_NUM && (time - this.chatData[user][room].times[this.chatData[user][room].times.length - FLOOD_MESSAGE_NUM]) < FLOOD_MESSAGE_TIME && (time - this.chatData[user][room].times[this.chatData[user][room].times.length - FLOOD_MESSAGE_NUM]) > (FLOOD_PER_MSG_MIN * FLOOD_MESSAGE_NUM));
+		let isFlooding = (this.chatData[user][room].times.length >= FLOOD_MESSAGE_NUM && (time - this.chatData[user][room].times[this.chatData[user][room].times.length - FLOOD_MESSAGE_NUM]) < FLOOD_MESSAGE_TIME && (time - this.chatData[user][room].times[this.chatData[user][room].times.length - FLOOD_MESSAGE_NUM]) > (FLOOD_PER_MSG_MIN * FLOOD_MESSAGE_NUM));
 		if (isFlooding) {
 			if (pointVal < 2) {
 				pointVal = 2;
@@ -244,7 +248,7 @@ var parse = {
 			}
 		}
 		// moderation for caps (over x% of the letters in a line of y characters are capital)
-		var capsMatch = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
+		let capsMatch = message.replace(/[^A-Za-z]/g, '').match(/[A-Z]/g);
 		if (capsMatch && toId(message).length > MIN_CAPS_LENGTH && (capsMatch.length >= Math.floor(toId(message).length * MIN_CAPS_PROPORTION))) {
 			if (pointVal < 1) {
 				pointVal = 1;
@@ -253,7 +257,7 @@ var parse = {
 		}
 		// moderation for stretching (over x consecutive characters in the message are the same)
 		//|| message.toLowerCase().match(/(..+)\1{4,}/g
-		var stretchMatch = message.toLowerCase().match(/(.)\1{15,}/g); // matches the same character (or group of characters) 8 (or 5) or more times in a row
+		let stretchMatch = message.toLowerCase().match(/(.)\1{15,}/g); // matches the same character (or group of characters) 8 (or 5) or more times in a row
 		if (stretchMatch) {
 			if (pointVal < 1) {
 				pointVal = 1;
@@ -261,7 +265,7 @@ var parse = {
 			}
 		}
 		if (pointVal > 0 && !(time - this.chatData[user][room].lastAction < ACTION_COOLDOWN)) {
-			var cmd = 'mute';
+			let cmd = 'mute';
 			// defaults to the next punishment in config.punishVals instead of repeating the same action (so a second warn-worthy
 			// offence would result in a mute instead of a warn, and the third an hourmute, etc)
 			if (this.chatData[user][room].points >= pointVal && pointVal < 4) {
@@ -292,14 +296,15 @@ var parse = {
 		user = toId(user);
 		type = toId(type);
 		if (config.privaterooms.indexOf(toId(detail)) > -1) return;
-		var time = Date.now();
-		if (!this.chatData[user]) this.chatData[user] = {
-			zeroTol: 0,
-			lastSeen: '',
-			seenAt: time
-		};
+		let time = Date.now();
+		if (!this.chatData[user]) {
+			this.chatData[user] = {
+				zeroTol: 0,
+				lastSeen: '',
+				seenAt: time,
+			};}
 		if (!detail) return;
-		var msg = '';
+		let msg = '';
 		if (type in {j: 1, l: 1, c: 1}) {
 			msg += (type === 'j' ? 'uniendose a la sala' : (type === 'l' ? 'abandonado la sala' : 'Chateando en')) + ' ' + detail.trim() + '.';
 		} else if (type === 'n') {
@@ -314,7 +319,7 @@ var parse = {
 	processBotCommands: function (user, room, connection, message, isPM) {
 		if (room.type !== 'chat' || message.charAt(0) !== '.') return;
 
-		var cmd = '',
+		let cmd = '',
 			target = '',
 			spaceIndex = message.indexOf(' '),
 			botDelay = (Math.floor(Math.random()) * 1000),
@@ -330,7 +335,6 @@ var parse = {
 		cmd = cmd.toLowerCase();
 
 		if (message.charAt(0) === '.' && Object.keys(Bot.commands).join(' ').toString().indexOf(cmd) >= 0 && message.substr(1) !== '') {
-
 			if ((now - user.lastBotCmd) * 0.001 < 30) {
 			   // connection.sendTo(room, 'Please wait ' + Math.floor((30 - (now - user.lastBotCmd) * 0.001)) + ' seconds until the next command.');
 			   // return true;
@@ -340,26 +344,26 @@ var parse = {
 		}
 
 		if (commands[cmd]) {
-			var context = {
+			let context = {
 				sendReply: function (data) {
 					if (isPM) {
 						setTimeout(function () {
-					   var message = '|pm|' + config.group + config.name + '|' + user.group + user.name + '|' + data;
-						user.send(message);
-					}, botDelay);
+					   let message = '|pm|' + config.group + config.name + '|' + user.group + user.name + '|' + data;
+							user.send(message);
+						}, botDelay);
 					} else {
 						setTimeout(function () {
-						room.add('|c|' + config.group + config.name + '|' + data);
-						room.update();
-					}, botDelay);
-					} 
+							room.add('|c|' + config.group + config.name + '|' + data);
+							room.update();
+						}, botDelay);
+					}
 				},
 
 				sendPm: function (data) {
 					//var message = '|pm|' + config.group + config.name + '|' + user.group + user.name + '|' + data;
 					//user.send(message);
 					setTimeout(function () {
-					   var message = '|pm|' + config.group + config.name + '|' + user.group + user.name + '|' + data;
+					   let message = '|pm|' + config.group + config.name + '|' + user.group + user.name + '|' + data;
 						user.send(message);
 					}, botDelay);
 				},
@@ -384,10 +388,10 @@ var parse = {
 	getTimeAgo: function (time) {
 		time = Date.now() - time;
 		time = Math.round(time / 1000); // rounds to nearest second
-		var seconds = time % 60;
-		var times = [];
+		let seconds = time % 60;
+		let times = [];
 		if (seconds) times.push(String(seconds) + (seconds === 1 ? ' segundo' : ' segundos'));
-		var minutes, hours, days;
+		let minutes, hours, days;
 		if (time >= 60) {
 			time = (time - seconds) / 60; // converts to minutes
 			minutes = time % 60;
@@ -405,19 +409,19 @@ var parse = {
 		if (!times.length) times.push('0 segundos');
 		return times.join(', ');
 	},
-	
+
 	setAutomatedBattle: function (battleRoom, forced, user) {
 		if (!battleRoom) return;
 		if (!forced) exports.inBattle = true;
 		battleInProgress[toId(user.name)] = 1;
-		var botUser = Users.get(config.userid());
+		let botUser = Users.get(config.userid());
 		battleRoom.requestKickInactive(botUser, botUser.can('timer'));
 		battleRoom.modchat = '+';
-		var p1 = battleRoom.p1.userid;
-		var p2 = battleRoom.p2.userid;
-		var turnData;
+		let p1 = battleRoom.p1.userid;
+		let p2 = battleRoom.p2.userid;
+		let turnData;
 		if (battleRoom.p2.userid === config.userid()) player = 'p2';
-		var loop = function () {
+		let loop = function () {
 			setTimeout(function () {
 				if (!battleRoom) return;
 				if (!battleRoom.users[p1] || !battleRoom.users[p2]) {
@@ -436,7 +440,7 @@ var parse = {
 				}
 				turnData = JSON.parse(battleRoom.battle.requests[config.userid()]);
 				if (turnData.forceSwitch) {
-					for (var n = 0; n < 7; ++n) {
+					for (let n = 0; n < 7; ++n) {
 						battleRoom.decision(botUser, "choose", "switch " + n);
 					}
 					battleRoom.decision(botUser, "choose", "move " + Math.floor(Math.random() * 5));
@@ -447,43 +451,43 @@ var parse = {
 			}, 1000 * 5);
 		};
 		loop();
-	}
+	},
 
 };
 
-var commands = {
-	
+let commands = {
+
 	about: function (target, room, user) {
 		if (!this.can('joinbattle')) return this.sendPm('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
 		this.sendReply('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
 	},
-	
+
 	info: function (target, room, user) {
 		if (!this.can('joinbattle')) return this.sendPm('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
 		this.sendReply('Hola, soy el Bot de Viridian. Para más información sobre mi fucionamiento escribe .guia');
 	},
-	
+
 	foro: function (target, room, user) {
 		if (!this.can('joinbattle')) return this.sendPm('Foro del servidor Viridian: http://viridianshowdown.hol.es/');
 		this.sendReply('Foro del servidor Viridian: http://viridianshowdown.hol.es/');
 	},
-	
+
 	guia: function (target, room, user) {
 		if (!this.can('joinbattle')) return this.sendPm('Guía sobre comandos y funcionamiento del Bot: http://pastebin.com/Fj1YfKd1');
 		this.sendReply('Guía sobre comandos y funcionamiento del Bot: http://pastebin.com/Fj1YfKd1');
 	},
-	
+
 	say: function (target, room, user) {
 		if (!this.can('say')) return;
 		this.sendReply(target);
 	},
-	
+
 	hotpatch: function (target, room, user) {
 		if (!this.can('hotpatch')) return;
 		Bot = require('./bot.js');
 		this.sendReply('Código del Bot actualizado.');
 	},
-	
+
 	reset: function (target, room, user) {
 		if (!this.can('hotpatch')) return;
 		parse.chatData = {};
@@ -493,10 +497,10 @@ var commands = {
 	ab: function (target, room, user) {
 		if (!this.can('rangeban')) return;
 		if (!target) return;
-		var parts = target.split(',');
-		var userId;
-		var bannedList = '';
-		for (var n in parts) {
+		let parts = target.split(',');
+		let userId;
+		let bannedList = '';
+		for (let n in parts) {
 			userId = toId(parts[n]);
 			if (botBannedUsers[userId]) {
 			 this.sendPm('En usuario "' + userId + '" ya estaba en la lista negra.');
@@ -517,10 +521,10 @@ var commands = {
 	unab: function (target, room, user) {
 		if (!this.can('rangeban')) return;
 		if (!target) return;
-		var parts = target.split(',');
-		var userId;
-		var bannedList = '';
-		for (var n in parts) {
+		let parts = target.split(',');
+		let userId;
+		let bannedList = '';
+		for (let n in parts) {
 			userId = toId(parts[n]);
 			if (!botBannedUsers[userId]) {
 			 this.sendPm('En usuario "' + userId + '" no estaba en la lista negra.');
@@ -539,8 +543,8 @@ var commands = {
 
 	vab: function (target, room, user) {
 		if (!this.can('rangeban')) return;
-		var bannedList = '';
-		for (var d in botBannedUsers) {
+		let bannedList = '';
+		for (let d in botBannedUsers) {
 			bannedList += d + ', ';
 		}
 		if (bannedList === '') return this.sendPm('Lista negra vacía.');
@@ -550,35 +554,35 @@ var commands = {
 	banword: function (target, room, user) {
 		if (!this.can('rangeban')) return;
 		if (!target) return;
-		var parts = target.split(',');
-		var word = parts[0].toLowerCase();
+		let parts = target.split(',');
+		let word = parts[0].toLowerCase();
 		if (botBannedWords.chars.indexOf(word) > -1 || botBannedWords.links.indexOf(word) > -1 || botBannedWords.inapropiate.indexOf(word) > -1) {
 			this.sendPm('La frase "' + word + '" ya estaba prohibida.');
 			return;
 		}
 		switch (parseInt(parts[1])) {
-			case 1:
-				botBannedWords.inapropiate.push(word);
-				break;
-			case 2:
-				botBannedWords.links.push(word);
-				break;
-			default:
-				botBannedWords.chars.push(word);
+		case 1:
+			botBannedWords.inapropiate.push(word);
+			break;
+		case 2:
+			botBannedWords.links.push(word);
+			break;
+		default:
+			botBannedWords.chars.push(word);
 		}
 		writeBotData();
 		this.sendReply('La frase "' + word + '" está prohibida a partir de ahora.');
 	},
-	
+
 	unbanword: function (target, room, user) {
 		if (!this.can('rangeban')) return;
 		if (!target) return;
-		var wordId = target.toLowerCase();
+		let wordId = target.toLowerCase();
 		if (botBannedWords.chars.indexOf(wordId) === -1 && botBannedWords.links.indexOf(wordId) === -1 && botBannedWords.inapropiate.indexOf(wordId) == -1) {
 			this.sendPm('La frase "' + wordId + '" no estaba prohibida.');
 			return;
 		}
-		var aux = [];
+		let aux = [];
 		if (botBannedWords.chars.indexOf(wordId) > -1) {
 			for (var n = 0; n < botBannedWords.chars.length; n++) {
 				if (wordId !== botBannedWords.chars[n]) aux.push(botBannedWords.chars[n]);
@@ -598,7 +602,7 @@ var commands = {
 		writeBotData();
 		this.sendReply('La frase "' + wordId + '" ha dejado de estar prohibida.');
 	},
-	
+
 	vbw: function (target, room, user) {
 		if (!this.can('rangeban')) return;
 		this.sendPm('Frases Prohibidas en Viridian. Caracteres: ' + botBannedWords.chars + " | Contenido +18: " + botBannedWords.links + "| Lenguaje inapropiado: " + botBannedWords.inapropiate);
@@ -606,72 +610,72 @@ var commands = {
 
 	tell: function (target, room, user) {
 		if (!this.can('bottell')) return;
-		var parts = target.split(',');
+		let parts = target.split(',');
 		if (parts.length < 2) return;
 		this.parse('/tell ' + toId(parts[0]) + ', ' + Tools.escapeHTML(parts[1]));
 		this.sendReply('Mensaje enviado a: ' + parts[0] + '.');
 	},
-	
+
 	writecmd: function (target, room, user) {
 		if (!this.can('bottell')) return;
 		if (target) this.parse(target);
 	},
-	
+
 	viewmodchat: function (target, room, user, connection) {
 		if (!user.can('hotpatch')) return;
-		var text = '';
-		for (var i = 0; i < progModChat.length; i++) {
+		let text = '';
+		for (let i = 0; i < progModChat.length; i++) {
 			if (i < 10) text += "0" + i + ":00 -> " + progModChat[i] + " | ";
 			else text += i + ":00 -> " + progModChat[i] + " | ";
 		}
 		this.sendPm('**Programacion del Mod Chat:** ' + text);
 	},
-	
+
 	setmodchat: function (target, room, user, connection) {
 		if (!user.can('hotpatch')) return;
 		if (!target) return;
-		var parts = target.split(',');
+		let parts = target.split(',');
 		if (parts.length < 3) return;
-		var h_init = parseInt(parts[0]);
-		var h_end = parseInt(parts[1]);
+		let h_init = parseInt(parts[0]);
+		let h_end = parseInt(parts[1]);
 		if (!h_init) h_init = 0;
 		if (!h_end) h_end = 0;
 		if (h_init > h_end || h_init < 0 || h_end < 0 || h_init > 23 || h_end > 23) return this.sendReply('Datos erroneos. Uselo asi: .setmodchat hora inicial, hora final, tipo de modchat');
-		for (var i = h_init; i <= h_end; i++) {
+		for (let i = h_init; i <= h_end; i++) {
 			progModChat[i] = parts[2];
 		}
 		writeBotData();
 		runProgModChat();
 		this.sendReply('Programacion del ModChat modificada.');
 	},
-	
-	
+
+
 	whois: function (target, room, user) {
 		if (!target) return;
-		var shopData = Shop.getBotPhrase(target);
+		let shopData = Shop.getBotPhrase(target);
 		if (shopData) return this.sendReply('Sobre ' + target + ': ' + shopData);
-		var targetUser = Users.get(target);
+		let targetUser = Users.get(target);
 		if (!targetUser) return this.sendReply('No se nada acerca de ' + toId(target) + '.');
 		switch (targetUser.group) {
-			case '~':
-				shopData = 'Administrador del servidor de Pokespain';
-				break;
-			case '&':
-				shopData = 'Leader del servidor de Pokespain';
-				break;
-			case '@':
-				shopData = 'Moderador del servidor de Pokespain';
-				break;
-			case '%':
-				shopData = 'Driver del servidor de Pokespain';
-				break;
-			case '+':
-				shopData = 'Voiced del servidor de Pokespain';
-				break;
-			default:
-				shopData = 'Usuario del servidor de Pokespain';
+		case '~':
+			shopData = 'Administrador del servidor de Pokespain';
+			break;
+		case '&':
+			shopData = 'Leader del servidor de Pokespain';
+			break;
+		case '@':
+			shopData = 'Moderador del servidor de Pokespain';
+			break;
+		case '%':
+			shopData = 'Driver del servidor de Pokespain';
+			break;
+		case '+':
+			shopData = 'Voiced del servidor de Pokespain';
+			break;
+		default:
+			shopData = 'Usuario del servidor de Pokespain';
 		}
-		if (shopData) return this.sendReply('Sobre ' + target + ': ' + shopData );
+		if (shopData) return this.sendReply('Sobre ' + target + ': ' + shopData);
 	},
 
 	seen: function (target, room, user, connection) {
@@ -686,15 +690,15 @@ var commands = {
 	choose: function (target, room, user, connection) {
 		if (!target) return;
 		target = target.replace("/", "-");
-		var parts = target.split(',');
+		let parts = target.split(',');
 		if (parts.length < 2) return;
-		var choice = parts[Math.floor(Math.random() * parts.length)];
+		let choice = parts[Math.floor(Math.random() * parts.length)];
 		if (!this.can('joinbattle')) return this.sendPm(choice);
 		this.sendReply(' ' + choice);
 	},
 
 	helix: (function () {
-		var reply = [
+		let reply = [
 			"Las señales apuntan a que sí.",
 			"Sí.",
 			"Hay mucha niebla. Inténtalo de nuevo.",
@@ -714,19 +718,19 @@ var commands = {
 			"No entiendo la pregunta.",
 			"Mi respuesta es no.",
 			"Es buena idea.",
-			"No cuentes con ello."
+			"No cuentes con ello.",
 		];
 
 		return function (target, room, user) {
 			if (!target) return;
-			var message = reply[Math.floor(Math.random() * reply.length)];
+			let message = reply[Math.floor(Math.random() * reply.length)];
 			if (!this.can('joinbattle')) return this.sendPm(message);
 			this.sendReply(message);
 		};
 	})(),
-	
+
 	chiste: (function () {
-		var reply = [
+		let reply = [
 			"- Íbamos yo y Nacho. - No hijo, íbamos Nacho y yo. - ¿Cómo? ¿entonces yo no iba?",
 			"Le dice una madre a su hijo: - ¡Me ha dicho un pajarito que te drogas! - ¡La que se droga eres tu que hablas con pajaritos!.",
 			"Mi mujer me ha dejado una nota en la nevera que decía: - Me voy porque esto ya no funciona. Jo, pues si llevo dos horas revisando este cacharro y enfría de lujo.",
@@ -748,36 +752,36 @@ var commands = {
 			"- Camarero, camarero ¿tiene ancas de rana?. - Sí. - ¡Entonces pegue un saltito y tráigame un café!.",
 			"- Mi amor, estoy embarazada. ¿Qué te gustaría que fuera? - ¿Una broma?.",
 			"Un codicioso estaba hablando con Dios y le pregunta:- Dios, ¿Cuánto es para ti mil años? Y Dios le contesta:- Un segundo.- ¿Y un millón de pesos?. Y Dios le contesta: - Un centavo.  Entonces el codicioso le dice: ¿Me das un un centavo?. A lo que Dios le contesta:- Espérate un segundo.",
-			"Jaimito le pregunta a la maestra: Maestra, ¿usted me castigaría por algo que yo no hice? Claro que no, Jaimito. Ahh, pues que bueno, porque yo no hice mi tarea"
+			"Jaimito le pregunta a la maestra: Maestra, ¿usted me castigaría por algo que yo no hice? Claro que no, Jaimito. Ahh, pues que bueno, porque yo no hice mi tarea",
 		];
 
 		return function (target, room, user) {
-			var message = reply[Math.floor(Math.random() * reply.length)];
+			let message = reply[Math.floor(Math.random() * reply.length)];
 			if (!this.can('joinbattle')) return this.sendPm(message);
 			this.sendReply(message);
 		};
 	})(),
-	
+
 	maketour: function (target, room, user) {
 		Bot.commands.maketournament.call(this, target, room, user, false);
 	},
-	
+
 	maketournament: function (target, room, user, noResource) {
 		if (!this.can('joinbattle') && noResource !== 'host') return;
 		if (Tournaments.tournaments[room.id]) return this.sendPm('Ya hay un torneo en esta Sala.');
 
-		var parts = target.split(','),
+		let parts = target.split(','),
 			self = this,
 			counter = 1;
 		if (parts.length < 2 || Tools.getFormat(parts[0]).effectType !== 'Format' || !/[0-9]/.test(parts[1])) return this.sendPm('Correct Syntax: .maketournament [tier], [time/amount of players]');
 
 		if (parts[1].indexOf('minute') >= 0) {
-			var time = Number(parts[1].split('minute')[0]);
+			let time = Number(parts[1].split('minute')[0]);
 
 			this.parse('/tour create ' + parts[0] + ', elimination');
 			this.sendReply('**Teneis ' + time + ' minuto' + parts[1].split('minute')[1] + ' para uniros al torneo.**');
 
-			var loop = function () {
+			let loop = function () {
 				setTimeout(function () {
 					if (!Tournaments.tournaments[room.id]) return;
 					if (counter === time) {
@@ -786,9 +790,9 @@ var commands = {
 							return self.sendReply('**El torneo fue cancelado por falta de Jugadores.**');
 						}
 						if (!Tournaments.tournaments[room.id].isTournamentStarted) {
-						self.parse('/tour start');
-						self.parse('/tour autodq 2');
-						return self.sendReply('**El Torneo ha comenzado!**');
+							self.parse('/tour start');
+							self.parse('/tour autodq 2');
+							return self.sendReply('**El Torneo ha comenzado!**');
 						}
 					}
 					if ((time - counter) === 1) {
@@ -807,7 +811,7 @@ var commands = {
 		parts[1] = parts[1].replace(/[^0-9 ]+/g, '');
 		this.parse('/tour create ' + parts[0] + ', elimination');
 		this.sendReply('**El torneo empezará cuando  ' + parts[1] + ' jugadores se unan.**');
-		var playerLoop = function () {
+		let playerLoop = function () {
 			setTimeout(function () {
 				if (!Tournaments.tournaments[room.id]) return;
 				if (Tournaments.tournaments[room.id].generator.users.size >= Number(parts[1])) {
@@ -833,14 +837,14 @@ var commands = {
 		}
 		if (Bot.config.hosting[room.id]) return this.sendPm('Ya estaba haciendo torneos automáticos.');
 
-		Bot.config.hosting[room.id] = true
+		Bot.config.hosting[room.id] = true;
 		this.sendReply('/announce Voy a empezar a hacer Torneos automáticos en esta sala.');
 
-		var self = this,
+		let self = this,
 			_room = room,
 			_user = user;
 
-		var poll = function () {
+		let poll = function () {
 			if (!Bot.config.hosting[_room.id]) return;
 			setTimeout(function () {
 				if (tour[_room.id].question) self.parse('/endpoll');
@@ -853,7 +857,7 @@ var commands = {
 			}, 1000 * 5);
 		};
 
-		var loop = function () {
+		let loop = function () {
 			setTimeout(function () {
 				if (!Tournaments.tournaments[_room.id] && !tour[_room.id].question) poll();
 				if (Bot.config.hosting[_room.id]) loop();
@@ -869,23 +873,23 @@ var commands = {
 		if (!target || !Rooms.get(target.toLowerCase())) return;
 		if (Rooms.get(target.toLowerCase()).users[Bot.config.name]) return this.sendPm('Ya estoy en esa sala');
 		Users.get(Bot.config.name).joinRoom(Rooms.get(target.toLowerCase()));
-		var botDelay = (Math.floor(Math.random() * 6) * 1000)
-		setTimeout(function() {
-			connection.sendTo(room, Bot.config.name + ' has joined ' +  target + ' room.');
+		let botDelay = (Math.floor(Math.random() * 6) * 1000);
+		setTimeout(function () {
+			connection.sendTo(room, Bot.config.name + ' has joined ' + target + ' room.');
 		}, botDelay);
 	},
-	
+
 	autojoin: function (target, room, user, connection) {
 		if (!user.can('hotpatch')) return;
-		var rooms = "";
-		for (var id in Rooms.rooms) {
+		let rooms = "";
+		for (let id in Rooms.rooms) {
 			if (id !== 'global' && (Rooms.rooms[id].isOfficial || id === 'staff' || id === 'test') && !Rooms.get(id).users[Bot.config.name]) {
 				Users.get(Bot.config.name).joinRoom(Rooms.get(id));
 				rooms += id + ", ";
 			}
 		}
-		var botDelay = (Math.floor(Math.random() * 6) * 1000)
-		setTimeout(function() {
+		let botDelay = (Math.floor(Math.random() * 6) * 1000);
+		setTimeout(function () {
 			connection.sendTo(room, Bot.config.name + ' has joined these rooms: ' + rooms);
 		}, botDelay);
 	},
@@ -894,9 +898,9 @@ var commands = {
 		if (!user.can('hotpatch')) return;
 		if (!target || !Rooms.get(target.toLowerCase())) return;
 		Users.get(Bot.config.name).leaveRoom(Rooms.get(target.toLowerCase()));
-		var botDelay = (Math.floor(Math.random() * 6) * 1000)
-		setTimeout(function() {
-			connection.sendTo(room, Bot.config.name + ' has left ' +  target + ' room.');
+		let botDelay = (Math.floor(Math.random() * 6) * 1000);
+		setTimeout(function () {
+			connection.sendTo(room, Bot.config.name + ' has left ' + target + ' room.');
 		}, botDelay);
 	},
 

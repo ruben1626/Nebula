@@ -12,6 +12,6 @@ exports.BattleFormats = {
 		},
 		onTeamPreview: function () {
 			this.makeRequest('teampreview', 2);
-		}
-	}
+		},
+	},
 };

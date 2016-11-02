@@ -592,7 +592,7 @@ exports.Formats = [
 
 		searchShow: true,
 		team: 'randomMonoType',
-		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod']
+		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
 		name: "Random Inverse Battle",
@@ -609,7 +609,7 @@ exports.Formats = [
 			if (move && move.id === 'freezedry' && type === 'Water') return;
 			if (move && !this.getImmunity(move, type)) return 1;
 			return -typeMod;
-		}
+		},
 	},
 	{
 		name: "Random Haxmons",
@@ -623,11 +623,11 @@ exports.Formats = [
 			if (move.accuracy !== true && move.accuracy < 100) move.accuracy = 0;
 			move.willCrit = true;
 			if (move.secondaries) {
-				for (var i = 0; i < move.secondaries.length; i++) {
+				for (let i = 0; i < move.secondaries.length; i++) {
 					move.secondaries[i].chance = 100;
 				}
 			}
-		}
+		},
 	},
 	{
 		name: "Random Sky Battle",
@@ -636,7 +636,7 @@ exports.Formats = [
 
 		searchShow: true,
 		team: 'randomSky',
-		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod']
+		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
 		name: "Random Ubers",
@@ -645,7 +645,7 @@ exports.Formats = [
 
 		searchShow: true,
 		team: 'randomUber',
-		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod']
+		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
 		name: "Random LC",
@@ -654,7 +654,7 @@ exports.Formats = [
 
 		searchShow: true,
 		team: 'randomLC',
-		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod']
+		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
 		name: "Random CAP",
@@ -663,7 +663,7 @@ exports.Formats = [
 
 		searchShow: true,
 		team: 'randomCap',
-		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod']
+		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
 		name: "Random MonoGen",
@@ -672,7 +672,7 @@ exports.Formats = [
 
 		searchShow: true,
 		team: 'randomMonoGen',
-		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod']
+		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
 		name: "Challenge Cup 2-vs-2",
@@ -689,7 +689,7 @@ exports.Formats = [
 			this.p1.pokemonLeft = this.p1.pokemon.length;
 			this.p2.pokemon = this.p2.pokemon.slice(0, 2);
 			this.p2.pokemonLeft = this.p2.pokemon.length;
-		}
+		},
 	},
 	{
 		name: "Challenge Cup Metronome",
@@ -698,7 +698,7 @@ exports.Formats = [
 
 		searchShow: true,
 		team: 'randomMetro',
-		ruleset: ['Pokemon', 'HP Percentage Mod', 'Cancel Mod']
+		ruleset: ['Pokemon', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 
 	// Local Metagames
@@ -722,7 +722,7 @@ exports.Formats = [
 		name: "Mega Tier",
 		section: "Local Metagames",
 		mod: 'megatier',
-		ruleset: ['OU']
+		ruleset: ['OU'],
 	},
 	{
 		name: "Metagamiate",
@@ -734,25 +734,25 @@ exports.Formats = [
 			'Giratina-Origin', 'Groudon', 'Kyogre', 'Ho-Oh', 'Kyurem-White', 'Lugia', 'Mewtwo', 'Palkia', 'Rayquaza', 'Reshiram',
 			'Shaymin-Sky', 'Kyurem-White', 'Xerneas', 'Yveltal', 'Zekrom',
 		],
-		onModifyMove: function(move, pokemon) {
+		onModifyMove: function (move, pokemon) {
 			if (move.type === 'Normal' && move.id !== 'hiddenpower' && !pokemon.hasAbility(['aerilate', 'pixilate', 'refrigerate'])) {
-				var types = pokemon.getTypes();
+				let types = pokemon.getTypes();
 				if (!types[0] || types[0] === '???') return;
 				move.type = types[0];
 				move.isMetagamiate = true;
 			}
 		},
 		onBasePowerPriority: 9,
-		onBasePower: function(basePower, attacker, defender, move) {
+		onBasePower: function (basePower, attacker, defender, move) {
 			if (!move.isMetagamiate) return;
 			return this.chainModify([0x14CD, 0x1000]);
-		}
+		},
 	},
 	{
 		name: "Same Type Stealth Rock",
 		section: "Local Metagames",
 		mod: 'stsr',
-		ruleset: ['OU']
+		ruleset: ['OU'],
 	},
 	{
 		name: "Startermons",
@@ -761,7 +761,7 @@ exports.Formats = [
 		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Swagger Clause', 'Baton Pass Clause', 'Cancel Mod'],
 		banlist: ['Soul Dew', 'Charizardite X', 'Charizardite Y', 'Venusaurite', 'Blastoisinite', 'Blazikenite', 'Blaziken + Speed Boost'],
 		validateSet: function (set) {
-			var validStarters = {
+			let validStarters = {
 				"Bulbasaur":1, "Ivysaur":1, "Venusaur":1, "Charmander":1, "Charmeleon":1, "Charizard":1, "Squirtle":1, "Wartortle":1, "Blastoise":1,
 				"Chikorita":1, "Bayleef":1, "Meganium":1, "Cyndaquil":1, "Quilava":1, "Typhlosion":1, "Totodile":1, "Croconaw":1, "Feraligatr":1,
 				"Treecko":1, "Grovyle":1, "Sceptile":1, "Torchic":1, "Combusken":1, "Blaziken":1, "Mudkip":1, "Marshtomp":1, "Swampert":1,
@@ -775,11 +775,11 @@ exports.Formats = [
 			}
 		},
 		validateTeam: function (team) {
-			var problems = [];
-			var hasOneOfEach = true;
-			var gens = [0, 0, 0, 0, 0, 0];
-			for (var i = 0; i < team.length; i++) {
-				var pokemon = Tools.getTemplate(team[i].species || team[i].name);
+			let problems = [];
+			let hasOneOfEach = true;
+			let gens = [0, 0, 0, 0, 0, 0];
+			for (let i = 0; i < team.length; i++) {
+				let pokemon = Tools.getTemplate(team[i].species || team[i].name);
 				if (pokemon.num <= 151) ++gens[0];
 				else if (pokemon.num <= 251) ++gens[1];
 				else if (pokemon.num <= 386) ++gens[2];
@@ -787,19 +787,19 @@ exports.Formats = [
 				else if (pokemon.num <= 649) ++gens[4];
 				else if (pokemon.num <= 721) ++gens[5];
 			}
-			for (var j in gens) {
+			for (let j in gens) {
 				if (gens[j] > 1) hasOneOfEach = false;
 			}
 			if (!hasOneOfEach) problems.push('You must bring a Pokemon of each gen.');
 			return problems;
-		}
+		},
 	},
 	{
 		name: "VGC 2010",
 		section: "Local Metagames",
 		gameType: 'doubles',
 		searchShow: true,
-		
+
 		mod: 'gen4',
 		maxForcedLevel: 50,
 		teamLength: {
@@ -809,13 +809,13 @@ exports.Formats = [
 		ruleset: ['Species Clause', 'Item Clause', 'Cancel Mod'],
 		banlist: ['Unreleased', 'Illegal', 'Soul Dew', 'Huntail + Shell Smash + Sucker Punch', 'Manaphy', 'Mew', 'Arceus', 'Shaymin', 'Darkrai', 'Celebi', 'Jirachi', 'Deoxys', 'Phione'],
 		validateTeam: function (team) {
-			var legendCount = 0;
-			for (var i = 0; i < 4; i++) {
-				var pokemon = Tools.getTemplate(team[i].species || team[i].name);
-				if (pokemon.species in {'Mewtwo': 1, 'Lugia': 1, 'Ho-Oh': 1, 'Rayquaza': 1, 'Kyogre': 1, 'Groudon': 1, 'Dialga': 1, 'Palkia': 1, 'Giratina': 1}) legendCount ++;
+			let legendCount = 0;
+			for (let i = 0; i < 4; i++) {
+				let pokemon = Tools.getTemplate(team[i].species || team[i].name);
+				if (pokemon.species in {'Mewtwo': 1, 'Lugia': 1, 'Ho-Oh': 1, 'Rayquaza': 1, 'Kyogre': 1, 'Groudon': 1, 'Dialga': 1, 'Palkia': 1, 'Giratina': 1}) legendCount++;
 			}
 			if (legendCount > 2) return ['You can\'t use more than two of these pokemon: Mewtwo, Lugia, Ho-Oh, Rayquaza, Kyogre, Groudon, Dialga, Palkia, Giratina.'];
-		}
+		},
 	},
 	{
 		name: "Balanced Hackmons (Doubles)",
@@ -823,7 +823,7 @@ exports.Formats = [
 		gameType: 'doubles',
 
 		ruleset: ['Pokemon', 'Ability Clause', '-ate Clause', 'OHKO Clause', 'Evasion Moves Clause', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod'],
-		banlist: ['Arena Trap', 'Huge Power', 'Parental Bond', 'Pure Power', 'Shadow Tag', 'Wonder Guard', 'Assist', 'Chatter']
+		banlist: ['Arena Trap', 'Huge Power', 'Parental Bond', 'Pure Power', 'Shadow Tag', 'Wonder Guard', 'Assist', 'Chatter'],
 	},
 
 	// RoA Spotlight

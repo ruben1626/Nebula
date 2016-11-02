@@ -220,9 +220,9 @@ exports.commands = {
 		});
 	},
 	itemsearchhelp: ["/itemsearch [move description] - finds items that match the given key words.",
-	"Command accepts natural language. (tip: fewer words tend to work better)",
-	"Searches with \"fling\" in them will find items with the specified Fling behavior.",
-	"Searches with \"natural gift\" in them will find items with the specified Natural Gift behavior."],
+		"Command accepts natural language. (tip: fewer words tend to work better)",
+		"Searches with \"fling\" in them will find items with the specified Fling behavior.",
+		"Searches with \"natural gift\" in them will find items with the specified Natural Gift behavior."],
 
 	'!learn': true,
 	learnset: 'learn',

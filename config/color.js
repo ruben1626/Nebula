@@ -5,7 +5,7 @@ module.exports = hashColor;
 
 function MD5(e) {
 	function t(e, t) {
-		var n, r, i, s, o;
+		let n, r, i, s, o;
 		i = e & 2147483648;
 		s = t & 2147483648;
 		n = e & 1073741824;
@@ -35,29 +35,29 @@ function MD5(e) {
 	}
 
 	function o(e) {
-		var t = "",
+		let t = "",
 			n = "",
 			r;
 		for (r = 0; r <= 3; r++) n = e >>> r * 8 & 255, n = "0" + n.toString(16), t += n.substr(n.length - 2, 2);
-		return t
+		return t;
 	}
 	var u = [],
-		a, f, l, c, h, p, d, v, e = function(e) {
+		a, f, l, c, h, p, d, v, e = (function (e) {
 			for (var e = e.replace(/\r\n/g, "\n"), t = "", n = 0; n < e.length; n++) {
-				var r = e.charCodeAt(n);
+				let r = e.charCodeAt(n);
 				r < 128 ? t += String.fromCharCode(r) : (r > 127 && r < 2048 ? t += String.fromCharCode(r >> 6 | 192) : (t += String.fromCharCode(r >> 12 | 224), t += String.fromCharCode(r >> 6 & 63 | 128)), t += String.fromCharCode(r & 63 | 128));
 			}
 			return t;
-		}(e),
-		u = function(e) {
-			var t, n = e.length;
+		})(e),
+		u = (function (e) {
+			let t, n = e.length;
 			t = n + 8;
 			for (var r = ((t - t % 64) / 64 + 1) * 16, i = Array(r - 1), s = 0, o = 0; o < n;) t = (o - o % 4) / 4, s = o % 4 * 8, i[t] |= e.charCodeAt(o) << s, o++;
 			i[(o - o % 4) / 4] |= 128 << o % 4 * 8;
 			i[r - 2] = n << 3;
 			i[r - 1] = n >>> 29;
 			return i;
-		}(e);
+		})(e);
 	h = 1732584193;
 	p = 4023233417;
 	d = 2562383102;
@@ -67,7 +67,7 @@ function MD5(e) {
 }
 
 function hslToRgb(e, t, n) {
-	var r, i, s, o, u, a;
+	let r, i, s, o, u, a;
 	if (!isFinite(e)) e = 0;
 	if (!isFinite(t)) t = 0;
 	if (!isFinite(n)) n = 0;
@@ -110,7 +110,7 @@ function hslToRgb(e, t, n) {
 	return {
 		r: r,
 		g: i,
-		b: s
+		b: s,
 	};
 }
 
@@ -128,15 +128,15 @@ function toHex(e) {
 	return "0123456789ABCDEF".charAt((e - e % 16) / 16) + "0123456789ABCDEF".charAt(e % 16);
 }
 
-var colorCache = {};
+let colorCache = {};
 
 function hashColor(e) {
 	if (colorCache[e]) return colorCache[e];
-	var t = MD5(e);
-	var n = parseInt(t.substr(4, 4), 16) % 360;
-	var r = parseInt(t.substr(0, 4), 16) % 50 + 50;
-	var i = parseInt(t.substr(8, 4), 16) % 20 + 25;
-	var s = hslToRgb(n, r, i);
+	let t = MD5(e);
+	let n = parseInt(t.substr(4, 4), 16) % 360;
+	let r = parseInt(t.substr(0, 4), 16) % 50 + 50;
+	let i = parseInt(t.substr(8, 4), 16) % 20 + 25;
+	let s = hslToRgb(n, r, i);
 	colorCache[e] = "#" + rgbToHex(s.r, s.g, s.b);
 	return colorCache[e];
 }

@@ -5,11 +5,11 @@ const NOMINATION_TIMEOUT = 20000; //en milisegundos
 const TIMEOUT_WARN = 5000; //en milisegundos
 const MIN_PRIZE = 3; //precio al nominar
 
-/* 
+/*
 	Script pensado para usarse en la subasta de la hpl. Por: Ecuacion
-	
+
 	-> Para Instalarse debe colocarse este archivo en la carpeta Chat-plugins de un servidor de PS, no es necesario nada más.
-	
+
 	Comandos:
 		/addteam [nombre] - agrega un equipo, solo para administradores
 		/deleteteam [nombre] - elimina un equipo, solo para administradores
@@ -22,33 +22,34 @@ const MIN_PRIZE = 3; //precio al nominar
 		/forcedeleteplayer [equipo], [jugador] - por si alguien se equivoca, quita un jugador de un equipo y lo pone en la lista de elegibles.
 		/nominationrights [equipo] - Por defecto, los derechos de nominación pasan al siguiente equipo. Esto se puede usar para confusiones o para establecer manualmente quien nomina primero.
 		/organizador [usuario/off] - Establece un organizador para decidir manualmente el orden.
-		
+
 		/hplteam [nombre] - muestra el estado de un equipo.
 		/hplplayers - muestra la lista de jugadores elegibles.
-		
+
 		/nominar [jugador] - Nomina un jugador si tienes derecho a hacerlo, cuesta 3k
 		/pujar - puja por un jugador +0.5K
 		/pujar [dinero] - puja por un jugador un número de Ks superior. NOTA: Dinero es los Ks que aumentas, no los que quieres pujar
-		
+
 		-Tras un tiempo establecido en la constante NOMINATION_TIMEOUT desde la última puja, el jugador se adjudica a un team y se le restan los Ks correspondientes.
 		-No se puede usar /pujar si ya tenías la mayor puja.
 */
 
-var fs = require('fs');
+let fs = require('fs');
 
-var hpl_default = {
+let hpl_default = {
 	maxplayers: 20,
 	teams: {},
 	players: {},
-	minplayers: 10
+	minplayers: 10,
 };
 
-if (!fs.existsSync(hplDataFile))
+if (!fs.existsSync(hplDataFile))	{
 	fs.writeFileSync(hplDataFile, JSON.stringify(hpl_default));
+}
 
-var hpl = JSON.parse(fs.readFileSync(hplDataFile).toString());
+let hpl = JSON.parse(fs.readFileSync(hplDataFile).toString());
 
-var hpl_status = {
+let hpl_status = {
 	status: 0,
 	timeout: 0,
 	can_nominate: {},
@@ -56,7 +57,7 @@ var hpl_status = {
 	nominated: '',
 	team: '',
 	money: 0,
-	organizer: 0
+	organizer: 0,
 };
 
 /* Functions */
@@ -66,7 +67,7 @@ function writeHplData() {
 }
 
 function addHplTeam(team) {
-	var teamid = toId(team);
+	let teamid = toId(team);
 	if (hpl.teams[teamid]) return false;
 	hpl.teams[teamid] = {
 		id: teamid,
@@ -75,7 +76,7 @@ function addHplTeam(team) {
 		cocapi: '',
 		players: {},
 		numplayers: 0,
-		money: 0
+		money: 0,
 	};
 	return true;
 }
@@ -89,7 +90,7 @@ function deleteHplTeam(team) {
 
 function findTeamFromPlayer(player) {
 	player = toId(player);
-	for (var i in hpl.teams) {
+	for (let i in hpl.teams) {
 		if (hpl.teams[i].players[player]) return i;
 	}
 	return false;
@@ -103,7 +104,7 @@ function init_nominate(room, player, team, money) {
 	hpl_status.timeout = NOMINATION_TIMEOUT;
 	room.addRaw("<div class=\"broadcast-blue\"><b>" + hpl.teams[team].name + " ha nominado al jugador " + player + " por " + money + "K!</b><br />Para pujar por él se debe usar /pujar</div>");
 	room.update();
-	var loop = function () {
+	let loop = function () {
 		setTimeout(function () {
 			hpl_status.timeout -= TIMEOUT_WARN;
 			if (hpl_status.timeout <= 0) {
@@ -120,9 +121,9 @@ function init_nominate(room, player, team, money) {
 
 function aplicate_status(room) {
 	hpl_status.status = 0;
-	var team = toId(hpl_status.team);
-	var player = toId(hpl_status.nominated);
-	var money = hpl_status.money;
+	let team = toId(hpl_status.team);
+	let player = toId(hpl_status.nominated);
+	let money = hpl_status.money;
 	if (!hpl.teams[team] || !hpl.players[player]) {
 		room.addRaw("<div class=\"broadcast-red\"><b>El tiempo ha terminado!</b><br />Algo ha fallado! Es posible que el jugador o el equipo hayan sido alterados manualmente durante el proceso</div>");
 		room.update();
@@ -134,7 +135,7 @@ function aplicate_status(room) {
 			nominated: '',
 			team: '',
 			money: 0,
-			organizer: hpl_status.organizer
+			organizer: hpl_status.organizer,
 		};
 	} else {
 		delete hpl.players[player];
@@ -142,7 +143,7 @@ function aplicate_status(room) {
 		hpl.teams[team].numplayers++;
 		hpl.teams[team].money -= money;
 		room.addRaw("<div class=\"broadcast-green\"><b>El tiempo ha terminado!</b><br />El jugador " + player + " queda adjudicado al equipo " + hpl.teams[team].name + " por " + money + "K!</div>");
-		var html = '<strong>' + hpl.teams[team].name + ': </strong><br />';
+		let html = '<strong>' + hpl.teams[team].name + ': </strong><br />';
 		html += "&nbsp;&nbsp;&nbsp;&nbsp;<b>Capitan:</b> " + hpl.teams[team].capi + "<br />";
 		html += "&nbsp;&nbsp;&nbsp;&nbsp;<b>Co-Capitan:</b> " + hpl.teams[team].cocapi + "<br />";
 		html += "&nbsp;&nbsp;&nbsp;&nbsp;<b>Dinero:</b> " + hpl.teams[team].money + "K<br />";
@@ -165,27 +166,27 @@ function nextTeam(room) {
 			nominated: '',
 			team: '',
 			money: 0,
-			organizer: hpl_status.organizer
+			organizer: hpl_status.organizer,
 		};
-		var orgUser = Users.get(hpl_status.organizer);
+		let orgUser = Users.get(hpl_status.organizer);
 		if (!orgUser) return;
-		var html = '<b>Establece quien tiene el turno para nominar:</b><br />';
+		let html = '<b>Establece quien tiene el turno para nominar:</b><br />';
 		for (var i in hpl.teams) {
 			html += '<button name="send" value="/nturn ' + i + '">' + hpl.teams[i].name + "</button>&nbsp;";
 		}
 		orgUser.sendTo(room, '|raw|<div class="infobox">' + html + '</div>');
 		return;
 	}
-	var team = toId(hpl_status.team_can_nominate);
-	var nextteam = '';
-	var teamFlag = 0;
+	let team = toId(hpl_status.team_can_nominate);
+	let nextteam = '';
+	let teamFlag = 0;
 	for (var i in hpl.teams) {
 		if (teamFlag) {
 			nextteam = i;
 			teamFlag = 0;
 			break;
 		}
-		if (i === team) teamFlag = 1; 
+		if (i === team) teamFlag = 1;
 	}
 	if (teamFlag) nextteam = Object.keys(hpl.teams)[0];
 	hpl_status.can_nominate = {};
@@ -199,7 +200,7 @@ function nextTeam(room) {
 /* Commands */
 
 exports.commands = {
-	
+
 /* Info */
 
 	auctionhelp: function (target, room, user) {
@@ -228,13 +229,13 @@ exports.commands = {
 			'	/nominationrights [equipo] - Por defecto, los derechos de nominación pasan al siguiente equipo. Esto se puede usar para confusiones o para establecer manualmente quien nomina primero.<br />'
 		);
 	},
-	
+
 	estadosubasta: 'auctionstatus',
 	auctionstatus: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.canBroadcast()) return false;
-		var html = '<center><h2>Lista de equipos</h2></center>';
-		for (var team in hpl.teams) {
+		let html = '<center><h2>Lista de equipos</h2></center>';
+		for (let team in hpl.teams) {
 			html += '<hr /><strong>' + hpl.teams[team].name + ': </strong><br />';
 			html += "&nbsp;&nbsp;&nbsp;&nbsp;<b>Capitan:</b> " + hpl.teams[team].capi + "<br />";
 			html += "&nbsp;&nbsp;&nbsp;&nbsp;<b>Co-Capitan:</b> " + hpl.teams[team].cocapi + "<br />";
@@ -244,23 +245,23 @@ exports.commands = {
 		}
 		this.sendReplyBox(html);
 	},
-	
+
 	equipos: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.canBroadcast()) return false;
-		var html = '<strong>Lista de equipos: </strong><br />';
-		for (var i in hpl.teams) {
+		let html = '<strong>Lista de equipos: </strong><br />';
+		for (let i in hpl.teams) {
 			html += "	->" + hpl.teams[i].name + "<br />";
 		}
 		this.sendReplyBox(html);
 	},
-	
+
 	equipo: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.canBroadcast()) return false;
-		var team = toId(target);
+		let team = toId(target);
 		if (!hpl.teams[team]) return this.sendReply("El equipo" + team + " no existe");
-		var html = '<strong>' + hpl.teams[team].name + ': </strong><br />';
+		let html = '<strong>' + hpl.teams[team].name + ': </strong><br />';
 		html += "&nbsp;&nbsp;&nbsp;&nbsp;<b>Capitan:</b> " + hpl.teams[team].capi + "<br />";
 		html += "&nbsp;&nbsp;&nbsp;&nbsp;<b>Co-Capitan:</b> " + hpl.teams[team].cocapi + "<br />";
 		html += "&nbsp;&nbsp;&nbsp;&nbsp;<b>Dinero:</b> " + hpl.teams[team].money + "K<br />";
@@ -268,11 +269,11 @@ exports.commands = {
 		html += "&nbsp;&nbsp;&nbsp;&nbsp;<b>Numero de Jugadores:</b> " + hpl.teams[team].numplayers + "/" + hpl.maxplayers + "<br />";
 		this.sendReplyBox(html);
 	},
-	
+
 	jugadores: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.canBroadcast()) return false;
-		var html = '<strong>Lista de jugadores elegibles: </strong>' + Object.keys(hpl.players).join(", ");
+		let html = '<strong>Lista de jugadores elegibles: </strong>' + Object.keys(hpl.players).join(", ");
 		this.sendReplyBox(html);
 	},
 
@@ -282,11 +283,11 @@ exports.commands = {
 	nominar: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (hpl_status.status !== 0) return this.sendReply("No se puede nominar mientras se está pujando");
-		var player = toId(target);
+		let player = toId(target);
 		if (!hpl.players[player]) return this.sendReply("El jugador " + player + " no está en la lista de jugadores elegibles");
 		//check
-		var team = 0;
-		for (var i in hpl.teams) {
+		let team = 0;
+		for (let i in hpl.teams) {
 			if (user.userid === toId(hpl.teams[i].capi) || user.userid === toId(hpl.teams[i].cocapi)) {
 				team = i;
 				break;
@@ -302,19 +303,19 @@ exports.commands = {
 		this.privateModCommand("(" + user.name + " ha nominado al jugador " + player + ")");
 		init_nominate(room, player, team, MIN_PRIZE);
 	},
-	
+
 	p: 'pujar',
 	bid: 'pujar',
 	pujar: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (hpl_status.status !== 1) return this.sendReply("No hay ningún usuario nominado");
-		var money;
+		let money;
 		if (!target || !target.length) money = 0.5;
 		else money = parseFloat(target) - hpl_status.money;
 		if (!money || money < 0) return this.sendReply("La cantidad especificada es inferior a la puja actual");
 		//check
-		var team = 0;
-		for (var i in hpl.teams) {
+		let team = 0;
+		for (let i in hpl.teams) {
 			if (user.userid === toId(hpl.teams[i].capi) || user.userid === toId(hpl.teams[i].cocapi)) {
 				team = i;
 				break;
@@ -322,7 +323,7 @@ exports.commands = {
 		}
 		if (!team) return this.sendReply("No tienes autoridad en ningún equipo");
 		if (toId(hpl_status.team) === team) return this.sendReply("No tiene sentido aumentar la puja si ya tienes la puja más alta");
-		var totalMoney = hpl_status.money + money;
+		let totalMoney = hpl_status.money + money;
 		if (hpl.teams[team].money < totalMoney + (hpl.minplayers - hpl.teams[team].numplayers - 1) * MIN_PRIZE) return this.sendReply(hpl.teams[team].name + " no tiene suficiente dinero para subir la puja. Aun debes completar tu equipo.");
 		if (hpl.teams[team].money < totalMoney) return this.sendReply(hpl.teams[team].name + " no tiene suficiente dinero para subir la puja.");
 		if (hpl.teams[team].numplayers >= hpl.maxplayers) return this.sendReply("El equipo está completo");
@@ -347,7 +348,7 @@ exports.commands = {
 			this.sendReply("El equipo " + toId(target) + " ya está registrado");
 		}
 	},
-	
+
 	deleteteam: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
@@ -358,68 +359,68 @@ exports.commands = {
 			this.sendReply("El equipo " + toId(target) + " no existe");
 		}
 	},
-	
+
 	stm: 'setteammoney',
 	setteammoney: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
-		var args = target.split(",");
+		let args = target.split(",");
 		if (args.length < 2) return this.sendReply("Usage: /setteammoney [equipo], [dinero]");
-		var team = toId(args[0]);
-		var money = parseFloat(args[1]);
+		let team = toId(args[0]);
+		let money = parseFloat(args[1]);
 		if (!hpl.teams[team]) return this.sendReply("El equipo " + team + " no existe");
 		if (!money || money < 0) return this.sendReply("La cantidad especificada no es válida");
 		hpl.teams[team].money = money;
 		this.addModCommand(user.name + " ha establecido la cantidad inicial de dinero del equipo " + hpl.teams[team].name + ": " + money + "K");
 		writeHplData();
 	},
-	
+
 	setmaxplayers: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
-		var maxplayers = parseInt(target);
+		let maxplayers = parseInt(target);
 		if (!maxplayers) return this.sendReply("La cantidad especificada no es válida");
 		hpl.maxplayers = maxplayers;
 		this.addModCommand(user.name + " ha establecido el número máximo de jugadores por equipo: " + hpl.maxplayers);
 		writeHplData();
 	},
-	
+
 	setminplayers: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
-		var minplayers = parseInt(target);
+		let minplayers = parseInt(target);
 		if (!minplayers) return this.sendReply("La cantidad especificada no es válida");
 		hpl.minplayers = minplayers;
 		this.addModCommand(user.name + " ha establecido el número mínimo de jugadores por equipo: " + hpl.minplayers);
 		writeHplData();
 	},
-	
+
 	setteamauth: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
-		var args = target.split(",");
+		let args = target.split(",");
 		if (args.length < 3) return this.sendReply("Usage: /setteamauth [equipo], [capitan], [cocapitan]");
-		var team = toId(args[0]);
-		var capi = args[1];
-		var cocapi = args[2];
+		let team = toId(args[0]);
+		let capi = args[1];
+		let cocapi = args[2];
 		if (!hpl.teams[team]) return this.sendReply("El equipo " + team + " no existe");
 		hpl.teams[team].capi = capi;
 		hpl.teams[team].cocapi = cocapi;
 		this.addModCommand(user.name + " ha establecido la autoridad del equipo " + hpl.teams[team].name + ": " + capi + " (Capitán) y " + cocapi + " (Co-Capitán)");
 		writeHplData();
 	},
-	
+
 	addplayer: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
 		if (!target || target.length < 2) return this.sendReply("El nombre es demasiado corto");
-		var team = findTeamFromPlayer(target);
+		let team = findTeamFromPlayer(target);
 		if (team) return this.sendReply("El jugador se encontraba dentro del equipo " + hpl.teams[team].name);
 		if (hpl.players[toId(target)]) return this.sendReply("El jugador ya estaba en la lista de elegibles");
 		hpl.players[toId(target)] = 1;
 		this.addModCommand(user.name + " ha agregado un jugador: " + target);
 	},
-	
+
 	deleteplayer: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
@@ -428,15 +429,15 @@ exports.commands = {
 		this.addModCommand(user.name + " ha eliminado un jugador: " + target);
 		writeHplData();
 	},
-	
+
 	fap: 'forceaddplayer',
 	forceaddplayer: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
-		var args = target.split(",");
+		let args = target.split(",");
 		if (args.length < 2) return this.sendReply("Usage: /forceaddplayer [equipo], [jugador]");
-		var team = toId(args[0]);
-		var player = toId(args[1]);
+		let team = toId(args[0]);
+		let player = toId(args[1]);
 		if (!hpl.teams[team]) return this.sendReply("El equipo " + team + " no existe");
 		if (!hpl.players[player]) return this.sendReply("El jugador no estaba en la lista de elegibles");
 		if (hpl.teams[team].numplayers >= hpl.maxplayers) return this.sendReply("El equipo está completo");
@@ -446,15 +447,15 @@ exports.commands = {
 		this.addModCommand(user.name + " ha forzado al jugador " + player + " a unirse al equipo " + hpl.teams[team].name);
 		writeHplData();
 	},
-	
+
 	fdp: 'forcedeleteplayer',
 	forcedeleteplayer: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
-		var args = target.split(",");
+		let args = target.split(",");
 		if (args.length < 2) return this.sendReply("Usage: /forcedeleteplayer [equipo], [jugador]");
-		var team = toId(args[0]);
-		var player = toId(args[1]);
+		let team = toId(args[0]);
+		let player = toId(args[1]);
 		if (!hpl.teams[team]) return this.sendReply("El equipo " + team + " no existe");
 		if (!hpl.teams[team].players[player]) return this.sendReply("El jugador no estaba en el equipo especificado");
 		hpl.players[player] = 1;
@@ -463,13 +464,13 @@ exports.commands = {
 		this.addModCommand(user.name + " ha forzado al jugador " + player + " a abandonar el equipo " + hpl.teams[team].name);
 		writeHplData();
 	},
-	
+
 	nturn: 'nominationrights',
 	nominationturn: 'nominationrights',
 	nominationrights: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
 		if (!this.can('hlp')) return false;
-		var team = toId(target);
+		let team = toId(target);
 		if (!hpl.teams[team]) return this.sendReply("El equipo " + team + " no existe");
 		hpl_status.can_nominate = {};
 		hpl_status.can_nominate[toId(hpl.teams[team].capi)] = 1;
@@ -477,7 +478,7 @@ exports.commands = {
 		hpl_status.team_can_nominate = team;
 		this.addModCommand(user.name + ": " + hpl.teams[team].name + " tiene el turno para nominar un jugador.");
 	},
-	
+
 	setorganizer: 'organizador',
 	organizador: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
@@ -488,5 +489,5 @@ exports.commands = {
 		}
 		hpl_status.organizer = toId(target);
 		this.addModCommand(user.name + " ha establecido a " + target + " como organizador de la subasta. Por lo que el orden será decidido manualmente.");
-	}
+	},
 };

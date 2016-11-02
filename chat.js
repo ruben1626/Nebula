@@ -34,19 +34,19 @@ const VALID_COMMAND_TOKENS = '/!';
 
 const BROADCAST_TOKEN = '!';
 
-var fs = require('fs');
-var path = require('path');
+let fs = require('fs');
+let path = require('path');
 const parseEmoticons = require('./chat-plugins/emoticons').parseEmoticons;
 
-function getServersAds (text) {
-	var aux = text.toLowerCase();
-	var serversAds = [];
-	var spamindex;
-	var actualAd = '';
+function getServersAds(text) {
+	let aux = text.toLowerCase();
+	let serversAds = [];
+	let spamindex;
+	let actualAd = '';
 	while (aux.indexOf(".psim.us") > -1) {
 		spamindex = aux.indexOf(".psim.us");
 		actualAd = '';
-		for (var i = spamindex - 1; i >= 0; i--) {
+		for (let i = spamindex - 1; i >= 0; i--) {
 			if (aux.charAt(i).replace(/[^a-z0-9]/g, '') === '') break;
 			actualAd = aux.charAt(i) + actualAd;
 		}
@@ -60,8 +60,8 @@ function getServersAds (text) {
  * Load command files
  *********************************************************/
 
-var baseCommands = exports.baseCommands = require('./commands.js').commands;
-var commands = exports.commands = Object.clone(baseCommands);
+let baseCommands = exports.baseCommands = require('./commands.js').commands;
+let commands = exports.commands = Object.clone(baseCommands);
 
 // Install plug-in commands
 
@@ -77,9 +77,9 @@ fs.readdirSync(path.resolve(__dirname, 'chat-plugins')).forEach(function (file) 
  * Modlog
  *********************************************************/
 
-var modlog = exports.modlog = {lobby: fs.createWriteStream(LOGS_DIR + 'modlog/modlog_lobby.txt', {flags:'a+'}), battle: fs.createWriteStream(LOGS_DIR +'modlog/modlog_battle.txt', {flags:'a+'})};
+let modlog = exports.modlog = {lobby: fs.createWriteStream(LOGS_DIR + 'modlog/modlog_lobby.txt', {flags:'a+'}), battle: fs.createWriteStream(LOGS_DIR + 'modlog/modlog_battle.txt', {flags:'a+'})};
 
-var writeModlog = exports.writeModlog = function (roomid, text) {
+let writeModlog = exports.writeModlog = function (roomid, text) {
 	if (!modlog[roomid]) {
 		modlog[roomid] = fs.createWriteStream(LOGS_DIR + 'modlog/modlog_' + roomid + '.txt', {flags:'a+'});
 	}
@@ -108,7 +108,7 @@ function canTalk(user, room, connection, message, targetUser) {
 		return false;
 	}
 	if (room && room.modchat) {
-		var userGroup = user.group;
+		let userGroup = user.group;
 		if (room.auth) {
 			if (room.auth[user.userid]) {
 				userGroup = room.auth[user.userid];
@@ -122,7 +122,7 @@ function canTalk(user, room, connection, message, targetUser) {
 				return false;
 			}
 		} else if (Config.groupsranking.indexOf(userGroup) < Config.groupsranking.indexOf(room.modchat) && !user.can('bypassall')) {
-			var groupName = Config.groups[room.modchat].name || room.modchat;
+			let groupName = Config.groups[room.modchat].name || room.modchat;
 			connection.sendTo(room, "Because moderated chat is set, you must be of rank " + groupName + " or higher to speak in this room.");
 			return false;
 		}
@@ -146,7 +146,7 @@ function canTalk(user, room, connection, message, targetUser) {
 		message = message.replace(/[\u0300-\u036f\u0483-\u0489\u064b-\u065f\u0670\u0E31\u0E34-\u0E3A\u0E47-\u0E4E]{3,}/g, '');
 
 		if (room && room.id === 'lobby') {
-			var normalized = message.trim();
+			let normalized = message.trim();
 			if ((normalized === user.lastMessage) &&
 					((Date.now() - user.lastMessageTime) < MESSAGE_COOLDOWN)) {
 				connection.popup("You can't send the same message again so soon.");
@@ -161,12 +161,12 @@ function canTalk(user, room, connection, message, targetUser) {
 		}
 		//servers Spam
 		if (!user.can('bypassall') && Rooms('staff')) {
-			var serverexceptions = {'dropp': 1, 'showdown': 1, 'smogtours': 1};
+			let serverexceptions = {'dropp': 1, 'showdown': 1, 'smogtours': 1};
 			if (Config.serverexceptions) {
 				for (var i in Config.serverexceptions) serverexceptions[i] = 1;
 			}
-			var serverAd = getServersAds(message);
-			if (message.indexOf('pandorashowdown.net','c9users.io','rhcloud.com','herokuapp.com') >= 0) serverAd.push('pandora');
+			let serverAd = getServersAds(message);
+			if (message.indexOf('pandorashowdown.net', 'c9users.io', 'rhcloud.com', 'herokuapp.com') >= 0) serverAd.push('pandora');
  			if (serverAd.length) {
 				for (var i = 0; i < serverAd.length; i++) {
 					if (!serverexceptions[serverAd[i]]) {
@@ -190,7 +190,7 @@ function canTalk(user, room, connection, message, targetUser) {
 	return true;
 }
 
-var Context = exports.Context = (function () {
+let Context = exports.Context = (function () {
 	function Context(options) {
 		this.cmd = options.cmd || '';
 		this.cmdToken = options.cmdToken || '';
@@ -241,11 +241,11 @@ var Context = exports.Context = (function () {
 		this.logModCommand(data);
 	};
 	Context.prototype.sendModCommand = function (data) {
-		var users = this.room.users;
-		var auth = this.room.auth;
+		let users = this.room.users;
+		let auth = this.room.auth;
 
-		for (var i in users) {
-			var user = users[i];
+		for (let i in users) {
+			let user = users[i];
 			// hardcoded for performance reasons (this is an inner loop)
 			if (user.isStaff || (auth && (auth[user.userid] || '+') !== '+')) {
 				user.sendTo(this.room, data);
@@ -260,16 +260,16 @@ var Context = exports.Context = (function () {
 		this.logModCommand(text + (logOnlyText || ""));
 	};
 	Context.prototype.logModCommand = function (text) {
-		var roomid = (this.room.battle ? 'battle' : this.room.id);
+		let roomid = (this.room.battle ? 'battle' : this.room.id);
 		if (this.room.isPersonal) roomid = 'groupchat';
 		writeModlog(roomid, '(' + this.room.id + ') ' + text);
 	};
 	Context.prototype.globalModlog = function (action, user, text) {
-		var buf = "(" + this.room.id + ") " + action + ": ";
+		let buf = "(" + this.room.id + ") " + action + ": ";
 		if (typeof user === 'string') {
 			buf += "[" + toId(user) + "]";
 		} else {
-			var userid = this.getLastIdOf(user);
+			let userid = this.getLastIdOf(user);
 			buf += "[" + userid + "]";
 			if (user.autoconfirmed && user.autoconfirmed !== userid) buf += " ac:[" + user.autoconfirmed + "]";
 		}
@@ -285,7 +285,7 @@ var Context = exports.Context = (function () {
 	};
 	Context.prototype.canBroadcast = function (suppressMessage) {
 		if (!this.broadcasting && this.cmdToken === BROADCAST_TOKEN) {
-			var message = this.canTalk(this.message);
+			let message = this.canTalk(this.message);
 			if (!message) return false;
 			if (!this.user.can('broadcast', null, this.room)) {
 				this.errorReply("You need to be voiced to broadcast this command's information.");
@@ -294,7 +294,7 @@ var Context = exports.Context = (function () {
 			}
 
 			// broadcast cooldown
-			var normalized = message.toLowerCase().replace(/[^a-z0-9\s!,]/g, '');
+			let normalized = message.toLowerCase().replace(/[^a-z0-9\s!,]/g, '');
 			if (this.room.lastBroadcast === normalized &&
 					this.room.lastBroadcastTime >= Date.now() - BROADCAST_COOLDOWN) {
 				this.errorReply("You can't broadcast this because it was just broadcast.");
@@ -315,12 +315,12 @@ var Context = exports.Context = (function () {
 		return CommandParser.parse(message, room || this.room, this.user, this.connection, this.levelsDeep + 1);
 	};
 	Context.prototype.run = function (targetCmd, inNamespace) {
-		var commandHandler;
+		let commandHandler;
 		if (typeof targetCmd === 'function') {
 			commandHandler = targetCmd;
 		} else if (inNamespace) {
 			commandHandler = commands;
-			for (var i = 0; i < this.namespaces.length; i++) {
+			for (let i = 0; i < this.namespaces.length; i++) {
 				commandHandler = commandHandler[this.namespaces[i]];
 			}
 			commandHandler = commandHandler[targetCmd];
@@ -328,19 +328,19 @@ var Context = exports.Context = (function () {
 			commandHandler = commands[targetCmd];
 		}
 
-		var result;
+		let result;
 		try {
 			result = commandHandler.call(this, this.target, this.room, this.user, this.connection, this.cmd, this.message);
 		} catch (err) {
-			var stack = err.stack + '\n\n' +
+			let stack = err.stack + '\n\n' +
 					'Additional information:\n' +
 					'user = ' + this.user.name + '\n' +
 					'room = ' + this.room.id + '\n' +
 					'message = ' + this.message;
-			var fakeErr = {stack: stack};
+			let fakeErr = {stack: stack};
 
 			if (!require('./crashlogger.js')(fakeErr, 'A chat command')) {
-				var ministack = ("" + err.stack).escapeHTML().split("\n").slice(0, 2).join("<br />");
+				let ministack = ("" + err.stack).escapeHTML().split("\n").slice(0, 2).join("<br />");
 				if (Rooms.lobby) Rooms.lobby.send('|html|<div class="broadcast-red"><b>POKEMON SHOWDOWN HAS CRASHED:</b> ' + ministack + '</div>');
 			} else {
 				this.sendReply('|html|<div class="broadcast-red"><b>Pokemon Showdown crashed!</b><br />Don\'t worry, we\'re working on fixing it.</div>');
@@ -351,12 +351,12 @@ var Context = exports.Context = (function () {
 		return result;
 	};
 	Context.prototype.canTalk = function (message, relevantRoom, targetUser) {
-		var innerRoom = (relevantRoom !== undefined) ? relevantRoom : this.room;
+		let innerRoom = (relevantRoom !== undefined) ? relevantRoom : this.room;
 		return canTalk.call(this, this.user, innerRoom, this.connection, message, targetUser);
 	};
 	Context.prototype.canHTML = function (html) {
 		html = '' + (html || '');
-		var images = html.match(/<img\b[^<>]*/ig);
+		let images = html.match(/<img\b[^<>]*/ig);
 		if (images) {
 			if (this.room.isPersonal && !this.user.can('announce')) {
 				this.errorReply("Images are not allowed in personal rooms.");
@@ -383,11 +383,11 @@ var Context = exports.Context = (function () {
 		}
 
 		// check for mismatched tags
-		var tags = html.toLowerCase().match(/<\/?(div|a|button|b|i|u|center|font)\b/g);
+		let tags = html.toLowerCase().match(/<\/?(div|a|button|b|i|u|center|font)\b/g);
 		if (tags) {
-			var stack = [];
+			let stack = [];
 			for (var i = 0; i < tags.length; i++) {
-				var tag = tags[i];
+				let tag = tags[i];
 				if (tag.charAt(1) === '/') {
 					if (!stack.length) {
 						this.errorReply("Extraneous </" + tag.substr(2) + "> without an opening tag.");
@@ -422,7 +422,7 @@ var Context = exports.Context = (function () {
 		return (user.named ? user.userid : (Object.keys(user.prevNames).last() || user.userid));
 	};
 	Context.prototype.splitTarget = function (target, exactName) {
-		var commaIndex = target.indexOf(',');
+		let commaIndex = target.indexOf(',');
 		if (commaIndex < 0) {
 			var targetUser = Users.get(target, exactName);
 			this.targetUser = targetUser;
@@ -468,8 +468,8 @@ var Context = exports.Context = (function () {
  *     if he's muted, will warn him that he's muted, and
  *     return false.
  */
-var parse = exports.parse = function (message, room, user, connection, levelsDeep) {
-	var cmd = '', target = '', cmdToken = '';
+let parse = exports.parse = function (message, room, user, connection, levelsDeep) {
+	let cmd = '', target = '', cmdToken = '';
 	if (!message || !message.trim().length) return;
 	if (!levelsDeep) {
 		levelsDeep = 0;
@@ -499,9 +499,9 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 		}
 	}
 
-	var namespaces = [];
-	var currentCommands = commands;
-	var commandHandler;
+	let namespaces = [];
+	let currentCommands = commands;
+	let commandHandler;
 
 	do {
 		commandHandler = currentCommands[cmd];
@@ -530,18 +530,18 @@ var parse = exports.parse = function (message, room, user, connection, levelsDee
 			commandHandler = currentCommands[commandHandler];
 		}
 	}
-	var fullCmd = namespaces.concat(cmd).join(' ');
-	var context = new Context({
+	let fullCmd = namespaces.concat(cmd).join(' ');
+	let context = new Context({
 		target: target, room: room, user: user, connection: connection, cmd: cmd, message: message,
-		namespaces: namespaces, cmdToken: cmdToken, levelsDeep: levelsDeep
+		namespaces: namespaces, cmdToken: cmdToken, levelsDeep: levelsDeep,
 	});
 
 	if (commandHandler) {
 		return context.run(commandHandler);
 	} else {
 		// Check for mod/demod/admin/deadmin/etc depending on the group ids
-		for (var g in Config.groups) {
-			var groupid = Config.groups[g].id;
+		for (let g in Config.groups) {
+			let groupid = Config.groups[g].id;
 			if (cmd === groupid || cmd === 'global' + groupid) {
 				return parse('/promote ' + toId(target) + ', ' + g, room, user, connection, levelsDeep + 1);
 			} else if (cmd === 'de' + groupid || cmd === 'un' + groupid || cmd === 'globalde' + groupid || cmd === 'deglobal' + groupid) {
@@ -584,10 +584,10 @@ fs.readFile(path.resolve(__dirname, 'package.json'), function (err, data) {
 });
 
 exports.uncacheTree = function (root) {
-	var uncache = [require.resolve(root)];
+	let uncache = [require.resolve(root)];
 	do {
-		var newuncache = [];
-		for (var i = 0; i < uncache.length; ++i) {
+		let newuncache = [];
+		for (let i = 0; i < uncache.length; ++i) {
 			if (require.cache[uncache[i]]) {
 				newuncache.push.apply(newuncache,
 					require.cache[uncache[i]].children.map('id')

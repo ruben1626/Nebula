@@ -9,20 +9,22 @@ const medalDataFile = DATA_DIR + 'medaldata.json';
 function defaultData() {
 	return {
 		data: {},
-		users: {}
+		users: {},
 	};
 }
 
-var fs = require('fs');
+let fs = require('fs');
 
-if (!fs.existsSync(leagueDataFile))
+if (!fs.existsSync(leagueDataFile))	{
 	fs.writeFileSync(leagueDataFile, '{}');
-	
-if (!fs.existsSync(medalDataFile))
-	fs.writeFileSync(medalDataFile, JSON.stringify(defaultData()));
+}
 
-var league = JSON.parse(fs.readFileSync(leagueDataFile).toString());
-var medal = JSON.parse(fs.readFileSync(medalDataFile).toString());
+if (!fs.existsSync(medalDataFile))	{
+	fs.writeFileSync(medalDataFile, JSON.stringify(defaultData()));
+}
+
+let league = JSON.parse(fs.readFileSync(leagueDataFile).toString());
+let medal = JSON.parse(fs.readFileSync(medalDataFile).toString());
 
 function writeLeagueData() {
 	fs.writeFileSync(leagueDataFile, JSON.stringify(league));
@@ -35,8 +37,8 @@ function writeMedalData() {
 //functions
 
 exports.getAllMedals = function () {
-	var list = '';
-	for (var i in medal.data) {
+	let list = '';
+	for (let i in medal.data) {
 		list += i + " | ";
 	}
 	return list;
@@ -49,7 +51,7 @@ exports.getMedalData = function (medalId) {
 		name: medal.data[medalId].name,
 		image: medal.data[medalId].image,
 		width: medal.data[medalId].width,
-		height: medal.data[medalId].height
+		height: medal.data[medalId].height,
 	};
 };
 
@@ -62,7 +64,7 @@ exports.findMedal = function (leader, leagueid) {
 		}
 		return false;
 	}
-	for (var i in league) {
+	for (let i in league) {
 		for (var j in league[i].leaders) {
 			if (toId(league[i].leaders[j].user) === leader) return j;
 		}
@@ -77,7 +79,7 @@ exports.newMedal = function (medalId, name, image, w, h) {
 		name: name,
 		image: image,
 		width: parseInt(w),
-		height: parseInt(h)
+		height: parseInt(h),
 	};
 	writeMedalData();
 	return true;
@@ -95,22 +97,22 @@ exports.editMedal = function (medalId, param, data) {
 	medalId = toId(medalId);
 	if (!medal.data[medalId]) return false;
 	switch (toId(param)) {
-		case 'n':
-			medal.data[medalId].name = data;
-			break;
-		case 'i':
-			medal.data[medalId].image = data;
-			break;
-		case 'w':
-			data = parseInt(data);
-			if (!data) return false;
-			medal.data[medalId].width = data;
-			break;
-		case 'h':
-			data = parseInt(data);
-			if (!data) return false;
-			medal.data[medalId].height = data;
-			break;
+	case 'n':
+		medal.data[medalId].name = data;
+		break;
+	case 'i':
+		medal.data[medalId].image = data;
+		break;
+	case 'w':
+		data = parseInt(data);
+		if (!data) return false;
+		medal.data[medalId].width = data;
+		break;
+	case 'h':
+		data = parseInt(data);
+		if (!data) return false;
+		medal.data[medalId].height = data;
+		break;
 	}
 	writeMedalData();
 	return true;
@@ -146,12 +148,12 @@ exports.removeMedal = function (medalId, userId) {
 exports.getMedalRaw = function (userId) {
 	userId = toId(userId);
 	if (!medal.users[userId]) return '<center><b>Sin medallas por el momento.</b></center>';
-	var generic = '', leagueMedals = '';
-	var registeredMedals = {};
-	var aux, aux2;
-	for (var i in league) {
+	let generic = '', leagueMedals = '';
+	let registeredMedals = {};
+	let aux, aux2;
+	for (let i in league) {
 		aux = ''; aux2 = '';
-		for (var n in league[i].leaders) {
+		for (let n in league[i].leaders) {
 			if (medal.users[userId][n] && league[i].leaders[n].rank === "g") {
 				aux += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Tools.escapeHTML(medal.data[n].name) + '" width="' + Tools.escapeHTML(medal.data[n].width) + '" height="' + Tools.escapeHTML(medal.data[n].height) + '" />&nbsp;';
 				registeredMedals[n] = 1;
@@ -168,7 +170,7 @@ exports.getMedalRaw = function (userId) {
 			leagueMedals += "<h3>" + Tools.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br /><br />" + aux + "<br />";
 		}
 	}
-	for (var j in medal.users[userId]) {
+	for (let j in medal.users[userId]) {
 		if (!registeredMedals[j]) {
 			generic += '<img src="' + encodeURI(medal.data[j].image) + '" title="' + Tools.escapeHTML(medal.data[j].name) + '" width="' + Tools.escapeHTML(medal.data[j].width) + '" height="' + Tools.escapeHTML(medal.data[j].height) + '" />&nbsp;';
 		}
@@ -180,12 +182,12 @@ exports.getMedalRaw = function (userId) {
 exports.getMedalQuery = function (userId) {
 	userId = toId(userId);
 	if (!medal.users[userId]) return '<center><b>Sin medallas por el momento.</b></center>';
-	var generic = '', leagueMedals = '';
-	var registeredMedals = {};
-	var aux, aux2;
-	for (var i in league) {
+	let generic = '', leagueMedals = '';
+	let registeredMedals = {};
+	let aux, aux2;
+	for (let i in league) {
 		aux = ''; aux2 = '';
-		for (var n in league[i].leaders) {
+		for (let n in league[i].leaders) {
 			if (medal.users[userId][n] && league[i].leaders[n].rank === "g") {
 				aux += '<img src="' + encodeURI(medal.data[n].image) + '" title="' + Tools.escapeHTML(medal.data[n].name) + '" width="' + Tools.escapeHTML(medal.data[n].width) + '" height="' + Tools.escapeHTML(medal.data[n].height) + '" />&nbsp;';
 				registeredMedals[n] = 1;
@@ -202,7 +204,7 @@ exports.getMedalQuery = function (userId) {
 			leagueMedals += "<h3>" + Tools.escapeHTML(league[i].name) + "</h3>" + aux2 + "<br /><br />" + aux + "<br />";
 		}
 	}
-	for (var j in medal.users[userId]) {
+	for (let j in medal.users[userId]) {
 		if (!registeredMedals[j]) {
 			generic += '<img src="' + encodeURI(medal.data[j].image) + '" title="' + Tools.escapeHTML(medal.data[j].name) + '" width="' + Tools.escapeHTML(medal.data[j].width) + '" height="' + Tools.escapeHTML(medal.data[j].height) + '" />&nbsp;';
 		}
@@ -212,8 +214,8 @@ exports.getMedalQuery = function (userId) {
 };
 
 exports.getAllLeagues = function () {
-	var list = '';
-	for (var i in league) {
+	let list = '';
+	for (let i in league) {
 		list += i + " | ";
 	}
 	return list;
@@ -225,21 +227,21 @@ exports.getLeagueData = function (leagueId) {
 	return {
 		name: league[leagueId].name,
 		room: league[leagueId].room,
-		leaders: league[leagueId].leaders
+		leaders: league[leagueId].leaders,
 	};
 };
 
 exports.findLeagueFromName = function (leagueName) {
-	var leagueNameId = toId(leagueName);
-	for (var i in league) {
+	let leagueNameId = toId(leagueName);
+	for (let i in league) {
 		if (toId(league[i].name) === leagueNameId) return i;
 	}
 	return false;
 };
 
 exports.findLeagueFromRoom = function (room) {
-	var roomid = toId(room);
-	for (var i in league) {
+	let roomid = toId(room);
+	for (let i in league) {
 		if (toId(league[i].room) === roomid) return i;
 	}
 	return false;
@@ -247,8 +249,8 @@ exports.findLeagueFromRoom = function (room) {
 
 exports.findLeagueFromLeader = function (leader) {
 	leader = toId(leader);
-	for (var i in league) {
-		for (var j in league[i].leaders) {
+	for (let i in league) {
+		for (let j in league[i].leaders) {
 			if (toId(league[i].leaders[j].user) === leader) return i;
 		}
 	}
@@ -256,7 +258,7 @@ exports.findLeagueFromLeader = function (leader) {
 };
 
 exports.findLeague = function (data, room) {
-	var leagueId = toId(data);
+	let leagueId = toId(data);
 	if (league[leagueId]) return leagueId;
 	leagueId = exports.findLeagueFromName(data);
 	if (leagueId) return leagueId;
@@ -271,7 +273,7 @@ exports.newLeague = function (leagueId, name, room) {
 	league[leagueId] = {
 		name: name,
 		room: room,
-		leaders: {}
+		leaders: {},
 	};
 	writeLeagueData();
 	return true;
@@ -289,12 +291,12 @@ exports.editLeague = function (leagueId, param, data) {
 	leagueId = toId(leagueId);
 	if (!league[leagueId]) return false;
 	switch (toId(param)) {
-		case 'n':
-			league[leagueId].name = data;
-			break;
-		case 'r':
-			league[leagueId].room = data;
-			break;
+	case 'n':
+		league[leagueId].name = data;
+		break;
+	case 'r':
+		league[leagueId].room = data;
+		break;
 	}
 	writeLeagueData();
 	return true;
@@ -302,11 +304,11 @@ exports.editLeague = function (leagueId, param, data) {
 
 exports.addLeader = function (leagueId, user, rank, medalId) {
 	leagueId = toId(leagueId);
-	medalId = toId(medalId)
+	medalId = toId(medalId);
 	if (!league[leagueId] || league[leagueId].leaders[medalId] || !medal.data[medalId]) return false;
 	league[leagueId].leaders[medalId] = {
 		user: user,
-		rank: rank
+		rank: rank,
 	};
 	writeLeagueData();
 	return true;
@@ -314,7 +316,7 @@ exports.addLeader = function (leagueId, user, rank, medalId) {
 
 exports.removeLeader = function (leagueId, medalId) {
 	leagueId = toId(leagueId);
-	medalId = toId(medalId)
+	medalId = toId(medalId);
 	if (!league[leagueId] || !league[leagueId].leaders[medalId]) return false;
 	delete league[leagueId].leaders[medalId];
 	writeLeagueData();
@@ -323,15 +325,15 @@ exports.removeLeader = function (leagueId, medalId) {
 
 exports.getLeagueTable = function (leagueId) {
 	if (!league[leagueId]) return 'La liga especificada no está registrada en el servidor';
-	var html = '', medalHTML = '';
-	var e = false, g = false;
+	let html = '', medalHTML = '';
+	let e = false, g = false;
 	html += '<center><h2>' + league[leagueId].name + '</h2></center>';
 	html += '<b>Sala:</b> <button name="send" value ="/join ' + league[leagueId].room + '">' + league[leagueId].room + '</button><br /><br />';
 	html += '<b>Elite:</b> ';
 	for (var i in league[leagueId].leaders) {
 		if (league[leagueId].leaders[i].rank === "e") {
 			e = true;
-			html += Clans.getUserDiv(league[leagueId].leaders[i].user) + '&nbsp;&nbsp;'
+			html += Clans.getUserDiv(league[leagueId].leaders[i].user) + '&nbsp;&nbsp;';
 			if (medal.data[i]) medalHTML += '<img src="' + encodeURI(medal.data[i].image) + '" title="' + Tools.escapeHTML(medal.data[i].name) + '" width="' + Tools.escapeHTML(medal.data[i].width) + '" height="' + Tools.escapeHTML(medal.data[i].height) + '" />&nbsp;';
 		}
 	}
@@ -340,7 +342,7 @@ exports.getLeagueTable = function (leagueId) {
 	for (var i in league[leagueId].leaders) {
 		if (league[leagueId].leaders[i].rank === "g") {
 			g = true;
-			html += Clans.getUserDiv(league[leagueId].leaders[i].user) + '&nbsp;&nbsp;'
+			html += Clans.getUserDiv(league[leagueId].leaders[i].user) + '&nbsp;&nbsp;';
 			if (medal.data[i]) medalHTML += '<img src="' + encodeURI(medal.data[i].image) + '" title="' + Tools.escapeHTML(medal.data[i].name) + '" width="' + Tools.escapeHTML(medal.data[i].width) + '" height="' + Tools.escapeHTML(medal.data[i].height) + '" />&nbsp;';
 		}
 	}
