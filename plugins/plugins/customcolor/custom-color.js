@@ -91,7 +91,7 @@ exports.commands = {
 		Plugins.Colors.load({[targetUserid]: colorHex});
 		this.sendReply(`|raw|Has otorgado un color personalizado a ${Plugins.Colors.apply(targetUserid).bold()}.`);
 		Rooms('staff').addRaw(Chat.html`${parts[0]} obtuvo un <strong><font color="${colorHex}">color personalizado</font></strong> de ${user.name}.`).update();
-		this.privateModCommand(`(${parts[0]} obtuvo un color personalizado: '${parts[1]}' de parte de ${user.name}.)`;
+		this.privateModCommand(`(${parts[0]} obtuvo un color personalizado: '${parts[1]}' de parte de ${user.name}.)`);
 
 		customColors[targetUserid] = colorHex;
 		updateColor();
@@ -99,7 +99,7 @@ exports.commands = {
 	customcolorhelp: [
 		`/customcolor [usuario], [color] - Otorga al usuario indicado el color especificado.`,
 		`/customcolor [usuario], delete - Elimina el color personalizado del usuario indicado.`
-	]
+	],
 
 	colorpreview: 'checkcolor',
 	checkcolor: function (target, room, user, connection, cmd) {
