@@ -53,9 +53,9 @@ exports.commands = {
 		if (!user.hasConsoleAccess(connection)) {return this.sendReply("/destroymodlog - Access denied.");}
 		let fsscript = require('fs');
 		let logPath = LOGS_DIR + 'modlog/';
-		if (CommandParser.modlog && CommandParser.modlog[room.id]) {
-			CommandParser.modlog[room.id].close();
-			delete CommandParser.modlog[room.id];
+		if (Chat.modlog && Chat.modlog[room.id]) {
+			Chat.modlog[room.id].close();
+			delete Chat.modlog[room.id];
 		}
 		try {
 			fsscript.unlinkSync(logPath + "modlog_" + room.id + ".txt");

@@ -25,7 +25,7 @@ let commands = exports.commands = {
 
 	version: function (target, room, user) {
 		if (!this.canBroadcast()) return;
-		this.sendReplyBox("Server version: <b>" + CommandParser.package.version + "</b>");
+		this.sendReplyBox("Server version: <b>" + Chat.package.version + "</b>");
 	},
 
 	auth: 'authority',
@@ -1715,13 +1715,13 @@ let commands = exports.commands = {
 
 		if (target === 'chat' || target === 'commands') {
 			try {
-				CommandParser.uncacheTree('./command-parser.js');
+				Chat.uncacheTree('./command-parser.js');
 				delete require.cache[require.resolve('./commands.js')];
 				delete require.cache[require.resolve('./chat-plugins/info.js')];
-				global.CommandParser = require('./command-parser.js');
+				global.Chat = require('./command-parser.js');
 
 				var runningTournaments = Tournaments.tournaments;
-				CommandParser.uncacheTree('./tournaments');
+				Chat.uncacheTree('./tournaments');
 				global.Tournaments = require('./tournaments');
 				Tournaments.tournaments = runningTournaments;
 
@@ -1732,7 +1732,7 @@ let commands = exports.commands = {
 		} else if (target === 'tournaments') {
 			try {
 				var runningTournaments = Tournaments.tournaments;
-				CommandParser.uncacheTree('./tournaments');
+				Chat.uncacheTree('./tournaments');
 				global.Tournaments = require('./tournaments');
 				Tournaments.tournaments = runningTournaments;
 				return this.sendReply("Tournaments have been hot-patched.");
@@ -1746,7 +1746,7 @@ let commands = exports.commands = {
 			try {
 				var toolsLoaded = !!Tools.isLoaded;
 				// uncache the tools.js dependency tree
-				CommandParser.uncacheTree('./tools.js');
+				Chat.uncacheTree('./tools.js');
 				// reload tools.js
 				global.Tools = require('./tools.js')[toolsLoaded ? 'includeData' : 'includeFormats'](); // note: this will lock up the server for a few seconds
 				// rebuild the formats list
@@ -1766,7 +1766,7 @@ let commands = exports.commands = {
 			try {
 				var toolsLoaded = !!Tools.isLoaded;
 				// uncache the tools.js dependency tree
-				CommandParser.uncacheTree('./tools.js');
+				Chat.uncacheTree('./tools.js');
 				// reload tools.js
 				global.Tools = require('./tools.js')[toolsLoaded ? 'includeData' : 'includeFormats'](); // note: this will lock up the server for a few seconds
 
@@ -1904,7 +1904,7 @@ let commands = exports.commands = {
 			return this.errorReply("For safety reasons, /kill can only be used during lockdown.");
 		}
 
-		if (CommandParser.updateServerLock) {
+		if (Chat.updateServerLock) {
 			return this.errorReply("Wait for /updateserver to finish before using /kill.");
 		}
 
@@ -1964,11 +1964,11 @@ let commands = exports.commands = {
 			return this.errorReply("/updateserver - Access denied.");
 		}
 
-		if (CommandParser.updateServerLock) {
+		if (Chat.updateServerLock) {
 			return this.errorReply("/updateserver - Another update is already in progress.");
 		}
 
-		CommandParser.updateServerLock = true;
+		Chat.updateServerLock = true;
 
 		let logQueue = [];
 		logQueue.push(user.name + " used /updateserver");
@@ -1990,7 +1990,7 @@ let commands = exports.commands = {
 					logQueue.forEach(function (line) {
 						room.logEntry(line);
 					});
-					CommandParser.updateServerLock = false;
+					Chat.updateServerLock = false;
 					return;
 				}
 			}
@@ -2005,7 +2005,7 @@ let commands = exports.commands = {
 				logQueue.forEach(function (line) {
 					room.logEntry(line);
 				});
-				CommandParser.updateServerLock = false;
+				Chat.updateServerLock = false;
 			});
 		});
 	},
@@ -2594,7 +2594,7 @@ let commands = exports.commands = {
 			let altCommandHelp;
 			var helpCmd;
 			let targets = target.split(' ');
-			let allCommands = CommandParser.commands;
+			let allCommands = Chat.commands;
 			if (typeof allCommands[target] === 'string') {
 				// If a function changes with command name, help for that command name will be searched first.
 				altCommandHelp = target + 'help';

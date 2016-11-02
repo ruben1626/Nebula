@@ -386,7 +386,7 @@ let cmds = {
 	createtour: 'newtour',
 	newtour: function (target, room, user, connection) {
 		if (target == "update" && this.can('hotpatch')) {
-			CommandParser.uncacheTree('./tour.js');
+			Chat.uncacheTree('./tour.js');
 			tour = require('./tour.js').tour(tour);
 			return this.sendReply('El codigo de los torneos ha sido actualizado.');
 		}
@@ -985,7 +985,7 @@ let cmds = {
 	},
 };
 
-for (let i in cmds) CommandParser.commands[i] = cmds[i];
+for (let i in cmds) Chat.commands[i] = cmds[i];
 /*********************************************************
  * Events
  *********************************************************/

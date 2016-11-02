@@ -136,7 +136,7 @@ function runProgModChat() {
 	let timeNow = new Date();
 	for (let i = 0; i < config.rooms.length; i++) {
 		if (!Rooms.rooms[config.rooms[i]]) continue;
-		CommandParser.parse("/modchat " + progModChat[timeNow.getHours()], Rooms.rooms[config.rooms[i]], Users.get(config.name), Users.get(config.name).connections[0]);
+		Chat.parse("/modchat " + progModChat[timeNow.getHours()], Rooms.rooms[config.rooms[i]], Users.get(config.name), Users.get(config.name).connections[0]);
 		Rooms.rooms[config.rooms[i]].update();
 	}
 }
@@ -174,7 +174,7 @@ let parse = {
 			room = Rooms.rooms['lobby'];
 		}
 		if (botBannedUsers[toId(user.name)] && !user.can('staff')) {
-			CommandParser.parse(('/ban' + ' ' + user.userid + ', Ban Permanente'), room, Users.get(config.name), Users.get(config.name).connections[0]);
+			Chat.parse(('/ban' + ' ' + user.userid + ', Ban Permanente'), room, Users.get(config.name), Users.get(config.name).connections[0]);
 			return false;
 		}
 		if ((user.userid === config.userid() || !room.users[config.userid()]) && !isPM) return true;
@@ -285,7 +285,7 @@ let parse = {
 			if (this.chatData[user][room].points >= 2) this.chatData[user].zeroTol++; // getting muted or higher increases your zero tolerance level (warns do not)
 			this.chatData[user][room].lastAction = time;
 			room.add('|c|' + user.group + user.name + '|' + message);
-			CommandParser.parse(('/' + cmd + ' ' + user.userid + muteMessage), room, Users.get(config.name), Users.get(config.name).connections[0]);
+			Chat.parse(('/' + cmd + ' ' + user.userid + muteMessage), room, Users.get(config.name), Users.get(config.name).connections[0]);
 			return false;
 		}
 
@@ -374,7 +374,7 @@ let parse = {
 					return true;
 				},
 				parse: function (target) {
-					CommandParser.parse(target, room, Users.get(Bot.config.name), Users.get(Bot.config.name).connections[0]);
+					Chat.parse(target, room, Users.get(Bot.config.name), Users.get(Bot.config.name).connections[0]);
 					room.update();
 				},
 			};
@@ -508,7 +508,7 @@ let commands = {
 			}
 			bannedList += '"' + userId + '", ';
 			botBannedUsers[userId] = 1;
-			CommandParser.parse(('/ban' + ' ' + userId + ', Ban Permanente'), room, Users.get(config.name), Users.get(config.name).connections[0]);
+			Chat.parse(('/ban' + ' ' + userId + ', Ban Permanente'), room, Users.get(config.name), Users.get(config.name).connections[0]);
 		}
 		writeBotData();
 		if (parts.length > 1) {

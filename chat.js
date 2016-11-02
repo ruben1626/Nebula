@@ -2,7 +2,7 @@
  * Command parser
  * Pokemon Showdown - http://pokemonshowdown.com/
  *
- * This is the command parser. Call it with CommandParser.parse
+ * This is the command parser. Call it with Chat.parse
  * (scroll down to its definition for details)
  *
  * Individual commands are put in:
@@ -312,7 +312,7 @@ let Context = exports.Context = (function () {
 		if (inNamespace && this.cmdToken) {
 			message = this.cmdToken + this.namespaces.concat(message.slice(1)).join(" ");
 		}
-		return CommandParser.parse(message, room || this.room, this.user, this.connection, this.levelsDeep + 1);
+		return Chat.parse(message, room || this.room, this.user, this.connection, this.levelsDeep + 1);
 	};
 	Context.prototype.run = function (targetCmd, inNamespace) {
 		let commandHandler;
@@ -449,7 +449,7 @@ let Context = exports.Context = (function () {
  * Command parser
  *
  * Usage:
- *   CommandParser.parse(message, room, user, connection)
+ *   Chat.parse(message, room, user, connection)
  *
  * message - the message the user is trying to say
  * room - the room the user is trying to say it in
@@ -460,10 +460,10 @@ let Context = exports.Context = (function () {
  * means "don't say anything"
  *
  * Examples:
- *   CommandParser.parse("/join lobby", room, user, connection)
+ *   Chat.parse("/join lobby", room, user, connection)
  *     will make the user join the lobby, and return false.
  *
- *   CommandParser.parse("Hi, guys!", room, user, connection)
+ *   Chat.parse("Hi, guys!", room, user, connection)
  *     will return "Hi, guys!" if the user isn't muted, or
  *     if he's muted, will warn him that he's muted, and
  *     return false.

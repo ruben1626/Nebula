@@ -735,7 +735,7 @@ let cmds = {
 			break;
 		case 'hotpatch':
 			if (!this.can('hotpatch')) return false;
-			CommandParser.uncacheTree('./war.js');
+			Chat.uncacheTree('./war.js');
 			War = require('./war.js');
 			return this.sendReply('Wars hotpatched.');
 		case 'ronda':
@@ -748,7 +748,7 @@ let cmds = {
 	},
 };
 
-for (var i in cmds) CommandParser.commands[i] = cmds[i];
+for (var i in cmds) Chat.commands[i] = cmds[i];
 
 /*********************************************************
  * Events
