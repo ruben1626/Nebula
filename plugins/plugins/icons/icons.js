@@ -44,7 +44,7 @@ function generateCSS(name, icon) {
 		rooms.push('#' + id + '-userlist-user-' + name);
 	});
 	css = rooms.join(', ');
-	css += '{\nbackground: url(\'' + Chat.escapeHTML(encodeURI(icon).replace(/'/g, "\\'")) + '\') no-repeat right\n}';
+	css += '{\nbackground: url(\'' + encodeURI(icon).replace(/'/g, "\\'") + '\') no-repeat right\n}';
 	return css;
 }
 
