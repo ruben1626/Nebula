@@ -96,9 +96,10 @@ function joinServer() {
 	let worker = new (require('./fake-process.js').FakeProcess)();
 	Users.socketConnect(worker.server, undefined, '1', '254.254.254.254');
 
-	for (let i in Users.users) {
-		if (Users.users[i].connections[0].ip === '254.254.254.254') {
-			let bot = Users.users[i];
+	for (const user of Users.users.values()) {
+		if (user.connected && user.connections[0].ip === '254.254.254.254') {
+			let id = user.userid;
+			let bot = user;
 
 			bot.name = config.name;
 			bot.named = true;
@@ -123,7 +124,7 @@ function joinServer() {
 					targetUser.joinRoom(targetRoom);
 				}
 			}
-			delete Users.users[i];
+			Users.users.delete(id);
 		}
 	}
 }
