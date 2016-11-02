@@ -1,0 +1,14 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Chat-Stats",
+  "version": "0.3",
+  "engines": {
+    "node": ">= 6.0.0"
+  },
+  "main": "chat-stats.js",
+  "scripts": {},
+  "author": {
+    "name": "Leonardo Ivo Julca Salazar",
+    "email": "ivojulca@hotmail.com"
+  },
+  "private": true
+}
