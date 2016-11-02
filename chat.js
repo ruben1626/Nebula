@@ -195,7 +195,7 @@ class CommandContext {
 
 		if (message && message !== true && typeof message.then !== 'function') {
 			if (!this.user.blockEmoticons && (!this.pmTarget || !this.pmTarget.blockEmoticons)) {
-				let emoteMsg = parseEmoticons(target, this.room, this.user, this.pmTarget);
+				let emoteMsg = parseEmoticons(message, this.room, this.user, this.pmTarget);
 				if (emoteMsg) message = `/html ${emoteMsg}`;
 			}
 			if (this.pmTarget) {
