@@ -8,6 +8,139 @@
   background: url("http://www.serebii.net/pokedex-xy/icon/359-m.png") no-repeat right
 }
 
+body {
+    background: url('http://img15.deviantart.net/6489/i/2013/128/8/6/dragonite_whose_that_pokemon_wallpaper_by_jhr921-d64le5h.jpg') !important;
+}
+#lv-banner {
+    color: #fff;
+    width: 421px;
+    height: 225px;
+    text-align: center;
+    font-family: Arial;
+    margin: 0 auto;
+}
+#lv-banner img {
+    margin-top: 15px;
+    margin-bottom: 142px;
+}
+#lv-banner a {
+    color: #fff;
+    text-decoration: none;
+}
+#lv-banner a:hover {
+    color: #1F92D4;
+    text-decoration: none;
+}
+#lv-banner .text {
+    font-size: 13px;
+}
+/*. Header & Maintabbarbottom .*/
+
+.header {
+    background: rgba(245, 245, 245, 0.9);
+    /*background-image: url(''); background-repeat: no-repeat; background-size: size;*/
+}
+.header .logo {
+    display: none !important;
+}
+.maintabbarbottom {
+    background: #81DAF5;
+    border-color: #160086;
+    -webkit-box-shadow: 1px 0px 7px #1F30C6;
+    -moz-box-shadow: 1px 0px 7px #1F30C6;
+    -o-box-shadow: 1px 0px 7px #1F30C6;
+    box-shadow: 1px 0px 7px #1F30C6;
+    color: #160086
+}
+.tabbar a.button {
+    border-color: #160086;
+    background: #81DAF5;
+    color: #160086;
+    text-shadow: none;
+}
+.tabbar a.button:hover {
+    background: #92A7ED;
+    border-color: #160086;
+    color: #160086;
+}
+.tabbar a.button:active {
+    border-color: #160086;
+    background: #81DAF5;
+    color: #160086;
+}
+.tabbar a.button.notifying {
+    border-bottom-color: #160086;
+    background: #A6DCFF;
+    color: #160086
+}
+.tabbar a.button.notifying:hover {
+    background: #81DAF5;
+    border-button-color: #160086;
+    color: #160086
+}
+.tabbar a.button.cur,
+.tabbar a.button.cur:hover {
+    background: #81DAF5;
+    color: #160086;
+}
+.tabbar .closebutton {
+    color: #160086;
+}
+.tabbar .closebutton:hover {
+    color: #160086;
+}
+.chat-log {
+    background: url("https://k61.kn3.net/4/A/2/2/7/1/0F2.png") right top no-repeat;
+}
+/*roomlist*/
+
+* Room List */ .roomlist a.ilink,
+.roomcounters button {
+    background: #E6E6E6;
+    color: #151515;
+    text-shadow: none;
+    box-shadow: 0px 0px 5px #808080;
+    border-color: #151515;
+    /*transition: background 0.5s, border 0.5s,color 0.5s;*/
+}
+.roomlist a.ilink:hover,
+.roomcounters button:hover {
+    background: #FFCA5E url("") no-repeat;
+    background-position: 300px -7px;
+    color: #151515;
+    border: #151515;
+}
+.roomlist a.ilink small {
+    color: Black;
+}
+.ps-room.ps-room-light {
+    background: #E6E6E6;
+}
+.ps-room.ps-room-light.scrollable {
+    background: #E6E6E6;
+    color: Black;
+    text-shadow: none;
+}
+.ps-room.ps-room-light.scrollable h3 {
+    background: none;
+    text-shadow: none;
+    color: black
+}
+.ps-room.ps-room-light.scrollable p {
+    background: none;
+    text-shadow: none;
+    color: black
+}
+.ps-room.ps-room-light.scrollable .button {
+    background: #FFCF4A;
+    border: 1px solid #FFCF4A;
+    color: #FFFFFF;
+    text-shadow: none;
+}
+.ps-room.ps-room-light.scrollable .button:hover {
+    background: #E4AA25;
+}
+
 <!-- Custom Colors -->
 
 <!-- Custom Icons -->
