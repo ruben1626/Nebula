@@ -133,6 +133,7 @@ class CommandContext {
 		// target user
 		this.targetUser = null;
 		this.targetUsername = "";
+		this.targetUserid = "";
 		this.inputUsername = "";
 	}
 
@@ -759,6 +760,7 @@ class CommandContext {
 	}
 	targetUserOrSelf(target, exactName) {
 		if (!target) {
+			this.targetUserid = this.user.userid;
 			this.targetUsername = this.user.name;
 			this.inputUsername = this.user.name;
 			return this.user;
@@ -773,6 +775,7 @@ class CommandContext {
 			this.targetUser = targetUser;
 			this.inputUsername = target.trim();
 			this.targetUsername = targetUser ? targetUser.name : target;
+			this.targetUserid = targetUser ? targetUser.userid : toId(target);
 			return '';
 		}
 		this.inputUsername = target.substr(0, commaIndex);
@@ -780,9 +783,11 @@ class CommandContext {
 		if (targetUser) {
 			this.targetUser = targetUser;
 			this.targetUsername = targetUser.name;
+			this.targetUserid = targetUser.userid;
 		} else {
 			this.targetUser = null;
 			this.targetUsername = this.inputUsername;
+			this.targetUserid = toId(this.inputUsername);
 		}
 		return target.substr(commaIndex + 1).trim();
 	}
@@ -790,9 +795,11 @@ class CommandContext {
 		let commaIndex = target.indexOf(',');
 		if (commaIndex < 0) {
 			this.targetUsername = target;
+			this.targetUserid = toId(target);
 			return '';
 		}
 		this.targetUsername = target.substr(0, commaIndex);
+		this.targetUserid = toId(this.targetUsername);
 		return target.substr(commaIndex + 1).trim();
 	}
 }
