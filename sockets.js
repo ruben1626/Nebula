@@ -494,7 +494,6 @@ if (cluster.isMaster) {
 			}
 			request.resume();
 			request.on('end', function () {
-				require('fs').appendFile('kek.log', this.url + '\n');
 				let server;
 				if (this.url === '/custom.css') {
 					server = cssserver;
