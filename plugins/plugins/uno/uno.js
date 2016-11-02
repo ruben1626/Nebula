@@ -454,8 +454,8 @@ exports.commands = {
 				game.timeOut.duration = targetValue * 1000;
 			}
 
-			const actionText = (typeof targetValue === 'boolean' ? (targetValue ? "encendido" : "apagado") : " fijado en " + Tools.toDurationString(game.timeOut.duration)) + " el cronómetro de descalificación";
-			room.addRaw(`<div class="games"><strong>${Tools.escapeHTML(user.name)}</strong> ha ${actionText}.</div>`);
+			const actionText = (typeof targetValue === 'boolean' ? (targetValue ? "encendido" : "apagado") : " fijado en " + Chat.toDurationString(game.timeOut.duration)) + " el cronómetro de descalificación";
+			room.addRaw(`<div class="games"><strong>${Chat.escapeHTML(user.name)}</strong> ha ${actionText}.</div>`);
 		},
 		timeouthelp: ["/uno timeout [on|off|tiempo] - Configura el cronómetro de descalificación por inactividad. El tiempo es indicado en segundos."],
 
@@ -470,7 +470,7 @@ exports.commands = {
 			// if (game.playerList.length >= 30) return this.errorReply('Ya no quedan plazas disponibles.');
 			game.playerList.push(userid);
 			game.data[userid] = [];
-			room.addRaw(`<strong>${Tools.escapeHTML(user.name)}</strong> se ha unido al juego.`);
+			room.addRaw(`<strong>${Chat.escapeHTML(user.name)}</strong> se ha unido al juego.`);
 			this.sendReply("Te has inscrito exitosamente.");
 
 			if (game.places && game.playerList.length === game.places) {
@@ -484,7 +484,7 @@ exports.commands = {
 			if (!game.data[userid]) return false;
 			game.playerList.splice(game.playerList.indexOf(userid), 1);
 			delete game.data[userid];
-			room.addRaw(`<strong>${Tools.escapeHTML(user.name)}</strong> ha abandonado el juego.`);
+			room.addRaw(`<strong>${Chat.escapeHTML(user.name)}</strong> ha abandonado el juego.`);
 		},
 		dq: function (target, room, user) {
 			const game = games[room.id];
@@ -497,12 +497,12 @@ exports.commands = {
 				game.nextPlayer();
 				game.initTurn(true);
 			}
-			room.addRaw(`<strong>${Tools.escapeHTML(toUserName(targetId))}</strong> ha sido descalificado del juego..`);
+			room.addRaw(`<strong>${Chat.escapeHTML(toUserName(targetId))}</strong> ha sido descalificado del juego..`);
 			game.playerList.splice(game.playerList.indexOf(targetId), 1);
 			delete game.data[targetId];
 			if (game.playerList.length === 1) {
 				//Añadir color de usuario a 'game.playerList[0]'
-				room.addRaw(`¡Felicidades <strong>${Tools.escapeHTML(toUserName(game.playerList[0]))}</strong> por ganar el Juego!`);
+				room.addRaw(`¡Felicidades <strong>${Chat.escapeHTML(toUserName(game.playerList[0]))}</strong> por ganar el Juego!`);
 				game.clearDQ();
 				game.destroy();
 			}
@@ -544,14 +544,14 @@ exports.commands = {
 			game.clearDQ();
 			user.sendTo(room.id, "|uhtmlchange|" + game.controlsId + "|");
 			game.postId++;
-			this.add("|uhtml|post" + game.postId + "|<strong>" + Tools.escapeHTML(user.name) + " jugó la carta </strong> " + buildCard(game.top));
-			game.lastplay = "|uhtmlchange|post" + game.postId + "|" + Tools.escapeHTML(user.name) + " jugó la carta <strong>" + getCardName(game.top) + "</strong>";
+			this.add("|uhtml|post" + game.postId + "|<strong>" + Chat.escapeHTML(user.name) + " jugó la carta </strong> " + buildCard(game.top));
+			game.lastplay = "|uhtmlchange|post" + game.postId + "|" + Chat.escapeHTML(user.name) + " jugó la carta <strong>" + getCardName(game.top) + "</strong>";
 			//check for a winner or UNO
 			if (game.data[userid].length === 0) {
 				//clear out last card
 				this.add(game.lastplay);
 				//announce winner
-				room.addRaw(`¡Felicidades <strong>${Tools.escapeHTML(user.name)}</strong> por ganar el Juego!`);
+				room.addRaw(`¡Felicidades <strong>${Chat.escapeHTML(user.name)}</strong> por ganar el Juego!`);
 				//end game
 				game.destroy();
 				return;
@@ -571,7 +571,7 @@ exports.commands = {
 			let CCC = game.buildGameScreen(userid, game.controlsId, "Has recibido la carta " + receivedCards.map(getCardName).join("") + ".", true);
 			game.lastDraw = receivedCards.join("");
 			Users(userid).sendTo(room.id, CCC);
-			room.addRaw(`<strong>${Tools.escapeHTML(user.name)}</strong> ha decidido tomar una carta.`);
+			room.addRaw(`<strong>${Chat.escapeHTML(user.name)}</strong> ha decidido tomar una carta.`);
 		},
 		display: function (target, room, user) {
 			const game = games[room.id];
@@ -585,7 +585,7 @@ exports.commands = {
 			const userid = user.userid;
 			if (!game || !game.started || userid !== game.player) return false;
 			if (!game.lastDraw) return false;
-			this.add("|raw|<strong>" + Tools.escapeHTML(user.name) + "</strong> ha decidido cancelar su turno.");
+			this.add("|raw|<strong>" + Chat.escapeHTML(user.name) + "</strong> ha decidido cancelar su turno.");
 			user.sendTo(room.id, "|uhtmlchange|" + game.controlsId + "|");
 			if (game.lastplay) {
 				this.add(game.lastplay);
@@ -600,7 +600,7 @@ exports.commands = {
 			if (game.lastplay) this.add(game.lastplay);
 			game.clearDQ();
 			game.destroy();
-			this.add("|raw|<h3 style=\"color:#F0403A;\">" + Tools.escapeHTML(user.name) + " ha cancelado el juego.</h3>");
+			this.add("|raw|<h3 style=\"color:#F0403A;\">" + Chat.escapeHTML(user.name) + " ha cancelado el juego.</h3>");
 		},
 		getusers: function (target, room, user) {
 			const game = games[room.id];
