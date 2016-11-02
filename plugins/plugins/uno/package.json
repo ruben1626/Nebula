@@ -1,0 +1,22 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Uno",
+  "version": "0.1",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "uno.js",
+  "scripts": {},
+  "author": {
+    "name": "sparkychild"
+  },
+  "contributors": [
+    {
+      "name": "Missiingno",
+      "email": "pncj126@gmail.com"
+    }, {
+      "name": "Leonardo Ivo Julca Salazar",
+      "email": "ivojulca@hotmail.com"
+    }
+  ],
+  "private": true
+}
