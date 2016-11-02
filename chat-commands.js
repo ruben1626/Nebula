@@ -1710,78 +1710,99 @@ let commands = exports.commands = {
 	hotpatch: function (target, room, user) {
 		if (!target) return this.parse('/help hotpatch');
 		if (!this.can('hotpatch')) return false;
+		if (Monitor.hotpatchLock) return this.errorReply("Hotpatch is currently been disabled. (" + Monitor.hotpatchLock + ")");
 
-		this.logEntry(user.name + " used /hotpatch " + target);
+		for (let roomid of ['development', 'staff', 'upperstaff']) {
+			let curRoom = Rooms(roomid);
+			if (curRoom) curRoom.add(`|c|${user.getIdentity()}|/log ${user.name} used /hotpatch ${target}`).update();
+		}
 
-		if (target === 'chat' || target === 'commands') {
-			try {
-				Chat.uncacheTree('./command-parser.js');
-				delete require.cache[require.resolve('./commands.js')];
-				delete require.cache[require.resolve('./chat-plugins/info.js')];
-				global.Chat = require('./command-parser.js');
+		try {
+			if (target === 'chat' || target === 'commands') {
+				if (Monitor.hotpatchLockChat) return this.errorReply("Hotpatch has been disabled for chat. (" + Monitor.hotpatchLockChat + ")");
+				const ProcessManagers = require('./process-manager').cache;
+				for (let PM of ProcessManagers.keys()) {
+					if (PM.isChatBased) {
+						PM.unspawn();
+						ProcessManagers.delete(PM);
+					}
+				}
 
-				var runningTournaments = Tournaments.tournaments;
+				Chat.uncacheTree('./chat');
+				delete require.cache[require.resolve('./chat-commands')];
+				delete require.cache[require.resolve('./chat-plugins/info')];
+				global.Chat = require('./chat');
+
+				let runningTournaments = Tournaments.tournaments;
 				Chat.uncacheTree('./tournaments');
 				global.Tournaments = require('./tournaments');
 				Tournaments.tournaments = runningTournaments;
 
 				return this.sendReply("Chat commands have been hot-patched.");
-			} catch (e) {
-				return this.errorReply("Something failed while trying to hotpatch chat: \n" + e.stack);
-			}
-		} else if (target === 'tournaments') {
-			try {
-				var runningTournaments = Tournaments.tournaments;
+			} else if (target === 'tournaments') {
+				let runningTournaments = Tournaments.tournaments;
 				Chat.uncacheTree('./tournaments');
 				global.Tournaments = require('./tournaments');
 				Tournaments.tournaments = runningTournaments;
 				return this.sendReply("Tournaments have been hot-patched.");
-			} catch (e) {
-				return this.errorReply("Something failed while trying to hotpatch tournaments: \n" + e.stack);
-			}
-		} else if (target === 'battles') {
-			Simulator.SimulatorProcess.respawn();
-			return this.sendReply("Battles have been hotpatched. Any battles started after now will use the new code; however, in-progress battles will continue to use the old code.");
-		} else if (target === 'formats') {
-			try {
-				var toolsLoaded = !!Tools.isLoaded;
+			} else if (target === 'battles') {
+				Rooms.SimulatorProcess.respawn();
+				return this.sendReply("Battles have been hotpatched. Any battles started after now will use the new code; however, in-progress battles will continue to use the old code.");
+			} else if (target === 'formats') {
 				// uncache the tools.js dependency tree
-				Chat.uncacheTree('./tools.js');
+				Chat.uncacheTree('./tools');
 				// reload tools.js
-				global.Tools = require('./tools.js')[toolsLoaded ? 'includeData' : 'includeFormats'](); // note: this will lock up the server for a few seconds
+				global.Tools = require('./tools').includeData(); // note: this will lock up the server for a few seconds
 				// rebuild the formats list
-				Rooms.global.formatListText = Rooms.global.getFormatListText();
+				delete Rooms.global.formatList;
 				// respawn validator processes
-				TeamValidator.ValidatorProcess.respawn();
+				TeamValidator.PM.respawn();
 				// respawn simulator processes
-				Simulator.SimulatorProcess.respawn();
+				Rooms.SimulatorProcess.respawn();
 				// broadcast the new formats list to clients
 				Rooms.global.send(Rooms.global.formatListText);
 
 				return this.sendReply("Formats have been hotpatched.");
-			} catch (e) {
-				return this.errorReply("Something failed while trying to hotpatch formats: \n" + e.stack);
+			} else if (target === 'loginserver') {
+				fs.unwatchFile('./config/custom.css');
+				Chat.uncacheTree('./loginserver');
+				global.LoginServer = require('./loginserver');
+				return this.sendReply("The login server has been hotpatched. New login server requests will use the new code.");
+			} else if (target === 'learnsets' || target === 'validator') {
+				TeamValidator.PM.respawn();
+				return this.sendReply("The team validator has been hotpatched. Any battles started after now will have teams be validated according to the new code.");
+			} else if (target === 'punishments') {
+				delete require.cache[require.resolve('./punishments')];
+				global.Punishments = require('./punishments');
+				return this.sendReply("Punishments have been hotpatched.");
+			} else if (target === 'dnsbl') {
+				Dnsbl.loadDatacenters();
+				return this.sendReply("Dnsbl has been hotpatched.");
+			} else if (target.startsWith('disablechat')) {
+				if (Monitor.hotpatchLockChat) return this.errorReply("Hotpatch is already disabled.");
+				let reason = target.split(', ')[1];
+				if (!reason) return this.errorReply("Usage: /hotpatch disablechat, [reason]");
+				Monitor.hotpatchLockChat = reason;
+				return this.sendReply("You have disabled hotpatch until the next server restart.");
+			} else if (target.startsWith('disable')) {
+				let reason = target.split(', ')[1];
+				if (!reason) return this.errorReply("Usage: /hotpatch disable, [reason]");
+				Monitor.hotpatchLock = reason;
+				return this.sendReply("You have disabled hotpatch until the next server restart.");
 			}
-		} else if (target === 'learnsets') {
-			try {
-				var toolsLoaded = !!Tools.isLoaded;
-				// uncache the tools.js dependency tree
-				Chat.uncacheTree('./tools.js');
-				// reload tools.js
-				global.Tools = require('./tools.js')[toolsLoaded ? 'includeData' : 'includeFormats'](); // note: this will lock up the server for a few seconds
-
-				return this.sendReply("Learnsets have been hotpatched.");
-			} catch (e) {
-				return this.errorReply("Something failed while trying to hotpatch learnsets: \n" + e.stack);
-			}
+		} catch (e) {
+			return this.errorReply("Something failed while trying to hotpatch " + target + ": \n" + e.stack);
 		}
 		this.errorReply("Your hot-patch command was unrecognized.");
 	},
 	hotpatchhelp: ["Hot-patching the game engine allows you to update parts of Showdown without interrupting currently-running battles. Requires: ~",
 		"Hot-patching has greater memory requirements than restarting.",
-		"/hotpatch chat - reload commands.js and the chat-plugins",
+		"/hotpatch chat - reload chat-commands.js and the chat-plugins",
 		"/hotpatch battles - spawn new simulator processes",
-		"/hotpatch formats - reload the tools.js tree, rebuild and rebroad the formats list, and also spawn new simulator processes"],
+		"/hotpatch validator - spawn new team validator processes",
+		"/hotpatch formats - reload the tools.js tree, rebuild and rebroad the formats list, and spawn new simulator and team validator processes",
+		"/hotpatch dnsbl - reloads Dnsbl datacenters",
+		"/hotpatch disable, [reason] - disables the use of hotpatch until the next server restart"],
 
 	savelearnsets: function (target, room, user) {
 		if (!this.can('hotpatch')) return false;
@@ -1934,22 +1955,10 @@ let commands = exports.commands = {
 		if (!this.can('hotpatch')) return false;
 
 		connection.sendTo(room, "Loading ipbans.txt...");
-		fs.readFile('config/ipbans.txt', function (err, data) {
-			if (err) return;
-			data = ('' + data).split('\n');
-			let rangebans = [];
-			for (let i = 0; i < data.length; ++i) {
-				let line = data[i].split('#')[0].trim();
-				if (!line) continue;
-				if (line.includes('/')) {
-					rangebans.push(line);
-				} else if (line && !Users.bannedIps[line]) {
-					Users.bannedIps[line] = '#ipban';
-				}
-			}
-			Users.checkRangeBanned = Cidr.checker(rangebans);
-			connection.sendTo(room, "ipbans.txt has been reloaded.");
-		});
+		Punishments.loadBanlist().then(
+			() => connection.sendTo(room, "ipbans.txt has been reloaded."),
+			error => connection.sendTo(room, "Something went wrong while loading ipbans.txt: " + error)
+		);
 	},
 	loadbanlisthelp: ["/loadbanlist - Loads the bans located at ipbans.txt. The command is executed automatically at startup. Requires: ~"],
 
