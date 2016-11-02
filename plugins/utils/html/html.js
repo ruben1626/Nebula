@@ -107,9 +107,9 @@ const sanitizeHTML = (function sanitizeHTML() {
 				// Disallow all commands except for a very specific subset
 				'\(\/|\!)' + '(?!(' + (
 					[].concat(
-						['warlog', 'clan', 'clanauth', 'rules', 'tourhof', 'shop', 'roomauth'].map(cmd => cmd + '|' + cmd + ' ([^ \n\r\f]+)')
+						['warlog', 'clan', 'clanauth', 'rules', 'shop', 'roomauth', 'auth'].map(cmd => cmd + '|' + cmd + ' ([^ \n\r\f]+)')
 					).concat(
-						['join canaldeeventos']
+						['join [a-z0-9]+']
 					).concat(
 						['[a-z]+ help']
 					).concat(
