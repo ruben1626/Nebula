@@ -6,7 +6,7 @@ const checkLuminosity = require('./validate-luminosity');
 const mainCustomColors = require('./custom-data/smogon-custom');
 const customColors = Object.assign(Object.create(null), mainCustomColors);
 
-const filepath = 'config/customcolors.json';
+const STORAGE_PATH = DATA_DIR + 'customcolors.json';
 
 exports.dynamic = {
 	customColors: customColors,
@@ -14,7 +14,7 @@ exports.dynamic = {
 
 exports.loadData = function () {
 	try {
-		const fileContent = fs.readFileSync(filepath, 'utf8');
+		const fileContent = fs.readFileSync(STORAGE_PATH, 'utf8');
 		Object.assign(customColors, JSON.parse(fileContent));
 		exports.dataLoaded = true;
 		deployCSS();
@@ -26,7 +26,7 @@ exports.onLoad = function () {
 };
 
 function updateColor() {
-	fs.writeFileSync(filepath, JSON.stringify(customColors));
+	fs.writeFileSync(STORAGE_PATH, JSON.stringify(customColors));
 	deployCSS();
 	LoginServer.request('invalidatecss', {}, () => {});
 }
@@ -39,7 +39,7 @@ function deployCSS() {
 	}
 
 	const fileContent = fs.readFileSync('config/custom.template.css', 'utf8');
-	fs.writeFileSync('config/custom.css', fileContent.replace('<!-- Custom Colors -->', newCss));
+	fs.writeFileSync(DATA_DIR + 'custom.css', fileContent.replace('<!-- Custom Colors -->', newCss));
 }
 
 function generateCSS(name, color) {

@@ -25,7 +25,7 @@ function getLogFolders(roomid) {
 	const id = toId(roomid);
 	if (!id) return [];
 	try {
-		const dirs = fs.readdirSync(path.resolve(Plugins.path, '..', 'logs', 'chat', id));
+		const dirs = fs.readdirSync(path.resolve(LOGS_DIR, 'chat', id));
 		return dirs.filter(directory => directory !== 'today.txt');
 	} catch (e) {
 		return [];
@@ -36,7 +36,7 @@ function getLogIndex(roomid, month) {
 	const id = toId(roomid);
 	if (!id) return [];
 	try {
-		return fs.readdirSync(path.resolve(Plugins.path, '..', 'logs', 'chat', id, month));
+		return fs.readdirSync(path.resolve(LOGS_DIR, 'chat', id, month));
 	} catch (e) {
 		return [];
 	}
@@ -46,7 +46,7 @@ function getLog(roomid, datePath) {
 	const id = toId(roomid);
 	if (!id) return ``;
 	try {
-		return fs.readFileSync(path.resolve(Plugins.path, '..', 'logs', 'chat', id, datePath), 'utf8');
+		return fs.readFileSync(path.resolve(LOGS_DIR, 'chat', id, datePath), 'utf8');
 	} catch (e) {
 		return ``;
 	}
