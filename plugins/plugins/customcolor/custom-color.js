@@ -42,7 +42,8 @@ function deployCSS() {
 	fs.writeFileSync(DATA_DIR + 'custom.css', fileContent.replace('<!-- Custom Colors -->', newCss));
 }
 
-function generateCSS(name, color) {
+function generateCSS(name, val) {
+	let color = val.color || Plugins.Colors.get(val);
 	let css = '';
 	let rooms = [];
 	name = toId(name);
@@ -92,13 +93,14 @@ exports.commands = {
 		if (!colorData) return this.errorReply(`${parts[1]} no es un color válido.`);
 		const colorHex = colorData.toString('hex');
 
-		Plugins.Colors.load({[targetUserid]: {color: colorHex}});
+		const customColorVal = {color: colorHex};
+		Plugins.Colors.load({[targetUserid]: customColorVal});
+		customColors[targetUserid] = customColorVal;
+		updateColor();
+
 		this.sendReply(`|raw|Has otorgado un color personalizado a ${Plugins.Colors.apply(targetUserid).bold()}.`);
 		Rooms('staff').addRaw(Chat.html`${parts[0]} obtuvo un <strong><font color="${colorHex}">color personalizado</font></strong> de ${user.name}.`).update();
 		this.privateModCommand(`(${parts[0]} obtuvo un color personalizado ${colorData.getName('es')}: ${colorHex} de parte de ${user.name}.)`);
-
-		customColors[targetUserid] = colorHex;
-		updateColor();
 	},
 	customcolorhelp: [
 		`/customcolor [usuario], [color] - Otorga al usuario indicado el color especificado.`,
