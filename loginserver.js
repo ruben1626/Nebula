@@ -252,14 +252,13 @@ function deployCSS() {
 	} catch (err) {
 		return;
 	}
-	console.log('src', src);
 	Plugins.forEach(plugin => {
 		if (typeof plugin.deploy === 'function') {
 			src = plugin.deploy(CSS_SRC_PATH, src);
 		}
 	});
 
-	console.log('src', src);
+	src = src.trim() + '\n';
 	fs.writeFile(CSS_OUT_PATH, src, () => {
 		LoginServer.request('invalidatecss', {}, () => {});
 	});
