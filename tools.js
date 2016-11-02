@@ -39,16 +39,50 @@
 
 'use strict';
 
+require('sugar');
+
 const fs = require('fs');
 const path = require('path');
 
+const hasOwnProperty = Function.prototype.call.bind(Object.prototype.hasOwnProperty);
+
+require('css.escape');
+
+function defineNonEnumerable(receiver, methodName, method) {
+	return Object.defineProperty(receiver, methodName, {
+		writable: true, configurable: true,
+		value: method,
+	});
+}
+
 // shim Object.values
 if (!Object.values) {
-	Object.values = function (object) {
-		let values = [];
-		for (let k in object) values.push(object[k]);
-		return values;
-	};
+	defineNonEnumerable(Object, 'values', function (object) {
+		return Object.keys(object).map(key => object[key]);
+	});
+}
+// shim Object.entries
+if (!Object.entries) {
+	defineNonEnumerable(Object, 'entries', function (object) {
+		return Object.keys(object).map(key => [key, object[key]]);
+	});
+}
+
+if (!Number.prototype.fround) {
+	// In analogy to Sugar.js' Number#round
+	defineNonEnumerable(Number.prototype, 'fround', function (places) {
+		if (typeof places === 'undefined') return Math.fround(this);
+		places = Math.min(~~places, 0x1E);
+		if (places < 0) places = 0;
+		const power = Math.pow(2, places);
+		const intPart = this >> 0;
+		const nIntPart = (((this - intPart) * power * 2) >> 1) / power;
+		const floored = intPart + nIntPart;
+		if (this - floored < Number.EPSILON) return floored;
+		const ceiled = floored + 1 / power;
+		if (ceiled - this <= this - floored) return ceiled;
+		return floored;
+	});
 }
 
 let dexes = {};
@@ -288,14 +322,14 @@ class BattleDex {
 			let id = toId(name);
 			template = this.data.TemplateCache.get(id);
 			if (template) return template;
-			if (this.data.Aliases.hasOwnProperty(id)) {
+			if (hasOwnProperty(this.data.Aliases, id)) {
 				template = this.getTemplate(this.data.Aliases[id]);
 				if (template) {
 					this.data.TemplateCache.set(id, template);
 				}
 				return template;
 			}
-			if (!this.data.Pokedex.hasOwnProperty(id)) {
+			if (!hasOwnProperty(this.data.Pokedex, id)) {
 				let aliasTo = '';
 				if (id.startsWith('mega') && this.data.Pokedex[id.slice(4) + 'mega']) {
 					aliasTo = id.slice(4) + 'mega';
@@ -314,7 +348,7 @@ class BattleDex {
 					}
 				}
 			}
-			if (id && this.data.Pokedex.hasOwnProperty(id)) {
+			if (id && hasOwnProperty(this.data.Pokedex, id)) {
 				template = this.deepClone(this.data.Pokedex[id]);
 				template.exists = true;
 			} else {
@@ -334,6 +368,16 @@ class BattleDex {
 			if (!template.baseSpecies) template.baseSpecies = name;
 			if (!template.forme) template.forme = '';
 			if (!template.formeLetter) template.formeLetter = '';
+			if (!template.formeid) {
+				let formeid = '';
+				if (template.baseSpecies !== name) {
+					formeid = '-' + toId(template.forme);
+					if (formeid === '-megax') formeid = '-mega-x';
+					if (formeid === '-megay') formeid = '-mega-y';
+				}
+				template.formeid = formeid;
+			}
+			if (!template.spriteid) template.spriteid = toId(template.baseSpecies) + template.formeid;
 			if (!template.spriteid) template.spriteid = toId(template.baseSpecies) + (template.baseSpecies !== name ? '-' + toId(template.forme) : '');
 			if (!template.prevo) template.prevo = '';
 			if (!template.evos) template.evos = [];
@@ -386,7 +430,7 @@ class BattleDex {
 			let id = toId(name);
 			move = this.data.MoveCache.get(id);
 			if (move) return move;
-			if (this.data.Aliases.hasOwnProperty(id)) {
+			if (hasOwnProperty(this.data.Aliases, id)) {
 				move = this.getMove(this.data.Aliases[id]);
 				if (move.exists) {
 					this.data.MoveCache.set(id, move);
@@ -397,7 +441,7 @@ class BattleDex {
 				let matches = /([a-z]*)([0-9]*)/.exec(id);
 				id = matches[1];
 			}
-			if (id && this.data.Movedex.hasOwnProperty(id)) {
+			if (id && hasOwnProperty(this.data.Movedex, id)) {
 				move = this.deepClone(this.data.Movedex[id]);
 				move.exists = true;
 			} else {
@@ -526,7 +570,7 @@ class BattleDex {
 			let id = toId(name);
 			item = this.data.ItemCache.get(id);
 			if (item) return item;
-			if (this.data.Aliases.hasOwnProperty(id)) {
+			if (hasOwnProperty(this.data.Aliases, id)) {
 				item = this.getItem(this.data.Aliases[id]);
 				if (item.exists) {
 					this.data.ItemCache.set(id, item);
@@ -538,7 +582,7 @@ class BattleDex {
 				this.data.ItemCache.set(id, item);
 				return item;
 			}
-			if (id && this.data.Items.hasOwnProperty(id)) {
+			if (id && hasOwnProperty(this.data.Items, id)) {
 				item = this.data.Items[id];
 				item.exists = true;
 			} else {
@@ -576,7 +620,7 @@ class BattleDex {
 			let id = toId(name);
 			ability = this.data.AbilityCache.get(id);
 			if (ability) return ability;
-			if (id && this.data.Abilities.hasOwnProperty(id)) {
+			if (id && hasOwnProperty(this.data.Abilities, id)) {
 				ability = this.data.Abilities[id];
 				if (ability.cached) return ability;
 				ability.cached = true;
@@ -684,7 +728,7 @@ class BattleDex {
 					let complexList;
 					if (subformat.banlist[i].includes('>')) {
 						complexList = subformat.banlist[i].split('>');
-						let limit = parseInt(complexList[1]);
+						let limit = parseInt(complexList[1], 10);
 						let banlist = complexList[0].trim();
 						complexList = banlist.split('+').map(toId);
 						complexList.unshift(banlist, subformat.name, limit);
@@ -793,6 +837,37 @@ class BattleDex {
 		return num;
 	}
 
+	getLocalDate(date, timeZone) {
+		if (!date && date !== 0) date = new Date();
+		if (typeof date === 'number') date = new Date(date);
+
+		const formatter = timeZone || !Config.dateFormatter ? (
+			new Intl.DateTimeFormat('ja-jp', {
+				year: 'numeric', month: 'numeric', day: 'numeric',
+				hour: 'numeric', minute: 'numeric', second: 'numeric',
+				hour12: true, timeZone: timeZone || 'America/Los_Angeles',
+			})
+		) : Config.dateFormatter;
+
+		return Date.utc.create(formatter.format(date)).utc();
+	}
+
+	secureURI(uri, whiteList) {
+		const urlData = require('./plugins/utils/html').URI.parse(uri);
+		if (!urlData || !urlData.domain_) return '';
+		if (whiteList && !whiteList.has(urlData.domain_)) return '';
+		return this._secureURI(urlData).toString();
+	}
+
+	laxSecureURI(uri, whiteList) {
+		uri = uri.trim();
+		if (!uri.startsWith('//') && /^https?\:\/\/[a-z0-9-.]+(?:\:[0-9]+)?(?:\/(?:[^\s]*[^\s?.,])?)?|[a-z0-9.]+\@[a-z0-9.]+\.[a-z0-9]{2,3}|(?:[a-z0-9](?:[a-z0-9-\.]*[a-z0-9])?\.(?:com|org|net|edu|us|jp)(?:\:[0-9]+)?|qmark\.tk)(?:(?:\/(?:[^\s]*[^\s?.,])?)?)$/i.test(uri)) {
+			// Make the URI fully-qualified if it isn't (assume HTTP)
+			uri = uri.replace(/^([a-z]*[^a-z:])/g, 'http://$1');
+		}
+		return this.secureURI(uri);
+	}
+
 	dataSearch(target, searchIn, isInexact) {
 		if (!target) {
 			return false;
@@ -865,6 +940,116 @@ class BattleDex {
 		}
 
 		return false;
+	}
+
+	checkRegister(userid, requireDate, callback) {
+		if (typeof requireDate === 'function') {
+			callback = requireDate;
+			requireDate = false;
+		}
+		if (!userid || userid.length > 18) return setImmediate(callback, new Error("Invalid user ID."));
+		if (!requireDate) {
+			let user = Users.getExact(userid);
+			if (user && user.registered === 'play.pokemonshowdown.com') return setImmediate(callback, false, true);
+		}
+
+		const https = require('https');
+
+		const options = {
+			host: 'pokemonshowdown.com',
+			port: 443,
+			path: '/users/' + userid + '.json',
+		};
+
+		const req = https.request(options, function (res) {
+			let content = '';
+			res.setEncoding('utf8');
+			res.on('data', function (chunk) {
+				content += chunk;
+				if (!content.includes('<b>Warning</b>')) return;
+				LoginServer.down = true;
+				req.abort();
+			}).on('end', function () {
+				if (req.aborted) return callback(new Error("Login Server is down"));
+				try {
+					let userData = JSON.parse(content);
+					if (typeof userData.registertime !== 'number' || isNaN(userData.registertime) || userData.registertime < 0) return callback(new Error("Corrupted data"));
+					if (!userData.registertime) return callback(null, false);
+					return callback(null, new Date(userData.registertime * 1000));
+				} catch (e) {
+					return callback(e);
+				}
+			});
+		}).on('error', function (err) {
+			this.abort();
+		}).end();
+	}
+
+	uncacheTree(rootPath) {
+		const uncachedPaths = new Set();
+
+		let uncache = [require.resolve(rootPath)];
+		const rootModule = require.cache[uncache[0]];
+		if (!rootModule) return null;
+
+		do {
+			let newuncache = [];
+			for (let i = 0; i < uncache.length; ++i) {
+				if (uncachedPaths.has(uncache[i])) continue;
+				if (!(uncache[i] in require.cache)) {
+					console.log(`Unexpectedly not cached! ${uncache[i]}`);
+					continue;
+				}
+				let childrenNames = require.cache[uncache[i]].children
+					.filter(cachedModule => !cachedModule.id.includes('node_modules') && !cachedModule.id.endsWith('.node'))
+					.map(cachedModule => cachedModule.filename);
+				newuncache.push.apply(newuncache, childrenNames);
+				delete require.cache[uncache[i]];
+				uncachedPaths.add(uncache[i]);
+			}
+			uncache = newuncache;
+		} while (uncache.length > 0);
+
+		return rootModule;
+	}
+
+	reloadModule(modulePath) {
+		const oldModule = this.uncacheTree(modulePath);
+		if (!oldModule) return require(modulePath);
+		const parentModule = oldModule.parent || require.main;
+		return parentModule.require(modulePath);
+	}
+
+	DataSaver(path, getData) {
+		let writing = false;
+		let writePending = false; // whether or not a new write is pending
+		let finishWriting = function () {
+			writing = false;
+			if (writePending) {
+				writePending = false;
+				saver(); // eslint-disable-line no-use-before-define
+			}
+		};
+		let saver = function () {
+			if (writing) {
+				writePending = true;
+				return;
+			}
+			writing = true;
+			let data = getData();
+			fs.writeFile(path + '.0', data, function () {
+				// rename is atomic on POSIX, but will throw an error on Windows
+				fs.rename(path + '.0', path, function (err) {
+					if (err) {
+						// This should only happen on Windows.
+						fs.writeFile(path, data, finishWriting);
+						return;
+					}
+					finishWriting();
+				});
+			});
+		};
+		return saver;
 	}
 
 	packTeam(team) {
@@ -1060,7 +1245,7 @@ class BattleDex {
 			// level
 			j = buf.indexOf('|', i);
 			if (j < 0) return;
-			if (i !== j) set.level = parseInt(buf.substring(i, j));
+			if (i !== j) set.level = parseInt(buf.substring(i, j), 10);
 			i = j + 1;
 
 			// happiness
@@ -1095,8 +1280,8 @@ class BattleDex {
 			const filePath = basePath + DATA_FILES[dataType];
 			const dataObject = require(filePath);
 			const key = `Battle${dataType}`;
-			if (!dataObject || typeof dataObject !== 'object') return new TypeError(`${filePath}, if it exists, must export a non-null object`);
-			if (!dataObject[key] || typeof dataObject[key] !== 'object') return new TypeError(`${filePath}, if it exists, must export an object whose '${key}' property is a non-null object`);
+			if (!dataObject || typeof dataObject !== 'object') return new TypeError(`${filePath}, si existe, debe exportar un objeto no nulo.`);
+			if (!dataObject[key] || typeof dataObject[key] !== 'object') return new TypeError(`${filePath}, si existe, debe exportar un objeto con una propiedad '${key}' que sea un objeto no nulo.`);
 			return dataObject[key];
 		} catch (e) {
 			if (e.code !== 'MODULE_NOT_FOUND') {
@@ -1226,6 +1411,7 @@ class BattleDex {
 			let id = toId(format.name);
 			if (!id) throw new RangeError("Format #" + (i + 1) + " must have a name with alphanumeric characters");
 			if (this.data.Formats[id]) throw new Error("Format #" + (i + 1) + " has a duplicate ID: `" + id + "`");
+			format.id = id;
 			format.effectType = 'Format';
 			if (format.challengeShow === undefined) format.challengeShow = true;
 			if (format.searchShow === undefined) format.searchShow = true;
@@ -1255,6 +1441,114 @@ class BattleDex {
 		}
 	}
 }
+
+defineNonEnumerable(BattleDex.prototype, '_getSecureDomainsData', (function () {
+	const DOMAINS_DATA = [
+		{domain: 'i.imgur.com', excludeSub: true},
+		{domain: 'i.gyazo.com', excludeSub: true},
+		{domain: 'puu.sh', excludeSub: true},
+		{domain: 'd.pr', excludeSub: true},
+		{domain: 'play.pokemonshowdown.com', excludeSub: true},
+		{domain: 'play.pandorashowdown.net', excludeSub: true},
+		{domain: 'wikia.nocookie.net', excludeMain: true},
+		{domain: 'bp.blogspot.com', excludeMain: true},
+		{domain: 'deviantart.net', excludeMain: true},
+		{domain: 'media.tumblr.com'},
+		{domain: 'pokefans.net'},
+	].map(domainData => {
+		if (!domainData.main) domainData.main = {};
+		if (!domainData.subDomains) domainData.subDomains = {};
+
+		if (domainData.excludeSub) domainData.subDomains.excluded = true;
+		if (domainData.excludeMain) domainData.main.excluded = true;
+
+		if (domainData.main.downGrades) domainData.main.excluded = true;
+		if (domainData.subDomains.downGrades) domainData.subDomains.excluded = true;
+
+		domainData.source = domainData.domain.replace(/\./g, '\\.');
+		return domainData;
+	});
+
+	return function () {
+		return DOMAINS_DATA;
+	};
+})());
+
+
+// Hail ES6 classes <_<
+defineNonEnumerable(BattleDex.prototype, 'getSecureDomains', (function () {
+	const DOMAINS_DATA = BattleDex.prototype._getSecureDomainsData();
+
+	const map = new Map();
+	DOMAINS_DATA.forEach(entry => map.set(entry.domain, entry));
+
+	return function () {
+		return map;
+	};
+})());
+
+defineNonEnumerable(BattleDex.prototype, '_secureURI', (function () {
+	const DOMAINS = BattleDex.prototype._getSecureDomainsData();
+
+	const DOMAIN_SUPPORTS_HTTPS = (function () {
+		const FULL_DOMAIN = DOMAINS.filter(domainData => !domainData.main.excluded).map(domainData => domainData.source);
+		const SUB_DOMAINS = DOMAINS.filter(domainData => !domainData.subDomains.excluded).map(domainData => domainData.source);
+
+		const TEST_REGEX = new RegExp(
+			'^(?:' +
+				'(?:' + FULL_DOMAIN.map(domain => '(?:' + domain + ')').join('|') + ')' +
+				'|' +
+				'(?:[^\.]+\.(' +
+					'(?:' + SUB_DOMAINS.map(domain => '(?:' + domain + ')').join('|') + ')' +
+				'))' +
+			')$'
+		);
+
+		return TEST_REGEX.test.bind(TEST_REGEX);
+	})();
+
+	const DOMAIN_DOWNGRADES_HTTPS = (function () {
+		const FULL_DOMAIN = DOMAINS.filter(domainData => domainData.main.downGrades).map(domainData => domainData.source);
+		const SUB_DOMAINS = DOMAINS.filter(domainData => domainData.subDomains.downGrades).map(domainData => domainData.source);
+
+		const TEST_REGEX = new RegExp(
+			'^(?:' +
+				'(?:' + FULL_DOMAIN.map(domain => '(?:' + domain + ')').join('|') + ')' +
+				'|' +
+				'(?:[^\.]+\.(' +
+					'(?:' + SUB_DOMAINS.map(domain => '(?:' + domain + ')').join('|') + ')' +
+				'))' +
+			')$'
+		);
+		return TEST_REGEX.test.bind(TEST_REGEX);
+	})();
+
+	return function (urlData) {
+		urlData.credentials_ = null;
+
+		if (!urlData.scheme_ && !urlData.domain_ && !urlData.query_ && !urlData.fragment_ && !urlData.paramCache && !urlData.port_) {
+			if (urlData.path_ && urlData.path_.startsWith('')) return urlData;
+		}
+
+		if (urlData.domain_ === 'play.pandorashowdown.net') {
+			// CloudFlare
+			if (urlData.path_) urlData.path_ = urlData.path_.replace(/^\/resources\/(?!hotlink-ok\/)/, '/resources/hotlink-ok/');
+		} else if (urlData.domain_ === 'pandora.xiaotai.org') {
+			urlData.scheme_ = 'https';
+			if (urlData.port_ === '5000') urlData.port_ = '5443';
+		} else if (!urlData.scheme_ && !urlData.domain_ && !urlData.query_ && !urlData.fragment_ && !urlData.paramCache && !urlData.port_) {
+			// Relative URI
+			if (urlData.path_ && urlData.path_.startsWith('/')) return urlData;
+		}
+
+		if ((!urlData.scheme_ || urlData.scheme_ === 'http') && DOMAIN_SUPPORTS_HTTPS(urlData.domain_)) {
+			urlData.scheme_ = 'https';
+		}  else if ((urlData.scheme === 'https' || !urlData.scheme_) && DOMAIN_DOWNGRADES_HTTPS(urlData.domain_)) {
+			urlData.scheme_ = 'http';
+		}
+		return urlData;
+	};
+})());
 
 dexes['base'] = new BattleDex();
 dexes['base'].BattleDex = BattleDex;

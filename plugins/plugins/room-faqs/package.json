@@ -1,0 +1,13 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Room-Faqs",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "room-faqs.js",
+  "scripts": {},
+  "author": {
+    "name": "Bumbadadabum"
+  },
+  "private": true
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Jeopardy",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "jeopardy.js",
+  "scripts": {},
+  "author": {
+    "name": "kotarou3"
+  },
+  "private": true
+}

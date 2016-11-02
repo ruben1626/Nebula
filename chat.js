@@ -37,8 +37,12 @@ const MAX_PARSE_RECURSION = 10;
 const VALID_COMMAND_TOKENS = '/!';
 const BROADCAST_TOKEN = '!';
 
+const NULL_USERID_REGEX_SOURCE = '([^a-zA-Z0-9]{1,17})?';
+
 const fs = require('fs');
 const path = require('path');
+const htmlUtils = require('./plugins/utils/html');
+const parseEmoticons = require('./plugins/plugins/emoticons').parse;
 
 function getServersAds(text) {
 	let aux = text.toLowerCase();
@@ -132,6 +136,10 @@ class CommandContext {
 		this.inputUsername = "";
 	}
 
+	get namespaces() {
+		return this.fullCmd.split(' ').slice(0, -1);
+	}
+
 	parse(message) {
 		if (message) {
 			// spawn subcontext
@@ -185,6 +193,10 @@ class CommandContext {
 		// Output the message
 
 		if (message && message !== true && typeof message.then !== 'function') {
+			if (!this.user.blockEmoticons && (!this.pmTarget || !this.pmTarget.blockEmoticons)) {
+				let emoteMsg = parseEmoticons(target, this.room, this.user, this.pmTarget);
+				if (emoteMsg) message = `/html ${emoteMsg}`;
+			}
 			if (this.pmTarget) {
 				let buf = `|pm|${this.user.getIdentity()}|${this.pmTarget.getIdentity()}|${message}`;
 				this.user.send(buf);
@@ -239,7 +251,7 @@ class CommandContext {
 		let fullCmd = cmd;
 
 		do {
-			if (curCommands.hasOwnProperty(cmd)) {
+			if (Object.prototype.hasOwnProperty.call(curCommands, cmd)) {
 				commandHandler = curCommands[cmd];
 			} else {
 				commandHandler = undefined;
@@ -677,65 +689,57 @@ class CommandContext {
 
 		return true;
 	}
-	canEmbedURI(uri, isRelative) {
-		if (uri.startsWith('https://')) return uri;
-		if (uri.startsWith('//')) return uri;
-		if (uri.startsWith('data:')) return uri;
-		if (!uri.startsWith('http://')) {
-			if (/^[a-z]+\:\/\//.test(uri) || isRelative) {
-				return this.errorReply("URIs must begin with 'https://' or 'http://' or 'data:'");
-			}
-		} else {
-			uri = uri.slice(7);
-		}
-		let slashIndex = uri.indexOf('/');
-		let domain = (slashIndex >= 0 ? uri.slice(0, slashIndex) : uri);
 
-		// heuristic that works for all the domains we care about
-		let secondLastDotIndex = domain.lastIndexOf('.', domain.length - 5);
-		if (secondLastDotIndex >= 0) domain = domain.slice(secondLastDotIndex + 1);
-
-		let approvedDomains = {
-			'imgur.com': 1,
-			'gyazo.com': 1,
-			'puu.sh': 1,
-			'rotmgtool.com': 1,
-			'pokemonshowdown.com': 1,
-			'nocookie.net': 1,
-			'blogspot.com': 1,
-			'imageshack.us': 1,
-			'deviantart.net': 1,
-			'd.pr': 1,
-			'pokefans.net': 1,
-		};
-		if (domain in approvedDomains) {
-			return '//' + uri;
-		}
-		if (domain === 'bit.ly') {
-			return this.errorReply("Please don't use URL shorteners.");
-		}
-		// unknown URI, allow HTTP to be safe
-		return 'http://' + uri;
+	secureContentURIs(text) {
+		return text.replace(/http\:\/\/[a-z\/\.](:\/)?[a-z\/\.]+\b/gi, match => {
+			return Tools.laxSecureURI(match) || match;
+		});
 	}
+
+	canEmbedURI(uri) {
+		const targetURI = Tools.laxSecureURI(uri);
+		if (!targetURI) return this.errorReply("El enlace '" + uri + "' no es válido.");
+		if (Config.ssl && !targetURI.startsWith('https://')) return this.errorReply("El recurso deben provenir de un sitio con protocolo HTTPS, no HTTP. Ejemplo https://i.imgur.com/mi_imagen.gif o https://gyazo.com/mi_imagen.png");
+		return targetURI;
+	}
+
 	canHTML(html) {
-		html = ('' + (html || '')).trim();
+		html = Tools.getString(html).trim();
 		if (!html) return '';
+
+		html = htmlUtils.sanitize(html, {
+			exceptTokens: this.user.can('oversee') ? ['username'] : null,
+			exceptValues: this.user.can('lock') ? (
+				this.user.can('hotpatch') ? [
+					'(pm|msg|w|whisper) [^,]{1,18}, [^\n\r\f]{1,128}',
+				] : [
+					'(pm|msg|w|whisper) ' + [''].concat(this.user.userid.split('').map(letter => letter !== letter.toUpperCase ? '[' + letter + letter.toUpperCase() + ']' : letter)).concat(['']).join(NULL_USERID_REGEX_SOURCE) + ',' + '[^\n\r\f]{1,128}',
+				]
+			) : null,
+		});
+		if (!html) return '';
+
+		if (this.room.isPersonal && !this.user.can('lock') && html.match(/<button /)) {
+			this.errorReply("No estás autorizado para insertar botones en HTML.");
+			return false;
+		}
+
+		html = html.replace(/https:\/\/img\.prntscr\.com\//g, 'http://img.prntscr.com/');
+		html = html.replace(/https:\/\/prntscr\.com\//g, 'http://prntscr.com/');
+		html = html.replace(/http\:\/\/([^\.]+)\.leagueoflegends\.com\b/g, 'http://$1.leagueoflegends.com');
+
 		let images = /<img\b[^<>]*/ig;
 		let match;
 		while ((match = images.exec(html))) {
-			if (this.room.isPersonal && !this.user.can('announce')) {
-				this.errorReply("Images are not allowed in personal rooms.");
-				return false;
-			}
-			if (!/width=([0-9]+|"[0-9]+")/i.test(match[0]) || !/height=([0-9]+|"[0-9]+")/i.test(match[0])) {
+			/*if (!/width=([0-9]+|"[0-9]+")/i.test(match[0]) || !/height=([0-9]+|"[0-9]+")/i.test(match[0])) {
 				// Width and height are required because most browsers insert the
 				// <img> element before width and height are known, and when the
 				// image is loaded, this changes the height of the chat area, which
 				// messes up autoscrolling.
 				this.errorReply('All images must have a width and height attribute');
 				return false;
-			}
-			let srcMatch = /src\s*\=\s*"?([^ "]+)(\s*")?/i.exec(match[0]);
+			}*/
+			let srcMatch = /src\w*\=\w*"?([^ "]+)(\w*")?/i.exec(match[0]);
 			if (srcMatch) {
 				let uri = this.canEmbedURI(srcMatch[1], true);
 				if (!uri) return false;
@@ -744,41 +748,13 @@ class CommandContext {
 				images.lastIndex = match.index + 11;
 			}
 		}
-		if ((this.room.isPersonal || this.room.isPrivate === true) && !this.user.can('lock') && html.replace(/\s*style\s*=\s*\"?[^\"]*\"\s*>/g, '>').match(/<button[^>]/)) {
-			this.errorReply('You do not have permission to use scripted buttons in HTML.');
-			this.errorReply('If you just want to link to a room, you can do this: <a href="/roomid"><button>button contents</button></a>');
-			return false;
-		}
-		if (/>here.?</i.test(html) || /click here/i.test(html)) {
-			this.errorReply('Do not use "click here"');
-			return false;
-		}
 
-		// check for mismatched tags
-		let tags = html.toLowerCase().match(/<\/?(div|a|button|b|i|u|center|font)\b/g);
-		if (tags) {
-			let stack = [];
-			for (let i = 0; i < tags.length; i++) {
-				let tag = tags[i];
-				if (tag.charAt(1) === '/') {
-					if (!stack.length) {
-						this.errorReply("Extraneous </" + tag.substr(2) + "> without an opening tag.");
-						return false;
-					}
-					if (tag.substr(2) !== stack.pop()) {
-						this.errorReply("Missing </" + tag.substr(2) + "> or it's in the wrong place.");
-						return false;
-					}
-				} else {
-					stack.push(tag.substr(1));
-				}
-			}
-			if (stack.length) {
-				this.errorReply("Missing </" + stack.pop() + ">.");
+		if (Config.ssl) {
+			if (/<(?:audio|img|video)[^>]* src="http:\/\/[^">]+"[^>]*>/.test(html) || /<(?:audio|img|video)[^>]* src="http:\/\/[^">]+"[^>]*>/.test(html) || /url\(http:\/\//.test(html) || /url\(\&quot\;http:\/\//.test(html) || /url\(\&\#34;http:\/\//.test(html)) {
+				this.errorReply("Los recursos multimedia deben provenir de un sitio con protocolo HTTPS, no HTTP. Ejemplo https://i.imgur.com/mi_imagen.gif o https://gyazo.com/mi_imagen.png");
 				return false;
 			}
 		}
-
 		return html;
 	}
 	targetUserOrSelf(target, exactName) {
@@ -890,23 +866,12 @@ Chat.loadCommands = function () {
 	// Install plug-in commands
 
 	// info always goes first so other plugins can shadow it
-	Object.assign(commands, require('./chat-plugins/info').commands);
+	//Object.assign(commands, require('./chat-plugins/info').commands);
 
-	for (let file of fs.readdirSync(path.resolve(__dirname, 'chat-plugins'))) {
+	/*for (let file of fs.readdirSync(path.resolve(__dirname, 'chat-plugins'))) {
 		if (file.substr(-3) !== '.js' || file === 'info.js') continue;
 		Object.assign(commands, require('./chat-plugins/' + file).commands);
-	}
-};
-
-/**
- * Escapes HTML in a string.
- *
- * @param  {string} str
- * @return {string}
- */
-Chat.escapeHTML = function (str) {
-	if (!str) return '';
-	return ('' + str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;').replace(/\//g, '&#x2f;');
+	}*/
 };
 
 /**
@@ -916,15 +881,15 @@ Chat.escapeHTML = function (str) {
  * @param  {...any} values
  * @return {string}
  */
-Chat.html = function (strings, ...args) {
-	let buf = strings[0];
-	let i = 0;
-	while (i < args.length) {
-		buf += Chat.escapeHTML(args[i]);
-		buf += strings[++i];
-	}
-	return buf;
-};
+Chat.html = htmlUtils;
+
+/**
+ * Escapes HTML in a string.
+ *
+ * @param  {string} str
+ * @return {string}
+ */
+Chat.escapeHTML = htmlUtils.escape;
 
 /**
  * Returns singular (defaulting to '') if num is 1, or plural

@@ -1,0 +1,19 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Custom-Avatar",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "customavatar.js",
+  "scripts": {},
+  "author": {
+    "name": "kotarou3"
+  },
+  "contributors": [
+    {
+      "name": "Leonardo Ivo Julca Salazar",
+      "email": "ivojulca@hotmail.com"
+	}
+  ],
+  "private": true
+}

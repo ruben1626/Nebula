@@ -1,2 +1,17 @@
+r.js
+chat-plugins/
 tournaments/lib/
 logs/
+plugins/events/tests/
+plugins/events/events.js
+plugins/plugins/*/data/*.js
+plugins/plugins/*/data/*.json
+plugins/utils/html/html-css-sanitizer-bundle.js
+plugins/utils/html/tabifier.js
+dev-tools/eslint/curly-return.js
+/data/
+/node-modules/
+/dev/
+/etc/
+/mingw64/
+/usr/

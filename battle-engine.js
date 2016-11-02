@@ -4501,7 +4501,7 @@ class Battle extends Tools.BattleDex {
 		if (!side.currentRequest) return;
 
 		// Make sure the decision is for the right request.
-		if ((rqid !== undefined) && (parseInt(rqid) !== this.rqid)) {
+		if ((rqid !== undefined) && (parseInt(rqid, 10) !== this.rqid)) {
 			return;
 		}
 
@@ -4566,7 +4566,7 @@ class Battle extends Tools.BattleDex {
 			case 'move': {
 				let targetLoc = 0;
 				if (/\s\-?[1-3]$/.test(data)) {
-					targetLoc = parseInt(data.slice(-2));
+					targetLoc = parseInt(data.slice(-2), 10);
 					data = data.slice(0, data.lastIndexOf(' '));
 				}
 				let willMega = data.endsWith(' mega');
@@ -5056,7 +5056,7 @@ exports.BattlePokemon = BattlePokemon;
 exports.BattleSide = BattleSide;
 exports.Battle = Battle;
 
-let battleProtoCache = new Map();
+let battleProtoCache = global.battleProtoCache = new Map();
 exports.construct = function (roomid, format, rated, send) {
 	format = Tools.getFormat(format);
 	let mod = format.mod || 'base';

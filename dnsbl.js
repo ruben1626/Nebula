@@ -86,7 +86,7 @@ Dnsbl.ipToNumber = function (ip) {
 	let parts = ip.split('.');
 	for (let i = 0, len = parts.length; i < len; i++) {
 		num *= 256;
-		num += parseInt(parts[i]);
+		num += parseInt(parts[i], 10);
 	}
 	return num;
 };
@@ -101,7 +101,7 @@ Dnsbl.getCidrPattern = function (cidr) {
 		return [Dnsbl.ipToNumber(cidr), Dnsbl.ipToNumber(cidr)];
 	}
 	let low = Dnsbl.ipToNumber(cidr.slice(0, index));
-	let bits = parseInt(cidr.slice(index + 1));
+	let bits = parseInt(cidr.slice(index + 1), 10);
 	// fun fact: this fails if bits <= 1 because JavaScript
 	// does << with signed int32s.
 	let high = low + (1 << (32 - bits)) - 1;

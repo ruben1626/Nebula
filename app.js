@@ -96,7 +96,8 @@ try {
 	global.Config = require('./config/config');
 }
 
-global.Config = require('./config/config.js');
+let cliConfig = require.main === module ? require('./cli')(process.argv.slice(2)) : null;
+Object.assign(Config, cliConfig);
 
 if (Config.watchconfig) {
 	let configPath = require.resolve('./config/config');
@@ -116,6 +117,53 @@ if (Config.watchconfig) {
 /*********************************************************
  * Set up most of our globals
  *********************************************************/
+
+global.splint = function (target, separator, length) {
+	if (!separator) separator = ',';
+
+	let cmdArr = [];
+	if (length > 0) {
+		let sepIndex = -1;
+		for (let count = 0; ; count++) { // jscs:ignore disallowSpaceBeforeSemicolon
+			sepIndex = target.indexOf(separator);
+			if (count + 1 === length) {
+				cmdArr.push(target);
+				break;
+			} else if (sepIndex === -1) {
+				cmdArr.push(target);
+				break;
+			} else {
+				cmdArr.push(target.to(sepIndex));
+				target = target.from(sepIndex + 1);
+			}
+		}
+	} else if (length < 0) {
+		let sepIndex = -1;
+		for (let count = length; ; count++) { // jscs:ignore disallowSpaceBeforeSemicolon
+			sepIndex = target.lastIndexOf(separator);
+			if (count === -1) {
+				cmdArr.unshift(target);
+				break;
+			} else if (sepIndex === -1) {
+				cmdArr.unshift(target);
+				break;
+			} else {
+				cmdArr.unshift(target.from(sepIndex + 1));
+				target = target.to(sepIndex);
+			}
+		}
+	} else {
+		cmdArr = target.split(separator);
+	}
+	return cmdArr.map('trim');
+};
+
+global.toUserName = function (userid) {
+	let user = Users.getExact(userid);
+	if (user) return user.name;
+	if (Users.usergroups[userid]) return Users.usergroups[userid].slice(1).trim();
+	return userid;
+};
 
 global.Monitor = require('./monitor');
 
@@ -163,20 +211,15 @@ if (Config.crashguard) {
  * Start networking processes to be connected to
  *********************************************************/
 
-global.Sockets = require('./sockets');
+global.Sockets = require(Config.socketspath || './sockets');
 
-exports.listen = function (port, bindAddress, workerCount) {
-	Sockets.listen(port, bindAddress, workerCount);
-};
+exports.listen = Sockets.listen.bind(Sockets);
 
 if (require.main === module) {
-	// if running with node app.js, set up the server directly
-	// (otherwise, wait for app.listen())
-	let port;
-	if (process.argv[2]) {
-		port = parseInt(process.argv[2]); // eslint-disable-line radix
-	}
-	Sockets.listen(port);
+	Sockets.listen(Config.port, undefined, undefined, {
+		devPort: Config.localhost,
+		staticPath: Config.staticserver,
+	});
 }
 
 /*********************************************************
@@ -188,6 +231,31 @@ Tools.includeFormats();
 
 global.TeamValidator = require('./team-validator');
 TeamValidator.PM.spawn();
+
+/*********************************************************
+ * Instalar plugins
+ *********************************************************/
+global.Plugins = require('./plugins');
+
+Plugins.init();
+Plugins.eventEmitter.setMaxListeners(Object.size(Plugins.plugins));
+
+Plugins.forEach(function (plugin) {
+	if (plugin.commands && typeof plugin.commands === 'object') {
+		Object.merge(Chat.commands, plugin.commands, true);
+	}
+	if (typeof plugin.init === 'function') {
+		plugin.init();
+	}
+	if (typeof plugin.loadData === 'function') {
+		plugin.loadData();
+	}
+	if (plugin.globalScope) {
+		global[typeof plugin.globalScope === 'string' ? plugin.globalScope : plugin.id] = plugin;
+	}
+});
+
+Tools.includeModData();
 
 /*********************************************************
  * Start up the REPL server

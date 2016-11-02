@@ -1,0 +1,14 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Dictionary",
+  "version": "0.1",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "dictionary.js",
+  "scripts": {},
+  "author": {
+    "name": "Leonardo Ivo Julca Salazar",
+    "email": "ivojulca@hotmail.com"
+  },
+  "private": true
+}

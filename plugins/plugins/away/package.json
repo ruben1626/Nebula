@@ -1,0 +1,19 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Away",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 6.0.0"
+  },
+  "main": "away.js",
+  "scripts": {},
+  "author": {
+    "name": "Anonymous"
+  },
+  "contributors": [
+    {
+      "name": "Leonardo Ivo Julca Salazar",
+      "email": "ivojulca@hotmail.com"
+	}
+  ],
+  "private": true
+}

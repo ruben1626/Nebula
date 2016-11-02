@@ -263,7 +263,7 @@ class GlobalRoom {
 		// but this is okay to prevent race conditions as we start up PS
 		this.lastBattle = 0;
 		try {
-			this.lastBattle = parseInt(fs.readFileSync(LOGS_DIR + 'lastbattle.txt', 'utf8')) || 0;
+			this.lastBattle = parseInt(fs.readFileSync(LOGS_DIR + 'lastbattle.txt', 'utf8'), 10) || 0;
 		} catch (e) {} // file doesn't exist [yet]
 
 		this.chatRoomData = [];
@@ -1555,6 +1555,7 @@ class ChatRoom extends Room {
 		this.sendUser(connection, '|init|chat\n|title|' + this.title + '\n' + userList + '\n' + this.getLogSlice(-100).join('\n') + this.getIntroMessage(user));
 		if (this.poll) this.poll.onConnect(user, connection);
 		if (this.game && this.game.onConnect) this.game.onConnect(user, connection);
+		Plugins.eventEmitter.emit('ConnectionJoinRoom', this, user, connection).flush();
 	}
 	onJoin(user, connection) {
 		if (!user) return false; // ???
@@ -1568,6 +1569,7 @@ class ChatRoom extends Room {
 		this.userCount++;
 
 		if (this.game && this.game.onJoin) this.game.onJoin(user, connection);
+		Plugins.eventEmitter.emit('UserJoinRoom', this, user, connection).flush();
 		return user;
 	}
 	onRename(user, oldid, joining) {

@@ -1,0 +1,13 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Room-Settings",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "roomsettings.js",
+  "scripts": {},
+  "author": {
+    "name": "panpawn"
+  },
+  "private": true
+}

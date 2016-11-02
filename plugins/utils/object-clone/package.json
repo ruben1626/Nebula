@@ -1,0 +1,14 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Object-Clone",
+  "version": "0.1",
+  "engines": {
+    "node": ">= 6.0.0"
+  },
+  "main": "object-clone.js",
+  "scripts": {},
+  "author": {
+    "name": "Leonardo Ivo Julca Salazar",
+    "email": "ivojulca@hotmail.com"
+  },
+  "private": true
+}

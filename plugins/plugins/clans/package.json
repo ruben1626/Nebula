@@ -1,0 +1,21 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Clans",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "clans.js",
+  "scripts": {},
+  "author": {
+    "name": "kotarou3"
+  },
+  "contributors": [
+    {
+      "name": "Ecuacion"
+	}, {
+      "name": "Leonardo Ivo Julca Salazar",
+      "email": "ivojulca@hotmail.com"
+	}
+  ],
+  "private": true
+}

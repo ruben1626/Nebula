@@ -136,7 +136,7 @@ function importUsergroups() {
 	// can't just say usergroups = {} because it's exported
 	for (let i in usergroups) delete usergroups[i];
 
-	fs.readFile(DATA_DIR + 'config/usergroups.csv', (err, data) => {
+	fs.readFile(DATA_DIR + 'usergroups.csv', (err, data) => {
 		if (err) return;
 		data = ('' + data).split("\n");
 		for (let i = 0; i < data.length; i++) {
@@ -426,17 +426,16 @@ class User {
 		if (this.hasSysopAccess()) return true;
 		if (global.SuperRanks && SuperRanks.isAdmin(this.userid)) return true;
 
-		let groupData = Config.groups[this.group];
-		if (groupData && groupData['root']) {
-			return true;
-		}
-
 		let group, targetGroup;
 
 		if (typeof target === 'string') {
 			target = null;
 			targetGroup = target;
 		}
+
+		let isDefaultPrevented = global.Plugins && Plugins.eventEmitter.emit('Can', permission, this, target, room).isDefaultPrevented();
+		if (Plugins.eventEmitter.getData().allowed) return true;
+		if (isDefaultPrevented) return false;
 
 		if (room && room.auth) {
 			group = room.getAuth(this);
@@ -446,7 +445,16 @@ class User {
 			if (target) targetGroup = target.group;
 		}
 
-		groupData = Config.groups[group];
+		let groupData = Config.groups[this.group];
+		if (groupData && groupData['root']) {
+			return true;
+		}
+
+		if (room && room.groups) {
+			groupData = room.groups[group];
+		} else {
+			groupData = Config.groups[group];
+		}
 
 		if (groupData && groupData[permission]) {
 			let jurisdiction = groupData[permission];
@@ -682,7 +690,7 @@ class User {
 		}
 
 		let expiry = Config.tokenexpiry || 25 * 60 * 60;
-		if (Math.abs(parseInt(tokenDataSplit[3]) - Date.now() / 1000) > expiry) {
+		if (Math.abs(parseInt(tokenDataSplit[3], 10) - Date.now() / 1000) > expiry) {
 			console.log(`stale assertion: ${tokenData}`);
 			this.send(`|nametaken|${name}|Your assertion is stale. This usually means that the clock on the server computer is incorrect. If this is your server, please set the clock to the correct time.`);
 			return;

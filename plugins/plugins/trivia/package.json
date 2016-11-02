@@ -1,0 +1,13 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Trivia",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "trivia.js",
+  "scripts": {},
+  "author": {
+    "name": "Morfent"
+  },
+  "private": true
+}

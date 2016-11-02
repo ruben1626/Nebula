@@ -1,0 +1,19 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Super-Ranks",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "super-ranks.js",
+  "scripts": {},
+  "author": {
+    "name": "Anonymous"
+  },
+  "contributors": [
+    {
+      "name": "Leonardo Ivo Julca Salazar",
+      "email": "ivojulca@hotmail.com"
+	}
+  ],
+  "private": true
+}

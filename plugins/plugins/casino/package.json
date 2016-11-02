@@ -1,0 +1,19 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Casino",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "casino.js",
+  "scripts": {},
+  "author": {
+    "name": "Anonymous"
+  },
+  "contributors": [
+    {
+      "name": "Leonardo Ivo Julca Salazar",
+      "email": "ivojulca@hotmail.com"
+	}
+  ],
+  "private": true
+}

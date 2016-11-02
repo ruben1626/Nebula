@@ -1,0 +1,23 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Datasearch",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "datasearch.js",
+  "scripts": {},
+  "author": {
+    "name": "TalkTakesTime"
+  },
+  "contributors": [
+    {
+      "name": "SolarisFox"
+	}, {
+      "name": "Bumbadadabum"
+	}, {
+      "name": "Leonardo Ivo Julca Salazar",
+      "email": "ivojulca@hotmail.com"
+	}
+  ],
+  "private": true
+}

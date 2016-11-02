@@ -1,10 +1,52 @@
+*.bat
+*.cmd
+*.man
+*.exe
+*.0
+*.pem
+*.key
+*.crt
+*.gz
+*.tmp
 
-/logs/*
-/node_modules
-/eslint-cache
-/chat-plugins/private.js
-npm-debug.log
+# Git Portable
+/dev/
+/etc/
+/mingw64/
+/usr/
+
+.gitmodules
+.env
 .eslintcache
+
+/chat-plugins/
+/chat-plugins/private.js
+/srv
+/srv/index.html
+npm-debug.log
+npm
+/config/*
+/logs/*
+!/logs/logging.md
+!/logs/modlog
+/logs/modlog/*
+!/logs/modlog/README.md
+!/logs/chat
+/logs/chat/*
+!/logs/chat/README.md
+
+/node_modules
+/plugins/logs
+/plugins/**/config/*
+!/plugins/**/config/*-example*
+/plugins/**/data/*
+!/plugins/**/data/*-example*
+/config/avatars/*
+!/config/avatars/README.md
+/config/ladders/*
+!/config/ladders/README.md
+
+*.csv
 
 # boilerplate #
 ###############
@@ -47,12 +89,3 @@ local_settings.py
 .svn
 
 pip-log.txt
-
-config/chatrooms.json
-config/authcasino.json
-config/botbannedusers.json
-config/hpl.json
-config/clans.json
-config/botphrases.json
-config/botbannedwords.json
-*.csv

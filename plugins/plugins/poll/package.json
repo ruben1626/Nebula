@@ -1,0 +1,13 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Poll",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "poll.js",
+  "scripts": {},
+  "author": {
+    "name": "PS Contributors"
+  },
+  "private": true
+}

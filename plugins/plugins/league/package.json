@@ -1,0 +1,19 @@
+{
+  "name": "Pokemon-Showdown-Plugin-League",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "league.js",
+  "scripts": {},
+  "author": {
+    "name": "Anonymous"
+  },
+  "contributors": [
+    {
+      "name": "Leonardo Ivo Julca Salazar",
+      "email": "ivojulca@hotmail.com"
+	}
+  ],
+  "private": true
+}

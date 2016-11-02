@@ -21,10 +21,26 @@ try {
 	require('child_process').spawnSync('sh', ['-c', command], {stdio: 'inherit'});
 }
 
-// start the server
+let config = (function () {
+	try {
+		require.resolve('./config/config');
+	} catch (err) {
+		if (err.code !== 'MODULE_NOT_FOUND') throw err; // should never happen
 
-let port;
-if (process.argv[2]) {
-	port = parseInt(process.argv[2]); // eslint-disable-line radix
-}
-require('./app').listen(port);
+		// Copy it over synchronously from config-example.js since it's needed before we can start the server
+		console.log("config.js doesn't exist - creating one with default settings...");
+		fs.writeFileSync(path.resolve(__dirname, 'config/config.js'),
+			fs.readFileSync(path.resolve(__dirname, 'config/config-example.js'))
+		);
+	} finally {
+		return require('./config/config');
+	}
+})();
+
+let cliConfig = require.main === module ? require('./cli')(process.argv.slice(2)) : null;
+Object.assign(config, cliConfig);
+
+require('./app').listen(Config.port, undefined, undefined, {
+	devPort: config.localhost,
+	staticPath: config.staticserver
+});

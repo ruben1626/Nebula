@@ -15,6 +15,9 @@
 		"Config": false, "Monitor": false, "toId": false, "Tools": false, "LoginServer": false,
 		"Users": false, "Punishments": false, "Rooms": false, "Verifier": false, "Chat": false,
 		"Tournaments": false, "Dnsbl": false, "Sockets": false, "TeamValidator": false, "Ladders": false,
+		"Plugins": false, "battleEngineFakeProcess": false, "battleProtoCache": false,
+		"splint": false, "toUserName": false,
+		"Servers": false,
 		"LOGS_DIR", "DATA_DIR",
 		"Clans", "War", "tour", "teamTour",
 		"Shop", "Bot", "SuperRanks", "League", "Permaban"
@@ -76,7 +79,7 @@
 		"no-void": "off",
 		"no-warning-comments": "off",
 		"no-with": "error",
-		"radix": ["warn", "as-needed"],
+		"radix": "off",
 		"vars-on-top": "off",
 		"wrap-iife": ["error", "inside"],
 		"yoda": "off",

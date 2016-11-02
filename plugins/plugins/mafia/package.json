@@ -1,0 +1,13 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Mafia",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "mafia.js",
+  "scripts": {},
+  "author": {
+    "name": "bumbadadabum"
+  },
+  "private": true
+}

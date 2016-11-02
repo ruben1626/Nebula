@@ -93,13 +93,16 @@ before('initialization', function (done) {
 	// And using a sandbox is safer anyway.
 	const fsSandbox = {
 		'config': {},
-		'chat-plugins': getDirTypedContentsSync('chat-plugins', 'file'),
 		'mods': getDirTypedContentsSync('mods', 'dir'),
 		'logs': {
 			'chat': {}, 'ladderip': {}, 'modlog': {}, 'repl': {},
 			'lastbattle.txt': '0',
 		},
+		'plugins': {
+			'index.yaml': '[]',
+		},
 	};
+	mock.currentSandbox = fsSandbox;
 
 	// Node's module loading system should be backed up by the real file system.
 	Module.__resolveFilename__ = Module._resolveFilename;
@@ -136,7 +139,7 @@ before('initialization', function (done) {
 
 	// `watchFile` is unsupported and throws with mock-fs
 	Object.defineProperty(fs, 'watchFile', {
-		get: function () {return noop;},
+		get: function () {return noop},
 		set: noop,
 	});
 	mock(fsSandbox);

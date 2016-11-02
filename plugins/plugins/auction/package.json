@@ -1,0 +1,19 @@
+{
+  "name": "Pokemon-Showdown-Plugin-Auction",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "main": "auction.js",
+  "scripts": {},
+  "author": {
+    "name": "Ecuacion"
+  },
+  "contributors": [
+    {
+      "name": "Leonardo Ivo Julca Salazar",
+      "email": "ivojulca@hotmail.com"
+	}
+  ],
+  "private": true
+}
