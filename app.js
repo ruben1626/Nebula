@@ -131,6 +131,7 @@ global.Users = require('./users');
 global.Punishments = require('./punishments');
 
 global.Chat = require('./chat');
+Chat.loadCommands();
 
 global.Rooms = require('./rooms');
 
