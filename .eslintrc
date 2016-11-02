@@ -29,7 +29,7 @@
 		"valid-jsdoc": "off",
 
 		"array-callback-return": "error",
-		"block-scoped-var": "error",
+		"block-scoped-var": "off",
 		"comma-dangle": ["error", "always-multiline"],
 		"complexity": "off",
 		"consistent-return": "off",
@@ -163,7 +163,7 @@
 		"no-confusing-arrow": "off",
 		"no-useless-computed-key": "error",
 		"no-useless-rename": "error",
-		"no-var": "error",
+		"no-var": "off",
 		"prefer-arrow-callback": "off",
 		"rest-spread-spacing": ["error", "never"],
 		"template-curly-spacing": ["error", "never"],
