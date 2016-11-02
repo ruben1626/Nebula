@@ -9,7 +9,7 @@
 }
 
 body {
-    background: url('http://img15.deviantart.net/6489/i/2013/128/8/6/dragonite_whose_that_pokemon_wallpaper_by_jhr921-d64le5h.jpg') !important;
+    background: url("http://i.imgur.com/8LcmpW3.jpg") no-repeat left 100%/contain !important;
 }
 #lv-banner {
     color: #fff;
@@ -90,7 +90,7 @@ body {
     color: #160086;
 }
 .chat-log {
-    background: url("https://k61.kn3.net/4/A/2/2/7/1/0F2.png") right top no-repeat;
+	background: url("http://i.imgur.com/UBh9DJt.png") right no-repeat;
 }
 /*roomlist*/
 
