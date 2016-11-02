@@ -53,7 +53,7 @@ exports.commands = {
 			targetUser.send('|nametaken||Your name conflicts with ' + user.name + (user.name.substr(-1) === 's' ? '\'' : '\'s') + ' new away status.');
 		}
 
-		if (user.can('lock', null, room)) this.add('|raw|-- <font color="' + hashColor(user.userid) + '"><strong>' + Chat.escapeHTML(user.name) + '</strong></font> ahora está ' + target.toLowerCase() + '.');
+		if (user.can('lock', null, room)) this.add('|raw|-- ' + Plugins.Colors.apply(user.name).bold() + ' ahora está ' + target.toLowerCase() + '.');
 		user.forceRename(newName, user.registered);
 		user.updateIdentity();
 		user.isAway = true;
@@ -67,7 +67,7 @@ exports.commands = {
 		let statusIdx = newName.search(/\s\-\s[\u24B6-\u24E9\u2460-\u2468\u24EA]+$/);
 		if (statusIdx < 0) {
 			user.isAway = false;
-			if (user.can('lock', null, room)) this.add('|raw|-- ' + Plugins.Colors.apply(user.userid).bold() + ' ya no está ausente.');
+			if (user.can('lock', null, room)) this.add('|raw|-- ' + Plugins.Colors.apply(user.name).bold() + ' ya no está ausente.');
 			return false;
 		}
 
