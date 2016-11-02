@@ -7,7 +7,7 @@
 exports.parse = parseEmoticons;
 
 let emotes = {
-	'facepalm' : 'http://pogoblog.typepad.com/.a/6a00d8341c68bf53ef0162fff08f5e970d-600wi'
+	'facepalm': 'http://pogoblog.typepad.com/.a/6a00d8341c68bf53ef0162fff08f5e970d-600wi'
 	'#freewolf': 'http://i.imgur.com/ybxWXiG.png',
 	'feelsbd': 'http://i.imgur.com/YyEdmwX.png',
 	'feelsbm': 'http://i.imgur.com/xwfJb2z.png',
