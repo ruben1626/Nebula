@@ -253,6 +253,12 @@ Plugins.forEach(function (plugin) {
 	if (plugin.globalScope) {
 		global[typeof plugin.globalScope === 'string' ? plugin.globalScope : plugin.id] = plugin;
 	}
+	if (typeof plugin.onLoad === 'function') {
+		plugin.onLoad();
+	}
+	if (typeof plugin.deploy === 'function') {
+		plugin.deploy();
+	}
 });
 
 Tools.includeModData();

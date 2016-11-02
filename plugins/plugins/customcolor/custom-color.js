@@ -17,6 +17,7 @@ exports.loadData = function () {
 		const fileContent = fs.readFileSync(filepath, 'utf8');
 		Object.assign(customColors, JSON.parse(fileContent));
 		exports.dataLoaded = true;
+		deployCSS();
 	} catch (err) {}
 };
 
@@ -26,18 +27,18 @@ exports.onLoad = function () {
 
 function updateColor() {
 	fs.writeFileSync(filepath, JSON.stringify(customColors));
+	deployCSS();
+}
 
-	let newCss = '/* COLORS START */\n';
-
+function deployCSS() {
+	let newCss = '';
 	for (let name in customColors) {
 		if (name in mainCustomColors && customColors[name] === mainCustomColors[name]) continue;
-		newCss += generateCSS(name, customColors[name]);
+		newCss += generateCSS(name, customColors[name]) + '\n';
 	}
-	newCss += '/* COLORS END */\n';
 
-	let file = fs.readFileSync('config/custom.css', 'utf8').split('\n');
-	if (~file.indexOf('/* COLORS START */')) file.splice(file.indexOf('/* COLORS START */'), (file.indexOf('/* COLORS END */') - file.indexOf('/* COLORS START */')) + 1);
-	fs.writeFileSync('config/custom.css', file.join('\n') + newCss);
+	const fileContent = fs.readFileSync('config/custom.template.css', 'utf8');
+	fs.writeFileSync('config/custom.css', fileContent.replace('<!-- Custom Colors -->', newCss));
 	LoginServer.request('invalidatecss', {}, () => {});
 }
 
@@ -55,9 +56,11 @@ function generateCSS(name, color) {
 	css = rooms.join(', ');
 	css += '{\ncolor: ' + color + ' !important;\n}\n';
 	css += '.chat.chatmessage-' + name + ' strong {\n';
-	css += 'color: ' + color + ' !important;\n}\n';
+	css += 'color: ' + color + ' !important;\n}';
 	return css;
 }
+
+exports.deploy = deployCSS;
 
 exports.commands = {
 	customcolor: function (target, room, user) {
