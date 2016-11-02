@@ -136,9 +136,8 @@ exports.commands = {
 		case 'customicon':
 			prize = 800;
 			if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
-			if (Config.customavatars[user.userid]) return this.sendReply("Ya habías comprado este artículo.");
-			if (params.length !== 2) return this.sendReply("Usa el comando así: /buy avatar,[imagen]");
-			var err = Shop.addPendingAvatar(user.userid, params[1]);
+			if (params.length !== 2) return this.sendReply("Usa el comando así: /buy customicon,[imagen]");
+			var err = Shop.addPendingIcon(user.userid, params[1]);
 			if (err) return this.sendReply(err);
 			Shop.removeMoney(user.name, prize);
 			return this.sendReply("Has solicitado un icon personalizado. Espera a que un admin revise tu compra.");
@@ -146,9 +145,8 @@ exports.commands = {
 		case 'customcolor':
 			prize = 800;
 			if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
-			if (Config.customavatars[user.userid]) return this.sendReply("Ya habías comprado este artículo.");
-			if (params.length !== 2) return this.sendReply("Usa el comando así: /buy avatar,[imagen]");
-			var err = Shop.addPendingAvatar(user.userid, params[1]);
+			if (params.length !== 2) return this.sendReply("Usa el comando así: /buy customcolor,[imagen]");
+			var err = Shop.addPendingColor(user.userid, params[1]);
 			if (err) return this.sendReply(err);
 			Shop.removeMoney(user.name, prize);
 			return this.sendReply("Has solicitado un color personalizado. Espera a que un admin revise tu compra.");
@@ -156,9 +154,8 @@ exports.commands = {
 		case 'customphrase':
 			prize = 500;
 			if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
-			if (Config.customavatars[user.userid]) return this.sendReply("Ya habías comprado este artículo.");
-			if (params.length !== 2) return this.sendReply("Usa el comando así: /buy avatar,[imagen]");
-			var err = Shop.addPendingAvatar(user.userid, params[1]);
+			if (params.length !== 2) return this.sendReply("Usa el comando así: /buy customphrase,[imagen]");
+			var err = Shop.addPendingPhrase(user.userid, params[1]);
 			if (err) return this.sendReply(err);
 			Shop.removeMoney(user.name, prize);
 			return this.sendReply("Has solicitado una frase personalizada. Espera a que un admin revise tu compra.");
@@ -496,5 +493,50 @@ exports.commands = {
 		let err = Shop.deletePendingAvatar(target);
 		if (err) return this.sendReply(err);
 		this.sendReply("Solicitud de avatar eliminada");
+	},
+
+	colorespendientes: 'pendingcolors',
+	pendingcolors: function (target, room, user) {
+		if (!this.canBroadcast()) return false;
+		this.sendReplyBox(Shop.getPendingColors());
+	},
+
+	decolorreq: 'deletecolorrequest',
+	deletecolorrequest: function (target, room, user) {
+		if (!this.can('givemoney')) return false;
+		if (!target) return this.sendReply("No has especificado ningun usuario.");
+		let err = Shop.deletePendingColor(target);
+		if (err) return this.sendReply(err);
+		this.sendReply("Solicitud de color eliminada");
+	},
+
+	iconospendientes: 'pendingicons',
+	pendingicons: function (target, room, user) {
+		if (!this.canBroadcast()) return false;
+		this.sendReplyBox(Shop.getPendingIcons());
+	},
+
+	deiconreq: 'deleteiconrequest',
+	deleteiconrequest: function (target, room, user) {
+		if (!this.can('givemoney')) return false;
+		if (!target) return this.sendReply("No has especificado ningun usuario.");
+		let err = Shop.deletePendingIcon(target);
+		if (err) return this.sendReply(err);
+		this.sendReply("Solicitud de icono eliminada");
+	},
+
+	frasesspendientes: 'pendingphrases',
+	pendingphrases: function (target, room, user) {
+		if (!this.canBroadcast()) return false;
+		this.sendReplyBox(Shop.getPendingPhrases());
+	},
+
+	dephrasereq: 'deletephraserequest',
+	deletephraserequest: function (target, room, user) {
+		if (!this.can('givemoney')) return false;
+		if (!target) return this.sendReply("No has especificado ningun usuario.");
+		let err = Shop.deletePendingPhrase(target);
+		if (err) return this.sendReply(err);
+		this.sendReply("Solicitud de frase eliminada");
 	},
 };

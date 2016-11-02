@@ -2,40 +2,33 @@ const pdDataFile = DATA_DIR + 'shopmoney.json';
 const tcDataFile = DATA_DIR + 'tcards.json';
 const symbolsDataFile = DATA_DIR + 'symbolauth.json';
 const avatarsDataFile = DATA_DIR + 'shopavatars.json';
+const iconsDataFile = DATA_DIR + 'shopicons.json';
+const colorsDataFile = DATA_DIR + 'shopcolors.json';
+const phrasesDataFile = DATA_DIR + 'shopphrase.json';
 const botPhraseDataFile = DATA_DIR + 'botphrases.json';
 
 let fs = require('fs');
 
-if (!fs.existsSync(pdDataFile))	{
-	fs.writeFileSync(pdDataFile, '{}');
-}
-
-if (!fs.existsSync(tcDataFile))	{
-	fs.writeFileSync(tcDataFile, '{}');
-}
-
-if (!fs.existsSync(symbolsDataFile))	{
-	fs.writeFileSync(symbolsDataFile, '{}');
-}
-
-if (!fs.existsSync(avatarsDataFile))	{
-	fs.writeFileSync(avatarsDataFile, '{}');
-}
-
-if (!fs.existsSync(botPhraseDataFile))	{
-	fs.writeFileSync(botPhraseDataFile, '{}');
+for (const filePath of [pdDataFile, tcDataFile, symbolsDataFile, avatarsDataFile, iconsDataFile, colorsDataFile, phrasesDataFile, botPhraseDataFile]) {
+	if (!fs.existsSync(filePath)) fs.writeFileSync(filePath, '{}');
 }
 
 let money = JSON.parse(fs.readFileSync(pdDataFile).toString());
 let trainerCards = JSON.parse(fs.readFileSync(tcDataFile).toString());
 let customSymbols = JSON.parse(fs.readFileSync(symbolsDataFile).toString());
 let boughtAvatars = JSON.parse(fs.readFileSync(avatarsDataFile).toString());
+let boughtIcons = JSON.parse(fs.readFileSync(iconsDataFile).toString());
+let boughtColors = JSON.parse(fs.readFileSync(colorsDataFile).toString());
+let boughtPhrases = JSON.parse(fs.readFileSync(phrasesDataFile).toString());
 let botPhrase = JSON.parse(fs.readFileSync(botPhraseDataFile).toString());
 
 exports.money = money;
 exports.trainerCards = trainerCards;
 exports.customSymbols = customSymbols;
 exports.boughtAvatars = boughtAvatars;
+exports.boughtIcons = boughtIcons;
+exports.boughtColors = boughtColors;
+exports.boughtPhrases = boughtPhrases;
 exports.botPhrase = botPhrase;
 
 function writePdData() {
@@ -52,6 +45,18 @@ function writeSymbolsData() {
 
 function writeAvatarsData() {
 	fs.writeFileSync(avatarsDataFile, JSON.stringify(boughtAvatars));
+}
+
+function writeIconsData() {
+	fs.writeFileSync(iconsDataFile, JSON.stringify(boughtIcons));
+}
+
+function writeColorsData() {
+	fs.writeFileSync(colorsDataFile, JSON.stringify(boughtColors));
+}
+
+function writePhrasesData() {
+	fs.writeFileSync(phrasesDataFile, JSON.stringify(boughtPhrases));
 }
 
 function writePhrasesData() {
@@ -255,6 +260,81 @@ exports.getPendingAvatars = function () {
 		html += '<b>' + i + '</b>: <a href="' + boughtAvatars[i] + '">' + boughtAvatars[i] + '</a><br />';
 	}
 	if (html === '') html = 'No hay avatares pendientes';
+	return html;
+};
+//icons
+exports.addPendingIcon = function (user, url) {
+	let userId = toId(user);
+	if (boughtIcons[userId]) return 'Ya tenias una solicitud de icono pendiente, espera a que sea revisada por un administrador.';
+	boughtIcons[userId] = url;
+	writeIconsData();
+	return false;
+};
+
+exports.deletePendingIcon = function (user, url) {
+	let userId = toId(user);
+	if (!boughtIcons[userId]) return 'El usuario no estaba en la lista de iconos pendientes.';
+	delete boughtIcons[userId];
+	writeIconsData();
+	return false;
+};
+
+exports.getPendingIcons = function () {
+	let html = '';
+	for (let i in boughtIcons) {
+		html += '<b>' + i + '</b>: <a href="' + boughtIcons[i] + '">' + boughtIcons[i] + '</a><br />';
+	}
+	if (html === '') html = 'No hay iconos pendientes';
+	return html;
+};
+//colors
+exports.addPendingColor = function (user, url) {
+	let userId = toId(user);
+	if (boughtColors[userId]) return 'Ya tenias una solicitud de color pendiente, espera a que sea revisada por un administrador.';
+	boughtColors[userId] = url;
+	writeColorsData();
+	return false;
+};
+
+exports.deletePendingColor = function (user, url) {
+	let userId = toId(user);
+	if (!boughtColors[userId]) return 'El usuario no estaba en la lista de colores pendientes.';
+	delete boughtColors[userId];
+	writeColorsData();
+	return false;
+};
+
+exports.getPendingColors = function () {
+	let html = '';
+	for (let i in boughtColors) {
+		html += '<b>' + i + '</b>: ' + boughtColors[i] + '<br />';
+	}
+	if (html === '') html = 'No hay colores pendientes';
+	return html;
+};
+//phrases
+exports.addPendingPhrase = function (user, url) {
+	let userId = toId(user);
+	if (boughtPhrases[userId]) return 'Ya tenias una solicitud de frase pendiente, espera a que sea revisada por un administrador.';
+	boughtPhrases[userId] = url;
+	writePhrasesData();
+	return false;
+};
+
+exports.deletePendingPhrase = function (user, url) {
+	let userId = toId(user);
+	if (!boughtPhrases[userId]) return 'El usuario no estaba en la lista de frases pendientes.';
+	delete boughtPhrases[userId];
+	writePhrasesData();
+	return false;
+};
+
+exports.getPendingPhrases = function () {
+	let html = '';
+	for (let i in boughtPhrases) {
+		html += '<b>' + i + '</b>: ' + boughtPhrases[i] + '<br />';
+	}
+	if (html === '') html = 'No hay frases pendientes';
 	return html;
 };
 //bot
