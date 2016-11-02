@@ -256,9 +256,6 @@ Plugins.forEach(function (plugin) {
 	if (typeof plugin.onLoad === 'function') {
 		plugin.onLoad();
 	}
-	if (typeof plugin.deploy === 'function') {
-		plugin.deploy();
-	}
 });
 
 Tools.includeModData();

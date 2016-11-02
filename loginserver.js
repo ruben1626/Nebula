@@ -15,8 +15,10 @@ const LOGIN_SERVER_BATCH_TIME = 1000;
 const path = require('path');
 const http = require("http");
 const url = require('url');
+const fs = require('fs');
 
 const CSS_SRC_PATH = path.resolve(__dirname, 'config', 'custom.template.css');
+const CSS_OUT_PATH = path.resolve(__dirname, 'config', 'custom.css');
 
 let TimeoutError = function (message) {
 	Error.captureStackTrace(this, TimeoutError);
@@ -237,12 +239,30 @@ LoginServer.TimeoutError = TimeoutError;
 if (Config.remoteladder) LoginServer.ladderupdateServer = new LoginServerInstance();
 LoginServer.prepreplayServer = new LoginServerInstance();
 
-require('fs').watchFile(CSS_SRC_PATH, (curr, prev) => {
+fs.watchFile(CSS_SRC_PATH, (curr, prev) => {
+	LoginServer.deployCSS();
+});
+
+process.nextTick(() => LoginServer.deployCSS());
+
+function deployCSS() {
+	let src = '';
+	try {
+		src = fs.readFileSync(CSS_SRC_PATH, 'utf8');
+	} catch (err) {
+		return;
+	}
+	console.log('src', src);
 	Plugins.forEach(plugin => {
 		if (typeof plugin.deploy === 'function') {
-			plugin.deploy(CSS_SRC_PATH);
+			src = plugin.deploy(CSS_SRC_PATH, src);
 		}
 	});
-	LoginServer.request('invalidatecss', {}, () => {});
-});
-LoginServer.request('invalidatecss', {}, () => {});
+
+	console.log('src', src);
+	fs.writeFile(CSS_OUT_PATH, src, () => {
+		LoginServer.request('invalidatecss', {}, () => {});
+	});
+}
+
+LoginServer.deployCSS = deployCSS;

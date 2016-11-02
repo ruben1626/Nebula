@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 
 const checkLuminosity = require('./validate-luminosity');
 const mainCustomColors = require('./custom-data/smogon-custom');
@@ -17,7 +18,6 @@ exports.loadData = function () {
 		const fileContent = fs.readFileSync(STORAGE_PATH, 'utf8');
 		Object.assign(customColors, JSON.parse(fileContent));
 		exports.dataLoaded = true;
-		deployCSS();
 	} catch (err) {}
 };
 
@@ -25,21 +25,21 @@ exports.onLoad = function () {
 	Plugins.Colors.load(customColors);
 };
 
-function updateColor() {
+function updateColors() {
 	fs.writeFileSync(STORAGE_PATH, JSON.stringify(customColors));
-	deployCSS();
-	LoginServer.request('invalidatecss', {}, () => {});
+	LoginServer.deployCSS();
 }
 
-function deployCSS() {
+function deployCSS(filePath, src) {
+	if (!filePath || path.basename(filePath) !== 'custom.template.css') return src;
+
 	let newCss = '';
 	for (let name in customColors) {
 		if (name in mainCustomColors && customColors[name] === mainCustomColors[name]) continue;
 		newCss += generateCSS(name, customColors[name]) + '\n';
 	}
 
-	const fileContent = fs.readFileSync('config/custom.template.css', 'utf8');
-	fs.writeFileSync(DATA_DIR + 'custom.css', fileContent.replace('<!-- Custom Colors -->', newCss));
+	return src.replace('<!-- Custom Colors -->', newCss);
 }
 
 function generateCSS(name, val) {
@@ -66,41 +66,39 @@ exports.deploy = deployCSS;
 exports.commands = {
 	customcolor: function (target, room, user) {
 		if (!this.can('customcolor')) return false;
+		target = this.splitTarget(target, true);
 		if (!target) return this.parse('/help customcolor');
-		const parts = target.split(',', 2).map(part => part.trim());
-		if (parts.length < 2) return this.parse('/help customcolor');
-		const targetUserid = toId(parts[0]);
-		if (!targetUserid || parts[0].length > 18) return this.errorReply(`Indica un nombre de usuario válido.`);
+		if (!this.targetUserid || this.targetUsername.length > 18) return this.errorReply(`Indica un nombre de usuario válido.`);
 
-		if (parts[1] === 'delete') {
-			if (!(targetUserid in customColors)) return this.errorReply(`/customcolor - ${parts[0]} no tiene un color personalizado.`);
-			delete customColors[targetUserid];
-			updateColor();
+		if (target === 'delete') {
+			if (!(this.targetUserid in customColors)) return this.errorReply(`/customcolor - ${this.targetUsername} no tiene un color personalizado.`);
+			delete customColors[this.targetUserid];
+			updateColors();
 
-			this.sendReply(`Eliminaste el color personalizado de ${targetUserid}.`);
-			Rooms('staff').add(`${user.name} eliminó el color personalizado de ${targetUserid}.`).update();
-			this.privateModCommand(`(Color personalizado de ${targetUserid} removido por ${user.name}).`);
+			this.sendReply(`Eliminaste el color personalizado de ${this.targetUsername}.`);
+			Rooms('staff').add(`${user.name} eliminó el color personalizado de ${this.targetUserid}.`).update();
+			this.privateModCommand(`(Color personalizado de ${this.targetUserid} removido por ${user.name}).`);
 
-			const targetUser = Users.getExact(targetUserid);
-			if (targetUser && targetUser.connected) {
-				targetUser.popup(`${user.name} eliminó tu color personalizado.`);
+			if (this.targetUser && this.targetUser.connected) {
+				this.targetUser.popup(`${user.name} eliminó tu color personalizado.`);
 			}
 			return;
 		}
 
-		if (targetUserid in customColors) return this.errorReply(`El usuario indicado ya tiene un color personalizado. Ejecuta antes /customcolor [user], delete.`);
-		const colorData = Plugins.Colors.parse(parts[1], ['en', 'es']);
-		if (!colorData) return this.errorReply(`${parts[1]} no es un color válido.`);
+		if (this.targetUserid in customColors) return this.errorReply(`El usuario indicado ya tiene un color personalizado. Ejecuta antes /customcolor [user], delete.`);
+
+		const colorData = Plugins.Colors.parse(target, ['en', 'es']);
+		if (!colorData) return this.errorReply(`${target} no es un color válido.`);
 		const colorHex = colorData.toString('hex');
 
 		const customColorVal = {color: colorHex};
-		Plugins.Colors.load({[targetUserid]: customColorVal});
-		customColors[targetUserid] = customColorVal;
-		updateColor();
+		Plugins.Colors.load({[this.targetUserid]: customColorVal});
+		customColors[this.targetUserid] = customColorVal;
+		updateColors();
 
-		this.sendReply(`|raw|Has otorgado un color personalizado a ${Plugins.Colors.apply(targetUserid).bold()}.`);
-		Rooms('staff').addRaw(Chat.html`${parts[0]} obtuvo un <strong><font color="${colorHex}">color personalizado</font></strong> de ${user.name}.`).update();
-		this.privateModCommand(`(${parts[0]} obtuvo un color personalizado ${colorData.getName('es')}: ${colorHex} de parte de ${user.name}.)`);
+		this.sendReply(`|raw|Has otorgado un color personalizado a ${Plugins.Colors.apply(this.targetUsername).bold()}.`);
+		Rooms('staff').addRaw(Chat.html`${this.targetUserid} obtuvo un <strong><font color="${colorHex}">color personalizado</font></strong> de ${user.name}.`).update();
+		this.privateModCommand(`(${this.targetUserid} obtuvo un color personalizado ${colorData.getName('es')}: ${colorHex} de parte de ${user.name}.)`);
 	},
 	customcolorhelp: [
 		`/customcolor [usuario], [color] - Otorga al usuario indicado el color especificado.`,
