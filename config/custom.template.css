@@ -90,7 +90,7 @@ body {
 .roomlist a.ilink,
 .roomcounters button {
     text-shadow: none;
-	border: 1px solid rgba(65, 100, 175, 0.7);
+	border: 1px solid rgba(0, 0, 255, 0.3);
 }
 .roomcounters button {
 	background: rgba(0, 0, 255, 0.05);
@@ -128,15 +128,6 @@ body {
     background: none;
     text-shadow: none;
     color: black
-}
-.ps-room.ps-room-light.scrollable .button {
-    background: #FFCF4A;
-    border: 1px solid #FFCF4A;
-    color: #FFFFFF;
-    text-shadow: none;
-}
-.ps-room.ps-room-light.scrollable .button:hover {
-    background: #E4AA25;
 }
 
 <!-- Custom Colors -->
