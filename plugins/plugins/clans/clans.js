@@ -6,7 +6,7 @@
 	ayudaclan: 'clanshelp',
 	clanhelp: 'clanshelp',
 	clanshelp: function () {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		this.sendReplyBox(
 			"<big><b>Comandos Básicos:</b></big><br /><br />" +
 			"/clanes - Lista los clanes.<br />" +
@@ -70,7 +70,7 @@
 	getclans: 'clans',
 	clanes: 'clans',
 	clans: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let clansTableTitle = "Lista de Clanes";
 		if (toId(target) === 'rank' || toId(target) === 'puntos' || toId(target) === 'prestigio' || toId(target) === 'puntuacion') {
 			target = "rank";
@@ -103,7 +103,7 @@
 	clanauth: function (target, room, user) {
 		let autoclan = false;
 		if (!target) autoclan = true;
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let clan = Clans.getRating(target);
 		if (!clan) {
 			target = Clans.findClanFromMember(target);
@@ -148,7 +148,7 @@
 	miembrosclan: function (target, room, user) {
 		let autoclan = false;
 		if (!target) autoclan = true;
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let clan = Clans.getRating(target);
 		if (!clan) {
 			target = Clans.findClanFromMember(target);
@@ -180,7 +180,7 @@
 	invitacionesclan: function (target, room, user) {
 		let autoclan = false;
 		if (!target) autoclan = true;
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let clan = Clans.getRating(target);
 		if (!clan) {
 			target = Clans.findClanFromMember(target);
@@ -208,7 +208,7 @@
 		let memberClanProfile = false;
 		let clanMember = "";
 		if (!target) autoClan = true;
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let clan = Clans.getProfile(target);
 		if (!clan) {
 			clanMember = target;
@@ -760,7 +760,7 @@
 	warlog: function (target, room, user) {
 		let autoclan = false;
 		if (!target) autoclan = true;
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let clan = Clans.getRating(target);
 		if (!clan) {
 			target = Clans.findClanFromMember(target);

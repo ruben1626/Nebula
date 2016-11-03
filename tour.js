@@ -417,7 +417,7 @@ exports.tour = function (t) {
 
 let cmds = {
 	tourhelp: function (target, room, user) {
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 		this.sendReplyBox('<font size = 2>Sistema de torneos  clásico</font><br />' +
 						'Sistema de torneos clásico. Disponible para las salas, permitiendo a los usuarios con auth (+ % @ # & ~) crearlos y moderarlos.<br />' +
 						'Los comandos son:<br />' +
@@ -722,14 +722,14 @@ let cmds = {
 		if (teamTour.getTourData(room.id)) return this.parse("/tt round");
 		if (!tour[room.id]) return this.sendReply('There is no active tournament in this room.');
 		if (!tour[room.id].status) {
-			if (!this.canBroadcast()) return;
+			if (!this.runBroadcast()) return;
 			let html = tour.getList();
 			this.sendReply('|raw|' + html + "<hr />");
 		} else if (tour[room.id].status === 1) {
 			if (!tour.lowauth(user, room)) return this.sendReply('No deberias usar este comando en la fase de inscripcion.');
 			tour.reportdue(room, connection);
 		} else {
-			if (!this.canBroadcast()) return;
+			if (!this.runBroadcast()) return;
 			if (room.type !== 'chat') return this.sendReply('Prof. Oak: No es un buen momento para usar este comando. No puedes utilizarlo en salas de batalla.');
 			if (!tour[room.id]) return this.sendReply('No hay un torneo activo en una sala.');
 			if (tour[room.id].status < 2) return this.sendReply('No hay torneos fuera de la fase de inscripcion.');
@@ -830,7 +830,7 @@ let cmds = {
 	},
 
 	tours: function (target, room, user, connection) {
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 		let html = tour.getList();
 		this.sendReply('|raw|' + html + "<hr />");
 	},

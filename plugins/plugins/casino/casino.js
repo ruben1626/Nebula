@@ -149,7 +149,7 @@ exports.commands = {
 	tablilla: 'bingo',
 	bingo: function (target, room, user) {
 		if (room.id !== 'casino') return this.sendReply("Este comando solo puede ser usado en una sala de Casino");
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 		if (!bingoStatus) return this.sendReply("No hay ningún bingo en marcha.");
 		let targetUserId = user.userid;
 		if (tables[toId(target)]) targetUserId = toId(target);
@@ -258,7 +258,7 @@ exports.commands = {
 	apuestas: 'tourbets',
 	tourbets: function (target, room, user) {
 		if (room.id !== 'casino') return this.sendReply("Este comando solo puede ser usado en una sala de Casino");
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 		let betList = '';
 		for (let i in tourBets) {
 			betList += '<b>' + getUserName(i) + '</b> ha apostado <b>' + tourBets[i].pd + ' pd</b> por el jugador <b>' + getUserName(tourBets[i].player) + '</b>. <br />';
@@ -402,7 +402,7 @@ exports.commands = {
 	wheel: function (target, room, user) {
 		if (room.id !== 'casino') return this.sendReply("Este comando solo puede ser usado en una sala de Casino");
 		if (!wheelStatus) return this.sendReply("No hay ninguna ruleta en marcha.");
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 		let optionsList = '';
 		for (let j = 0; j < wheelOptions.length; j++) {
 			optionsList += wheelOptions[j] + ", ";
@@ -435,7 +435,7 @@ exports.commands = {
 	beneficios: 'casinomoney',
 	casinomoney: function (target, room, user) {
 		if (room.id !== 'casino') return this.sendReply("Este comando solo puede ser usado en una sala de Casino");
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 		let money = Shop.getUserMoney('casino');
 		if (money < 1) return this.sendReply("No había beneficios en el casino.");
 		return this.sendReply("Beneficios del Casino: " + money + ' Pds');
@@ -469,7 +469,7 @@ exports.commands = {
 	slot: 'tragaperras',
 	slotmachine: 'tragaperras',
 	tragaperras: function (target, room, user) {
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 		if (room.id !== 'casino') return this.sendReply("Este comando solo puede ser usado en una sala de Casino");
 		let money = parseInt(target);
 		let now = Date.now();

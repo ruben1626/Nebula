@@ -28,7 +28,7 @@ exports.commands = {
 	image: function (target, room, user) {
 		if (!target) return this.sendReply('Usage: /image link, size');
 		if (!this.can('ban', room)) return false;
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 
 		let targets = target.split(',');
 		if (targets.length !== 2) {

@@ -80,7 +80,7 @@ function getCardDetails(subdomain, id) {
 exports.commands = {
 	ygo: 'yugioh',
 	yugioh: function (target, room, user) {
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 		if (room.id !== 'tcgtabletop') return this.errorReply("This command can only be used in the TCG & Tabletop room.");
 		let subdomain = 'yugioh';
 		let query = target.trim();
@@ -125,7 +125,7 @@ exports.commands = {
 		});
 	},
 	ptcg: function (target, room, user) {
-		if (!this.canBroadcast()) return;
+		if (!this.runBroadcast()) return;
 		if (room.id !== 'tcgtabletop') return this.errorReply("This command can only be used in the TCG & Tabletop room.");
 		let domain = 'bulbapedia.bulbagarden.net';
 		let query = target.trim() + ' (TCG)';

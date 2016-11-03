@@ -205,7 +205,7 @@ exports.commands = {
 
 	auctionhelp: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		this.sendReplyBox(
 			'<strong>Comandos informativos:</strong><br />' +
 			'	/jugadores - Muestra la lista de jugadores elegibles.<br />' +
@@ -233,7 +233,7 @@ exports.commands = {
 	estadosubasta: 'auctionstatus',
 	auctionstatus: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let html = '<center><h2>Lista de equipos</h2></center>';
 		for (let team in hpl.teams) {
 			html += '<hr /><strong>' + hpl.teams[team].name + ': </strong><br />';
@@ -248,7 +248,7 @@ exports.commands = {
 
 	equipos: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let html = '<strong>Lista de equipos: </strong><br />';
 		for (let i in hpl.teams) {
 			html += "	->" + hpl.teams[i].name + "<br />";
@@ -258,7 +258,7 @@ exports.commands = {
 
 	equipo: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let team = toId(target);
 		if (!hpl.teams[team]) return this.sendReply("El equipo" + team + " no existe");
 		let html = '<strong>' + hpl.teams[team].name + ': </strong><br />';
@@ -272,7 +272,7 @@ exports.commands = {
 
 	jugadores: function (target, room, user) {
 		if (room.id !== hplRoom) return this.sendReply("Este comando solo puede ser usado en la sala Subasta");
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let html = '<strong>Lista de jugadores elegibles: </strong>' + Object.keys(hpl.players).join(", ");
 		this.sendReplyBox(html);
 	},

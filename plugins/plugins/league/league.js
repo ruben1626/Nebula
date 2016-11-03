@@ -75,7 +75,7 @@ exports.commands = {
 	medals: 'medallas',
 	vermedallas: 'medallas',
 	medallas: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let autoData = false;
 		let targetUser = toId(user.name);
 		if (target) targetUser = toId(target);
@@ -92,7 +92,7 @@ exports.commands = {
 
 	leaguemedal: 'medallaliga',
 	medallaliga: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let autoData = false;
 		let targetUser = toId(user.name);
 		if (target) targetUser = toId(target);
@@ -121,7 +121,7 @@ exports.commands = {
 	league: 'liga',
 	lideres: 'liga',
 	liga: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		let leagueId = League.findLeague(target, room.id);
 		if (!leagueId) return this.sendReply("La liga especificada no está registrada en el servidor.");
 		return this.sendReplyBox(League.getLeagueTable(leagueId));

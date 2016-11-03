@@ -495,11 +495,11 @@ let cmds = {
 		switch (toId(params[0])) {
 		case 'buscar':
 		case 'search':
-			if (!this.canBroadcast()) return false;
+			if (!this.runBroadcast()) return false;
 			this.sendReplyBox(teamTour.getTours());
 			break;
 		case 'help':
-			if (!this.canBroadcast()) return false;
+			if (!this.runBroadcast()) return false;
 			this.sendReplyBox(
 					'<font size = 2>Torneos de Equipos</font><br />' +
 					'Se trata de un sistema de Torneos en el que un equipo se enfrenta contra otro, al estilo de las guerras de clanes. Este sistema está disponible para todas las salas y es moderable por los rangos %, @, #, & y ~.<br />' +
@@ -687,7 +687,7 @@ let cmds = {
 			return this.sendReply('Team tours hotpatched.');
 		case 'ronda':
 		case 'round':
-			if (!this.canBroadcast()) return false;
+			if (!this.runBroadcast()) return false;
 			return this.sendReply('|raw|' + teamTour.viewTourStatus(roomId));
 		default:
 			this.sendReply('No se reconoce el comando. Quizás te pueda ayuadar /teamtour help.');

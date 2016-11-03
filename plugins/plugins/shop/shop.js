@@ -7,7 +7,7 @@ exports.commands = {
 
 	tienda: 'shop',
 	shop: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		this.sendReplyBox(
 			'<center><h3><b><u>Tienda del servidor</u></b></h3><table border="1" cellspacing="0" cellpadding="3" target="_blank"><tbody>' +
 			'<tr><th>Art&iacute;culo</th><th>Descripci&oacute;n</th><th>Coste</th></tr>' +
@@ -28,7 +28,7 @@ exports.commands = {
 
 	ayudatienda: 'shophelp',
 	shophelp: function () {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		this.sendReplyBox(
 			"<center><h3><b><u>Tienda del servidor - Comandos</u></b></h3></center>" +
 			"<b>Comandos Básicos:</b><br /><br />" +
@@ -170,7 +170,7 @@ exports.commands = {
 	pd: function (target, room, user) {
 		let autoData = false;
 		if (!target) autoData = true;
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 
 		let pds = 0;
 		let userName = user.name;
@@ -194,7 +194,7 @@ exports.commands = {
 	tc: function (target, room, user) {
 		let autoData = false;
 		if (!target) autoData = true;
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		if (room.decision) return this.sendReply('No se pueden poner TCs en las batallas.');
 
 		let pds = 0;
@@ -482,7 +482,7 @@ exports.commands = {
 
 	avatarespendientes: 'pendingavatars',
 	pendingavatars: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		this.sendReplyBox(Shop.getPendingAvatars());
 	},
 
@@ -497,7 +497,7 @@ exports.commands = {
 
 	colorespendientes: 'pendingcolors',
 	pendingcolors: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		this.sendReplyBox(Shop.getPendingColors());
 	},
 
@@ -512,7 +512,7 @@ exports.commands = {
 
 	iconospendientes: 'pendingicons',
 	pendingicons: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		this.sendReplyBox(Shop.getPendingIcons());
 	},
 
@@ -527,7 +527,7 @@ exports.commands = {
 
 	frasesspendientes: 'pendingphrases',
 	pendingphrases: function (target, room, user) {
-		if (!this.canBroadcast()) return false;
+		if (!this.runBroadcast()) return false;
 		this.sendReplyBox(Shop.getPendingPhrases());
 	},
 

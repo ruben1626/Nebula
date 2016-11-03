@@ -526,11 +526,11 @@ let cmds = {
 		switch (toId(params[0])) {
 		case 'buscar':
 		case 'search':
-			if (!this.canBroadcast()) return false;
+			if (!this.runBroadcast()) return false;
 			this.sendReplyBox(War.getTours());
 			break;
 		case 'help':
-			if (!this.canBroadcast()) return false;
+			if (!this.runBroadcast()) return false;
 			this.sendReplyBox(
 					'<font size = 2>Guerras entre clanes</font><br />' +
 					'Se trata de un sistema automatizado de guerras (enfrentamientos) entre 2 clanes dentro de un sistema de puntuación o ranking. Las wars solo pueden ser iniciadas en las salas destinadas a ello. Los Voiced pueden crearlas y terminarlas y el staff puede manejar el resto de comandos administrativos. Asi mismo, los oficiales y líderes de los clanes pueden descalificar y reemplazar a sus miembros.<br />' +
@@ -740,7 +740,7 @@ let cmds = {
 			return this.sendReply('Wars hotpatched.');
 		case 'ronda':
 		case 'round':
-			if (!this.canBroadcast()) return false;
+			if (!this.runBroadcast()) return false;
 			return this.sendReply('|raw|' + War.viewTourStatus(roomId));
 		default:
 			this.sendReply('No se reconoce el comando. Quizás te pueda ayuadar /war help.');
