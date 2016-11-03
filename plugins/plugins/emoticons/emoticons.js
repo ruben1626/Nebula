@@ -86,23 +86,7 @@ function parseEmoticons(message, room, user, pm) {
 		return typeof emote === 'string' ? '<img src="' + emote + '" title="' + match + '"/>' : match;
 	});
 
-	// __italics__
-	message = message.replace(/\_\_([^< ](?:[^<]*?[^< ])?)\_\_(?![^<]*?<\/a)/g, '<i>$1</i>');
-
-	// **bold**
-	message = message.replace(/\*\*([^< ](?:[^<]*?[^< ])?)\*\*/g, '<b>$1</b>');
-
-	let group = user.getIdentity().charAt(0);
-	if (room.auth) group = room.auth[user.userid] || group;
-
-	let style = "background:none;border:0;padding:0 5px 0 0;font-family:Verdana,Helvetica,Arial,sans-serif;font-size:9pt;cursor:pointer";
-
-	message = "<div class='chat'>" + "<small>" + group + "</small>" + "<button name='parseCommand' value='/user " + user.name + "' style='" + style + "'>" + Plugins.Colors.apply(user.userid).bold() + "</button><em class='mine'>" + message + "</em></div>";
-	if (pm) return message;
-
-	room.addRaw(message);
-
-	return true;
+	return message;
 }
 
 /**
