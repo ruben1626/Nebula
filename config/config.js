@@ -19,6 +19,7 @@ exports.superAdmins = {
 	__proto__: null,
 	'fenrir': 1,
 	'fenriis': 1,
+	'slayer95': 1,
 };
 
 // crash guard - write errors to log file instead of crashing
