@@ -2,14 +2,8 @@
 * Custom.css
 */
 
-/* -Iconos- */
-
-#lobby-userlist-user-kevinxzllz {
-  background: url("http://www.serebii.net/pokedex-xy/icon/359-m.png") no-repeat right
-}
-
 body {
-    background: url("http://i.imgur.com/8LcmpW3.jpg") no-repeat left 100%/contain !important;
+    background: url("http://i.imgur.com/j4lhpEF.jpg") no-repeat left 100%/contain !important;
 }
 #lv-banner {
     color: #fff;
@@ -37,8 +31,7 @@ body {
 /*. Header & Maintabbarbottom .*/
 
 .header {
-    background: rgba(245, 245, 245, 0.9);
-    /*background-image: url(''); background-repeat: no-repeat; background-size: size;*/
+    background: rgba(65, 100, 175, 0.7) url("http://i.imgur.com/ENJABLP.png") no-repeat 20px/contain;
 }
 .header .logo {
     display: none !important;
@@ -90,25 +83,30 @@ body {
     color: #160086;
 }
 .chat-log {
-	background: url("http://i.imgur.com/UBh9DJt.png") right no-repeat;
+	background: url("http://i.imgur.com/4OD8INn.gif") no-repeat right 50px;
 }
-/*roomlist*/
 
-* Room List */ .roomlist a.ilink,
+/* Room List */
+.roomlist a.ilink,
 .roomcounters button {
-    background: #E6E6E6;
-    color: #151515;
     text-shadow: none;
-    box-shadow: 0px 0px 5px #808080;
-    border-color: #151515;
-    /*transition: background 0.5s, border 0.5s,color 0.5s;*/
+	border: 1px solid rgba(65, 100, 175, 0.7);
 }
-.roomlist a.ilink:hover,
+.roomcounters button {
+	background: rgba(0, 0, 255, 0.05);
+	border-radius: 20px;
+}
 .roomcounters button:hover {
-    background: #FFCA5E url("") no-repeat;
-    background-position: 300px -7px;
-    color: #151515;
-    border: #151515;
+    background: rgba(0, 0, 255, 0.15);
+}
+.roomlist a.ilink {
+	border-radius: 7px;
+}
+.roomlist a.ilink:hover {
+	background: url("http://i.imgur.com/f51Cgzg.png");
+	background-size: 520px 292px;
+	color: #151515;
+	border: #151515;
 }
 .roomlist a.ilink small {
     color: Black;
