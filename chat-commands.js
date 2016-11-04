@@ -2251,7 +2251,7 @@ exports.commands = {
 			}
 		}
 
-		let buf = `Blacklist for room ${room.id}:<br />`;
+		let buf = Chat.html`Blacklist for ${room.title}:<br />`;
 
 		blMap.forEach((data, userid) => {
 			const [expireTime, ...alts] = data;
@@ -3171,7 +3171,7 @@ exports.commands = {
 	cmd: 'crq',
 	query: 'crq',
 	crq: function (target, room, user, connection) {
-		// Avoid guest users to use the cmd errors to ease the app-layer attacks in emergency mode
+		// In emergency mode, clamp down on data returned from crq's
 		let trustable = (!Config.emergency || (user.named && user.registered));
 		let spaceIndex = target.indexOf(' ');
 		let cmd = target;
@@ -3205,6 +3205,9 @@ exports.commands = {
 					roomData.p1 = battle.p1 ? ' ' + battle.p1.name : '';
 					roomData.p2 = battle.p2 ? ' ' + battle.p2.name : '';
 				}
+				if (targetRoom.auth && targetUser.userid in targetRoom.auth) {
+					roomid = targetRoom.auth[targetUser.userid] + roomid;
+				}
 				roomList[roomid] = roomData;
 			});
 			if (!targetUser.connected) roomList = false;
@@ -3232,7 +3235,6 @@ exports.commands = {
 			});
 		} else {
 			// default to sending null
-			if (!trustable) return false;
 			connection.send('|queryresponse|' + cmd + '|null');
 		}
 	},
@@ -3312,7 +3314,7 @@ exports.commands = {
 					namespace = namespace[targets[i]];
 				}
 				if (typeof namespace[helpCmd] === 'object') return this.sendReply(namespace[helpCmd].join('\n'));
-				if (typeof namespace[helpCmd] === 'function') return this.parse('/' + targets.slice(0, targets.length - 1).concat(helpCmd).join(' '));
+				if (typeof namespace[helpCmd] === 'function') return this.run(namespace[helpCmd]);
 				return this.errorReply("Help for the command '" + target + "' was not found. Try /help for general help");
 			} else {
 				helpCmd = target + 'help';
@@ -3320,7 +3322,7 @@ exports.commands = {
 			if (helpCmd in allCommands) {
 				if (typeof allCommands[helpCmd] === 'function') {
 					// If the help command is a function, parse it instead
-					this.parse('/' + helpCmd);
+					this.run(allCommands[helpCmd]);
 				} else if (Array.isArray(allCommands[helpCmd])) {
 					this.sendReply(allCommands[helpCmd].join('\n'));
 				}
