@@ -882,6 +882,7 @@ exports.commands = {
 			return;
 		}
 		if (!this.can('declare', null, room)) return false;
+		if (target === 'off' || target === 'disable' || target === 'delete') return this.errorReply('Did you mean "/deleteroomintro"?');
 		target = this.canHTML(target);
 		if (!target) return;
 		if (!/</.test(target)) {
@@ -935,6 +936,7 @@ exports.commands = {
 			return;
 		}
 		if (!this.can('ban', null, room)) return false;
+		if (target === 'off' || target === 'disable' || target === 'delete') return this.errorReply('Did you mean "/deletestaffintro"?');
 		target = this.canHTML(target);
 		if (!target) return;
 		if (!/</.test(target)) {
@@ -2884,7 +2886,8 @@ exports.commands = {
 	uploadreplay: 'savereplay',
 	savereplay: function (target, room, user, connection) {
 		if (!room || !room.battle) return;
-		let logidx = Tools.getFormat(room.battle.format).team ? 3 : 0; // retrieve spectator log (0) if there are set privacy concerns
+		// retrieve spectator log (0) if there are privacy concerns
+		let logidx = room.battle.ended ? 3 : 0;
 		let data = room.getLog(logidx).join("\n");
 		let datahash = crypto.createHash('md5').update(data.replace(/[^(\x20-\x7F)]+/g, '')).digest('hex');
 		let players = room.battle.playerNames;
