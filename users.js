@@ -803,7 +803,7 @@ class User {
 			if (global.Permaban && !this.can('staff')) {
 				if (Permaban.permaBan[userid]) {
 					this.send("|popup|Your username (" + name + ") is banned.");
-					this.ban(true, userid);
+					Punishments.ban(this, Date.now() + PERMALOCK_CACHE_TIME, userid, `Permabanned as ${name}`);
 					return;
 				}
 				if (Permaban.permaLock[userid]) {

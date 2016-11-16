@@ -28,7 +28,7 @@ exports.commands = {
 		if (Permaban.permaBan[userT.userid]) return this.sendReply("User '" + this.targetUsername + "' already perma banned.");
 		Permaban.permaBan[userT.userid] = 1;
 		userT.popup("" + user.name + " has banned you." + (target ? "\n\nReason: " + target : ""));
-		userT.ban();
+		Punishments.ban(userT, Date.now() + PERMALOCK_CACHE_TIME, userT.userid, `Permabanned as ${userT.name}`);
 		this.addModCommand(this.targetUsername + " was permanently banned by " + user.name + (target ? ('. (' + target + ')') : '.'));
 		writePermaBanData();
 	},
