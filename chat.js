@@ -661,7 +661,7 @@ class CommandContext {
 
 			//servers Spam
 			if (!user.can('bypassall') && Rooms('staff')) {
-				let serverexceptions = {'dropp': 1, 'showdown': 1, 'smogtours': 1};
+				let serverexceptions = {'kekroleplay': 1, 'showdown': 1, 'smogtours': 1};
 				if (Config.serverexceptions) {
 					for (var i in Config.serverexceptions) serverexceptions[i] = 1;
 				}
