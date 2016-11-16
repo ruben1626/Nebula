@@ -793,7 +793,7 @@ class GlobalRoom {
 	}
 	startLockdown(err, slow) {
 		if (this.lockdown && err) return;
-		let devRoom = Rooms('development');
+		let devRoom = Rooms('staff');
 		const stack = (err ? Chat.escapeHTML(err.stack).split(`\n`).slice(0, 2).join(`<br />`) : ``);
 		Rooms.rooms.forEach((curRoom, id) => {
 			if (id === 'global') return;
@@ -829,7 +829,7 @@ class GlobalRoom {
 		this.lastReportedCrash = time;
 		const stack = (err ? Chat.escapeHTML(err.stack).split(`\n`).slice(0, 2).join(`<br />`) : ``);
 		const crashMessage = `|html|<div class="broadcast-red"><b>The server has crashed:</b> ${stack}</div>`;
-		const devRoom = Rooms('development');
+		const devRoom = Rooms('staff');
 		if (devRoom) {
 			devRoom.add(crashMessage).update();
 		} else {
