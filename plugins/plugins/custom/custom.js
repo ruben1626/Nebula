@@ -1,3 +1,10 @@
+const fs = require('fs');
+
+const CSS_FILE_PATH = DATA_DIR + 'custom.template.css';
+
+exports.init = function () {
+	Chat.multiLinePattern.register('/cssedit ');
+};
 
 exports.commands = {
 	/*stafflist: 'authlist',
@@ -39,26 +46,37 @@ exports.commands = {
 	},
 
 	cssedit: function (target, room, user, connection) {
-		if (!user.hasConsoleAccess(connection)) {return this.sendReply("/cssedit - Access denied.");}
-		let fsscript = require('fs');
+		if (!user.hasConsoleAccess(connection)) return this.errorReply(`/cssedit - Access denied.`);
 		if (!target) {
-			if (!fsscript.existsSync(DATA_DIR + "custom.css")) return this.sendReply("custom.css no existe.");
-			return this.sendReplyBox(fsscript.readFileSync(DATA_DIR + "custom.css").toString());
+			fs.readFile(CSS_FILE_PATH, 'utf8', (err, cssSrc) => {
+				if (err && err.code === 'ENOENT') return this.errorReply(`custom.template.css no existe.`);
+				if (err) return this.errorReply(`${err.message}`);
+				return this.sendReplyBox(
+					`<details>` + 
+					`<summary open>Código fuente</summary>` +
+					`<code>/roomintro ${Chat.escapeHTML(cssSrc).split(/\r?\n/).map(line => {
+						return line.replace(/^(\t+)/, (match, $1) => '&nbsp;'.repeat(4 * $1.length)).replace(/^(\s+)/, (match, $1) => '&nbsp;'.repeat($1.length));
+					}).join('<br />')}</code>` +
+					`</details>`
+				);
+			});
 		}
-		fsscript.writeFileSync(DATA_DIR + "custom.css", target.toString());
-		this.sendReply("custom.css editado correctamente.");
+
+		fs.writeFile(CSS_FILE_PATH, target.replace(/[\r\n]+/, '\n'), err => {
+			if (err) return this.errorReply(`${err.message}`);
+			return this.sendReply(`custom.template.css editado exitosamente`);
+		});
 	},
 
 	destroymodlog: function (target, room, user, connection) {
 		if (!user.hasConsoleAccess(connection)) {return this.sendReply("/destroymodlog - Access denied.");}
-		let fsscript = require('fs');
 		let logPath = LOGS_DIR + 'modlog/';
 		if (Chat.modlog && Chat.modlog[room.id]) {
 			Chat.modlog[room.id].close();
 			delete Chat.modlog[room.id];
 		}
 		try {
-			fsscript.unlinkSync(logPath + "modlog_" + room.id + ".txt");
+			fs.unlinkSync(logPath + "modlog_" + room.id + ".txt");
 			this.addModCommand(user.name + " ha destruido el modlog de esta sala." + (target ? ('(' + target + ')') : ''));
 		} catch (e) {
 			this.sendReply("No se puede destruir el modlog de esta sala.");
