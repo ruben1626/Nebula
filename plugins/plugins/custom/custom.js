@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 
 const CSS_FILE_PATH = path.resolve(Plugins.path, '..', 'custom.template.css');
 
@@ -52,8 +53,8 @@ exports.commands = {
 				if (err && err.code === 'ENOENT') return this.errorReply(`custom.template.css no existe.`);
 				if (err) return this.errorReply(`${err.message}`);
 				return this.sendReplyBox(
-					`<details>` + 
-					`<summary open>Código fuente</summary>` +
+					`<details open>` +
+					`<summary>Código fuente</summary>` +
 					`<code>/cssedit ${Chat.escapeHTML(cssSrc).split(/\r?\n/).map(line => {
 						return line.replace(/^(\t+)/, (match, $1) => '&nbsp;'.repeat(4 * $1.length)).replace(/^(\s+)/, (match, $1) => '&nbsp;'.repeat($1.length));
 					}).join('<br />')}</code>` +
@@ -87,19 +88,16 @@ exports.commands = {
 
 	clearall: function (target, room, user, connection) {
 		if (!this.can('clearall')) return;
-		let len = room.log.length,
-			users = [];
-		while (len--) {
-			room.log[len] = '';
+		const users = Object.values(room.users);
+		for (const roomUser of users) {
+			roomUser.leaveRoom(room);
 		}
-		for (var user in room.users) {
-			users.push(user);
-			Users.get(user).leaveRoom(room, Users.get(user).connections[0]);
-		}
-		len = users.length;
+		room.log.length = 0;
+		room.lastUpdate = 0;
+
 		setTimeout(function () {
-			while (len--) {
-				Users.get(users[len]).joinRoom(room, Users.get(users[len]).connections[0]);
+			for (const roomUser of users) {
+				roomUser.joinRoom(room);
 			}
 		}, 1000);
 	},
