@@ -60,10 +60,12 @@ exports.commands = {
 					`</details>`
 				);
 			});
+			return;
 		}
 
 		fs.writeFile(CSS_FILE_PATH, target.replace(/[\r\n]+/, '\n'), err => {
 			if (err) return this.errorReply(`${err.message}`);
+			LoginServer.deployCSS();
 			return this.sendReply(`custom.template.css editado exitosamente`);
 		});
 	},
