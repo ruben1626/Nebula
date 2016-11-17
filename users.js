@@ -30,7 +30,7 @@ const THROTTLE_BUFFER_LIMIT = 6;
 const THROTTLE_MULTILINE_WARN = 3;
 const THROTTLE_MULTILINE_WARN_STAFF = 6;
 
-const PERMALOCK_CACHE_TIME = 30 * 24 * 60 * 60 * 1000;
+const PERMALOCK_CACHE_TIME = 90 * 24 * 60 * 60 * 1000;
 
 const fs = require('fs');
 
