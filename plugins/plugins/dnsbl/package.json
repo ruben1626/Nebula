@@ -1,0 +1,14 @@
+{
+  "name": "Pokemon-Showdown-Plugin-DNSBL",
+  "version": "0.2",
+  "engines": {
+    "node": ">= 6.0.0"
+  },
+  "main": "dnsbl.js",
+  "scripts": {},
+  "author": {
+    "name": "Leonardo Ivo Julca Salazar",
+    "email": "ivojulca@hotmail.com"
+  },
+  "private": true
+}

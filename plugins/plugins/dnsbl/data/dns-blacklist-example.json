@@ -1,0 +1,12 @@
+{
+	"whiteList": {
+		"exact": [],
+		"short": [],
+		"fragments": []
+	},
+	"blackList": {
+		"exact": [],
+		"short": [],
+		"fragments": []
+	}
+}
