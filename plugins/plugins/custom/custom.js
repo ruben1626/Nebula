@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const CSS_FILE_PATH = path.resolve(Plugins.path, '..', 'custom.template.css');
+const CSS_FILE_PATH = path.resolve(Plugins.path, '..', 'config', 'custom.template.css');
 
 exports.init = function () {
 	Chat.multiLinePattern.register('/cssedit ');
