@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const CSS_FILE_PATH = DATA_DIR + 'custom.template.css';
+const CSS_FILE_PATH = path.resolve(Plugins.path, '..', 'custom.template.css';
 
 exports.init = function () {
 	Chat.multiLinePattern.register('/cssedit ');
@@ -54,7 +54,7 @@ exports.commands = {
 				return this.sendReplyBox(
 					`<details>` + 
 					`<summary open>Código fuente</summary>` +
-					`<code>/roomintro ${Chat.escapeHTML(cssSrc).split(/\r?\n/).map(line => {
+					`<code>/cssedit ${Chat.escapeHTML(cssSrc).split(/\r?\n/).map(line => {
 						return line.replace(/^(\t+)/, (match, $1) => '&nbsp;'.repeat(4 * $1.length)).replace(/^(\s+)/, (match, $1) => '&nbsp;'.repeat($1.length));
 					}).join('<br />')}</code>` +
 					`</details>`
