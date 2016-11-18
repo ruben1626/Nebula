@@ -63,13 +63,16 @@ exports.BattleScripts = {
 	useMove: function (move, pokemon, target, sourceEffect, zMove) {
 		if (!sourceEffect && this.effect.id) sourceEffect = this.effect;
 		let zMovePower = 0;
-		if (zMove && move.zMovePower) {
+		let zMoveCategory = '';
+		if (zMove && !move.zMoveEffect && !move.zMoveBoost) {
 			zMovePower = move.zMovePower;
+			zMoveCategory = move.category;
 			move = zMove;
 		}
 		move = this.getMoveCopy(move);
-		if (zMovePower) {
+		if (zMovePower && move.basePower === 1) {
 			move.basePower = zMovePower;
+			move.category = zMoveCategory;
 		}
 		if (this.activeMove) {
 			move.priority = this.activeMove.priority;
@@ -356,7 +359,7 @@ exports.BattleScripts = {
 			}
 		}
 
-		let totalDamage = 0;
+		move.totalDamage = 0;
 		let damage = 0;
 		pokemon.lastDamage = 0;
 		if (move.multihit) {
@@ -418,7 +421,7 @@ exports.BattleScripts = {
 				// purposes of Counter, Metal Burst, and Mirror Coat.
 				damage = (moveDamage || 0);
 				// Total damage dealt is accumulated for the purposes of recoil (Parental Bond).
-				totalDamage += damage;
+				move.totalDamage += damage;
 				this.eachEvent('Update');
 			}
 			if (i === 0) return true;
@@ -426,11 +429,11 @@ exports.BattleScripts = {
 			this.add('-hitcount', target, i);
 		} else {
 			damage = this.moveHit(target, pokemon, move);
-			totalDamage = damage;
+			move.totalDamage = damage;
 		}
 
-		if (move.recoil && totalDamage) {
-			this.damage(this.calcRecoilDamage(totalDamage, move), pokemon, target, 'recoil');
+		if (move.recoil && move.totalDamage) {
+			this.damage(this.calcRecoilDamage(move.totalDamage, move), pokemon, target, 'recoil');
 		}
 
 		if (move.struggleRecoil) {

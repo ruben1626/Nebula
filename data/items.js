@@ -1383,6 +1383,7 @@ exports.BattleItems = {
 		fling: {
 			basePower: 30,
 		},
+		onAfterMoveSecondaryPriority: 2,
 		onAfterMoveSecondary: function (target, source, move) {
 			if (source && source !== target && target.hp && move && move.category !== 'Status') {
 				if (!this.canSwitch(target.side) || target.forceSwitchFlag) return;
@@ -5238,7 +5239,7 @@ exports.BattleItems = {
 		},
 		onModifyAtkPriority: 1,
 		onModifyAtk: function (atk, pokemon) {
-			if (pokemon.baseTemplate.species === 'Cubone' || pokemon.baseTemplate.species === 'Marowak') {
+			if (pokemon.baseTemplate.baseSpecies === 'Cubone' || pokemon.baseTemplate.baseSpecies === 'Marowak') {
 				return this.chainModify(2);
 			}
 		},
