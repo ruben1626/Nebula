@@ -2,6 +2,10 @@
 
 const fs = require('fs');
 const vm = require('vm');
+const Module = require('module');
+
+require('mock-fs-require-fix');
+const RESOLUTION_STEP_KEY = Object.getOwnPropertySymbols(Module).find(sym => sym.toString() === `Symbol(resolvingModule)`);
 
 module.exports = function (path, options, transformer) {
 	if (arguments.length < 3 && typeof options === 'function') {
@@ -23,24 +27,14 @@ module.exports = function (path, options, transformer) {
 		});
 	}
 
-	let fileContents = (function () {
-		let error = null;
-		try {
-			return fs.readFileSync(path, options.encoding);
-		} catch (err) {
-			error = err;
-			require('mock-fs').restore();
-			return fs.readFileSync(path, options.encoding);
-		} finally {
-			if (error) {
-				const fsMock = require('mock-fs');
-				fsMock(fsMock.currentSandbox);
-			}
-		}
-	})();
+	Module[RESOLUTION_STEP_KEY] = true;
+	let fileContents = fs.readFileSync(path, options.encoding);
+	Module[RESOLUTION_STEP_KEY] = false;
+
 	if (typeof transformer === 'function') {
 		fileContents = transformer(fileContents);
 	}
+
 	vm.runInNewContext(fileContents, sandbox);
 	return sandbox;
 };

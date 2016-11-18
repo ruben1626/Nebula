@@ -30,7 +30,7 @@ class Tournament {
 		this.allowRenames = false;
 		this.players = Object.create(null);
 		this.playerCount = 0;
-		this.playerCap = parseInt(playerCap) || Config.tourdefaultplayercap || 0;
+		this.playerCap = parseInt(playerCap, 10) || Config.tourdefaultplayercap || 0;
 
 		this.format = format;
 		this.banlist = [];
