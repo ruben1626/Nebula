@@ -85,6 +85,18 @@ if (!Number.prototype.fround) {
 	});
 }
 
+// shim padStart
+// if (!String.prototype.padStart) {
+// 	String.prototype.padStart = function padStart(maxLength, filler) {
+// 		filler = filler || ' ';
+// 		while (filler.length + this.length < maxLength) {
+// 			filler += filler;
+// 		}
+
+// 		return filler.slice(0, maxLength - this.length) + this;
+// 	};
+// }
+
 let dexes = {};
 
 const DATA_TYPES = ['Pokedex', 'FormatsData', 'Learnsets', 'Movedex', 'Statuses', 'TypeChart', 'Scripts', 'Items', 'Abilities', 'Natures', 'Formats', 'Aliases'];
@@ -167,7 +179,8 @@ class BattleDex {
 	format(format) {
 		if (!this.modsLoaded) this.includeMods();
 		const mod = this.getFormat(format).mod;
-		if (!mod) return dexes['base'].includeData();
+		// TODO: change default format mod as gen7 becomes stable
+		if (!mod) return dexes['gen6'].includeData();
 		return dexes[mod].includeData();
 	}
 	modData(dataType, id) {
@@ -320,6 +333,11 @@ class BattleDex {
 		if (!template || typeof template === 'string') {
 			let name = (template || '').trim();
 			let id = toId(name);
+			if (id === 'nidoran' && name.slice(-1) === '♀') {
+				id = 'nidoranf';
+			} else if (id === 'nidoran' && name.slice(-1) === '♂') {
+				id = 'nidoranm';
+			}
 			template = this.data.TemplateCache.get(id);
 			if (template) return template;
 			if (hasOwnProperty(this.data.Aliases, id)) {
@@ -391,7 +409,9 @@ class BattleDex {
 			if (!template.tier && template.baseSpecies !== template.species) template.tier = this.data.FormatsData[toId(template.baseSpecies)].tier;
 			if (!template.tier) template.tier = 'Illegal';
 			if (!template.gen) {
-				if (template.forme && template.forme in {'Mega':1, 'Mega-X':1, 'Mega-Y':1}) {
+				if (template.num >= 722 || template.forme === 'Alola') {
+					template.gen = 7;
+				} else if (template.forme && template.forme in {'Mega':1, 'Mega-X':1, 'Mega-Y':1}) {
 					template.gen = 6;
 					template.isMega = true;
 					template.battleOnly = true;
@@ -456,7 +476,9 @@ class BattleDex {
 			if (!move.effectType) move.effectType = 'Move';
 			if (!move.secondaries && move.secondary) move.secondaries = [move.secondary];
 			if (!move.gen) {
-				if (move.num >= 560) {
+				if (move.num >= 622) {
+					move.gen = 7;
+				} else if (move.num >= 560) {
 					move.gen = 6;
 				} else if (move.num >= 468) {
 					move.gen = 5;
@@ -518,7 +540,7 @@ class BattleDex {
 			} else if (id && this.data.Formats[id]) {
 				effect = this.data.Formats[id];
 				effect.name = effect.name || this.data.Formats[id].name;
-				if (!effect.mod) effect.mod = 'base';
+				if (!effect.mod) effect.mod = 'gen6';
 				if (!effect.effectType) effect.effectType = 'Format';
 			} else if (id === 'recoil') {
 				effect = {
@@ -552,7 +574,7 @@ class BattleDex {
 				if (effect.cached) return effect;
 				effect.cached = true;
 				effect.name = effect.name || this.data.Formats[id].name;
-				if (!effect.mod) effect.mod = 'base';
+				if (!effect.mod) effect.mod = 'gen6';
 				if (!effect.effectType) effect.effectType = 'Format';
 			}
 			if (!effect.id) effect.id = id;
@@ -595,11 +617,14 @@ class BattleDex {
 			if (!item.category) item.category = 'Effect';
 			if (!item.effectType) item.effectType = 'Item';
 			if (item.isBerry) item.fling = {basePower: 10};
-			if (item.onPlate) item.fling = {basePower: 90};
+			if (item.id.endsWith('plate')) item.fling = {basePower: 90};
 			if (item.onDrive) item.fling = {basePower: 70};
 			if (item.megaStone) item.fling = {basePower: 80};
+			if (item.onMemory) item.fling = {basePower: 50};
 			if (!item.gen) {
-				if (item.num >= 577) {
+				if (item.num >= 689) {
+					item.gen = 7;
+				} else if (item.num >= 577) {
 					item.gen = 6;
 				} else if (item.num >= 537) {
 					item.gen = 5;
@@ -635,7 +660,9 @@ class BattleDex {
 			if (!ability.category) ability.category = 'Effect';
 			if (!ability.effectType) ability.effectType = 'Ability';
 			if (!ability.gen) {
-				if (ability.num >= 165) {
+				if (ability.num >= 192) {
+					ability.gen = 7;
+				} else if (ability.num >= 165) {
 					ability.gen = 6;
 				} else if (ability.num >= 124) {
 					ability.gen = 5;
@@ -689,6 +716,18 @@ class BattleDex {
 			if (!nature.effectType) nature.effectType = 'Nature';
 		}
 		return nature;
+	}
+	spreadModify(stats, set) {
+		const modStats = {atk:10, def:10, spa:10, spd:10, spe:10};
+		for (let statName in modStats) {
+			let stat = stats[statName];
+			modStats[statName] = Math.floor(Math.floor(2 * stat + set.ivs[statName] + Math.floor(set.evs[statName] / 4)) * set.level / 100 + 5);
+		}
+		if ('hp' in stats) {
+			let stat = stats['hp'];
+			modStats['hp'] = Math.floor(Math.floor(2 * stat + set.ivs['hp'] + Math.floor(set.evs['hp'] / 4) + 100) * set.level / 100 + 10);
+		}
+		return this.natureModify(modStats, set.nature);
 	}
 	natureModify(stats, nature) {
 		nature = this.getNature(nature);
@@ -1377,7 +1416,7 @@ class BattleDex {
 		}
 
 		// Flag the generation. Required for team validator.
-		this.gen = this.data.Scripts.gen || 6;
+		this.gen = this.data.Scripts.gen || 7;
 
 		// Execute initialization script.
 		if (BattleScripts.init) BattleScripts.init.call(this);
@@ -1416,7 +1455,7 @@ class BattleDex {
 			if (format.challengeShow === undefined) format.challengeShow = true;
 			if (format.searchShow === undefined) format.searchShow = true;
 			if (format.tournamentShow === undefined) format.tournamentShow = true;
-			if (format.mod === undefined) format.mod = 'base';
+			if (format.mod === undefined) format.mod = 'gen6';
 			if (!dexes[format.mod]) throw new Error("Format `" + format.name + "` requires nonexistent mod: `" + format.mod + "`");
 			this.installFormat(id, format);
 		}
@@ -1553,7 +1592,7 @@ defineNonEnumerable(BattleDex.prototype, '_secureURI', (function () {
 dexes['base'] = new BattleDex();
 dexes['base'].BattleDex = BattleDex;
 
-// "gen6" is an alias for the current base data
-dexes['gen6'] = dexes['base'];
+// "gen7" is an alias for the current base data
+dexes['gen7'] = dexes['base'];
 
-module.exports = dexes['gen6'];
+module.exports = dexes['gen7'];
