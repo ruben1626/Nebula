@@ -320,7 +320,7 @@ exports.Formats = [
 	///////////////////////////////////////////////////////////////////
 
 	{
-		name: "[Gen 7] Anything Goes (beta)",
+		name: "[Gen 7] Anything Goes",
 		section: "Sun/Moon (beta)",
 		column: 2,
 
@@ -329,7 +329,15 @@ exports.Formats = [
 		banlist: ['Illegal', 'Unreleased'],
 	},
 	{
-		name: "[Gen 7] Doubles Anything Goes (beta)",
+		name: "[Gen 7] OU",
+		section: "Sun/Moon (beta)",
+
+		mod: 'gen7',
+		ruleset: ['Pokemon', 'Standard', 'Team Preview', 'Baton Pass Clause'],
+		banlist: ['Uber', 'Shadow Tag'],
+  	},
+	{
+		name: "[Gen 7] Doubles Anything Goes",
 		section: "Sun/Moon (beta)",
 
 		mod: 'gen7',
@@ -338,7 +346,7 @@ exports.Formats = [
 		banlist: ['Illegal', 'Unreleased'],
 	},
 	{
-		name: "[Gen 7] Challenge Cup (beta)",
+		name: "[Gen 7] Challenge Cup",
 		section: "Sun/Moon (beta)",
 
 		mod: 'gen7',
