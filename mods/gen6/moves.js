@@ -14,6 +14,7 @@ exports.BattleMovedex = {
 	darkvoid: {
 		inherit: true,
 		accuracy: 80,
+		onTry: function () {},
 	},
 	destinybond: {
 		inherit: true,
@@ -78,6 +79,7 @@ exports.BattleMovedex = {
 	leechlife: {
 		inherit: true,
 		basePower: 20,
+		isViable: false,
 		pp: 15,
 	},
 	mistyterrain: {
@@ -143,6 +145,14 @@ exports.BattleMovedex = {
 	tackle: {
 		inherit: true,
 		basePower: 50,
+	},
+	thousandarrows: {
+		inherit: true,
+		isUnreleased: true,
+	},
+	thousandwaves: {
+		inherit: true,
+		isUnreleased: true,
 	},
 	thunderwave: {
 		inherit: true,
