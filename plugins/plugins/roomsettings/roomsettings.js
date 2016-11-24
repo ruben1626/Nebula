@@ -40,10 +40,10 @@ class RoomSettings {
 			} else if (RANKS[i]) {
 				let rankIndex = RANKS.indexOf(RANKS[i]);
 				let roomAuth = (this.room.auth && this.room.auth[this.user.userid] ? this.room.auth[this.user.userid] : false);
-				let roomAtuhIndex = (roomAuth ? RANKS.indexOf(roomAuth) : false);
+				let roomAuthIndex = (roomAuth ? RANKS.indexOf(roomAuth) : false);
 				if (rankIndex > 1 && !this.user.can('modchatall', null, this.room)) continue;
 				if (roomAuth && !this.user.can('bypassall')) {
-					if (rankIndex > roomAtuhIndex) continue;
+					if (rankIndex > roomAuthIndex) continue;
 				}
 				modchatOutput.push('<button class="button" name="send" value="/roomsetting modchat ' + RANKS[i] + '">' + RANKS[i] + '</button>');
 			}
