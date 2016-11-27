@@ -203,8 +203,12 @@ exports.BattleStatuses = {
 		noCopy: true,
 	},
 	crit1: {
-		onStart: function (pokemon) {
-			this.add('-start', pokemon, 'move: Focus Energy');
+		onStart: function (target, source, effect) {
+			if (effect && effect.id === 'zpower') {
+				this.add('-start', target, 'move: Focus Energy', '[zeffect]');
+			} else {
+				this.add('-start', target, 'move: Focus Energy');
+			}
 		},
 		onModifyCritRatio: function (critRatio) {
 			return critRatio + 1;
@@ -283,6 +287,9 @@ exports.BattleStatuses = {
 		},
 		onLockMoveTarget: function () {
 			return this.effectData.targetLoc;
+		},
+		onMoveAborted: function (pokemon) {
+			pokemon.removeVolatile('twoturnmove');
 		},
 	},
 	choicelock: {

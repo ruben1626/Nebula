@@ -407,6 +407,7 @@ class BattleDex {
 			if (!template.genderRatio && template.gender === 'N') template.genderRatio = {M:0, F:0};
 			if (!template.genderRatio) template.genderRatio = {M:0.5, F:0.5};
 			if (!template.tier && template.baseSpecies !== template.species) template.tier = this.data.FormatsData[toId(template.baseSpecies)].tier;
+			if (!template.requiredItems && template.requiredItem) template.requiredItems = [template.requiredItem];
 			if (!template.tier) template.tier = 'Illegal';
 			if (!template.gen) {
 				if (template.num >= 722 || template.forme === 'Alola') {
@@ -731,8 +732,8 @@ class BattleDex {
 	}
 	natureModify(stats, nature) {
 		nature = this.getNature(nature);
-		if (nature.plus) stats[nature.plus] *= 1.1;
-		if (nature.minus) stats[nature.minus] *= 0.9;
+		if (nature.plus) stats[nature.plus] = Math.floor(stats[nature.plus] * 1.1);
+		if (nature.minus) stats[nature.minus] = Math.floor(stats[nature.minus] * 0.9);
 		return stats;
 	}
 
@@ -1445,10 +1446,17 @@ class BattleDex {
 		}
 		if (!Array.isArray(Formats)) throw new TypeError("Exported property `Formats` from `" + "./config/formats.js" + "` must be an array.");
 
+		let section = '';
+		let column = 1;
 		for (let i = 0; i < Formats.length; i++) {
 			let format = Formats[i];
 			let id = toId(format.name);
+			if (format.section) section = format.section;
+			if (format.column) column = format.column;
+			if (!format.name && format.section) continue;
 			if (!id) throw new RangeError("Format #" + (i + 1) + " must have a name with alphanumeric characters");
+			if (!format.section) format.section = section;
+			if (!format.column) format.column = column;
 			if (this.data.Formats[id]) throw new Error("Format #" + (i + 1) + " has a duplicate ID: `" + id + "`");
 			format.id = id;
 			format.effectType = 'Format';
