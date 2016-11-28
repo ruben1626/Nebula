@@ -92,6 +92,18 @@ exports.Formats = [
 			}
 		},
 	},
+	{
+		name: "[Gen 7] Custom Game",
+
+		mod: 'gen7',
+		searchShow: false,
+		canUseRandomTeam: true,
+		debug: true,
+		maxLevel: 9999,
+		defaultLevel: 100,
+		// no restrictions, for serious (other than team preview)
+		ruleset: ['Team Preview', 'Cancel Mod'],
+	},
 
 	// SM Doubles
 	///////////////////////////////////////////////////////////////////
@@ -134,7 +146,7 @@ exports.Formats = [
 
 		mod: 'gen7',
 		gameType: 'doubles',
-		maxForcedLevel: 50,
+		forcedLevel: 50,
 		teamLength: {
 			validate: [4, 6],
 			battle: 4,

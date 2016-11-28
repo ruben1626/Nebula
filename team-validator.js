@@ -705,7 +705,6 @@ class Validator {
 						incompatibleAbility = true;
 						continue;
 					}
-					if (learnedGen < 7 && set.ability && tools.getAbility(set.ability).name === 'Battle Bond') continue;
 					if (!template.isNonstandard) {
 						// HMs can't be transferred
 						if (tools.gen >= 4 && learnedGen <= 3 && moveid in {'cut':1, 'fly':1, 'surf':1, 'strength':1, 'flash':1, 'rocksmash':1, 'waterfall':1, 'dive':1}) continue;
@@ -715,7 +714,7 @@ class Validator {
 					}
 					if (learned.substr(0, 2) in {'4L':1, '5L':1, '6L':1, '7L':1}) {
 						// gen 4-7 level-up moves
-						if (level >= parseInt(learned.substr(2), 10)) {
+						if (level >= parseInt(learned.substr(2), 10) || learnedGen === 7 && tools.gen >= 7) {
 							// we're past the required level to learn it
 							return false;
 						}
@@ -846,7 +845,8 @@ class Validator {
 				template = tools.getTemplate(template.prevo);
 				if (template.gen > Math.max(2, tools.gen)) template = null;
 				if (template && !template.abilities['H']) isHidden = false;
-			} else if (template.baseSpecies !== template.species && template.baseSpecies !== 'Kyurem' && template.baseSpecies !== 'Pikachu' && template.baseSpecies !== 'Vivillon') {
+			} else if (template.baseSpecies !== template.species && template.baseSpecies === 'Rotom') {
+				// only Rotom inherit learnsets from base
 				template = tools.getTemplate(template.baseSpecies);
 			} else {
 				template = null;
