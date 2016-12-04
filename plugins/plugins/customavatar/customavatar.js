@@ -46,14 +46,14 @@ const script = function () {
 	}
 	trap cleanup EXIT
 	set -xe
-	timeout 10 wget "$1" -nv -O $FILENAME
+	timeout 15 wget "$1" -nv -O $FILENAME
 	FRAMES=`identify $FILENAME | wc -l`
 	if [ $FRAMES -gt 1 ]; then
 		EXT=".gif"
 	else
 		EXT=".png"
 	fi
-	timeout 30 convert $FILENAME -layers TrimBounds -coalesce -adaptive-resize 80x80\> -background transparent -gravity center -extent 80x80 "$2$EXT"
+	timeout 120 convert $FILENAME -layers TrimBounds -coalesce -adaptive-resize 80x80\> -background transparent -gravity center -extent 80x80 "$2$EXT"
 */
 }.toString().match(/[^]*\/\*([^]*)\*\//)[1];
 
@@ -94,7 +94,7 @@ exports.commands = {
 				return;
 			}
 
-				/* falls through */
+			/* falls through */
 		case 'forceset':
 			var hash = parts[1].trim();
 			if (!pendingAdds[hash]) return this.sendReply("Invalid hash.");
@@ -103,9 +103,10 @@ exports.commands = {
 			var avatar = pendingAdds[hash].avatar;
 			delete pendingAdds[hash];
 
+			this.sendReply("Processing...");
 			require('child_process').execFile('bash', ['-c', script, '-', avatar, avatarsDir + userid], function (e, out, err) {
 				if (e) {
-					this.sendReply(userid + "'s custom avatar failed to be set. Script output:");
+					this.sendReply(userid + "'s custom avatar failed to be set " + e.message + ". Script output:");
 					(out + err).split('\n').forEach(this.sendReply.bind(this));
 					return;
 				}
