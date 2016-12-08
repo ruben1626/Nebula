@@ -11,7 +11,7 @@ exports.Formats = [
 		section: "SM Singles (beta)",
 	},
 	{
-		name: "Random Battle",
+		name: "[Gen 7] Random Battle",
 		desc: ["Randomized teams of level-balanced Pok&eacute;mon with sets that are generated to be competitively viable."],
 
 		mod: 'gen7',
@@ -19,7 +19,7 @@ exports.Formats = [
 		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
-		name: "Unrated Random Battle",
+		name: "[Gen 7] Unrated Random Battle",
 
 		mod: 'gen7',
 		team: 'random',
@@ -112,7 +112,7 @@ exports.Formats = [
 		section: "SM Doubles (beta)",
 	},
 	{
-		name: "Random Doubles Battle",
+		name: "[Gen 7] Random Doubles Battle",
 
 		mod: 'gen7',
 		gameType: 'doubles',
@@ -683,7 +683,7 @@ exports.Formats = [
 		ruleset: ['Pokemon', 'Sleep Clause Mod', 'Team Preview', 'HP Percentage Mod', 'Cancel Mod', 'Mega Rayquaza Clause'],
 	},
 	{
-		name: "Random Monotype",
+		name: "[Gen 7] Random Monotype",
 		mod: 'randoms',
 
 		searchShow: true,
@@ -724,7 +724,7 @@ exports.Formats = [
 		},
 	},
 	{
-		name: "Random Sky Battle",
+		name: "[Gen 7] Random Sky Battle",
 		mod: 'randoms',
 
 		searchShow: true,
@@ -732,7 +732,7 @@ exports.Formats = [
 		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
-		name: "Random Ubers",
+		name: "[Gen 7] Random Ubers",
 		mod: 'randoms',
 
 		searchShow: true,
@@ -740,7 +740,7 @@ exports.Formats = [
 		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
-		name: "Random LC",
+		name: "[Gen 7] Random LC",
 		mod: 'randoms',
 
 		searchShow: true,
@@ -748,7 +748,7 @@ exports.Formats = [
 		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
-		name: "Random CAP",
+		name: "[Gen 7] Random CAP",
 		mod: 'randoms',
 
 		searchShow: true,
@@ -756,7 +756,7 @@ exports.Formats = [
 		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
-		name: "Random MonoGen",
+		name: "[Gen 7] Random MonoGen",
 		mod: 'randoms',
 
 		searchShow: true,
@@ -764,7 +764,7 @@ exports.Formats = [
 		ruleset: ['PotD', 'Pokemon', 'Sleep Clause Mod', 'HP Percentage Mod', 'Cancel Mod'],
 	},
 	{
-		name: "Challenge Cup 2-vs-2",
+		name: "[Gen 7] Challenge Cup 2-vs-2",
 		mod: 'randoms',
 
 		gameType: 'doubles',
@@ -780,7 +780,7 @@ exports.Formats = [
 		},
 	},
 	{
-		name: "Challenge Cup Metronome",
+		name: "[Gen 7] Challenge Cup Metronome",
 		mod: 'randoms',
 
 		searchShow: true,
