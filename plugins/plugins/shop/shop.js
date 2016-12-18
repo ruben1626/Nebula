@@ -11,7 +11,7 @@ exports.commands = {
 		this.sendReplyBox(
 			'<center><h3><b><u>Tienda del servidor</u></b></h3><table border="1" cellspacing="0" cellpadding="3" target="_blank"><tbody>' +
 			'<tr><th>Art&iacute;culo</th><th>Descripci&oacute;n</th><th>Coste</th></tr>' +
-			'<tr><td>Home</td><td>Compra una en el Servidor.</td><td>500</td></tr>' +
+			'<tr><td>Chatroom</td><td>Compra una Sala en el Servidor.</td><td>500</td></tr>' +
 			'<tr><td>CustomTC</td><td>Compra una Tarjeta de Entrenador personalizada (a partir de código html). Contactar con un administrador si el código es muy largo para un solo mensaje.</td><td>1000</td></tr>' +
 			'<tr><td>CustomAvatar</td><td>Compra un avatar personalizado. Preferiblemente debe ser una imagen de pequeñas dimensiones y acorde a las reglas del servidor. Contactar con un Admin para obtener este art&iacute;culo.</td><td>800</td></tr>' +
 			'<tr><td>CustomIcon</td><td>Compra un icono personalizado. Preferiblemente debe ser una imagen de pequeñas dimensiones (32x32) y acorde a las reglas del servidor. Contactar con un Admin para obtener este art&iacute;culo.</td><td>800</td></tr>' +
@@ -99,7 +99,7 @@ exports.commands = {
 			Shop.removeMoney(user.name, prize);
 			return this.sendReply("Has comprado un Sprite de un pokemon para tu TC. Revisa /shophelp para más información.");
 			break;
-		case 'home':
+		case 'chatroom':
 			prize = 500;
 			if (Shop.getUserMoney(user.name) < prize) return this.sendReply("No tienes suficiente dinero.");
 			if (params.length !== 2) return this.sendReply("Usa el comando así: /buy chatroom,[nombre]");
@@ -131,7 +131,7 @@ exports.commands = {
 			var err = Shop.addPendingAvatar(user.userid, params[1]);
 			if (err) return this.sendReply(err);
 			Shop.removeMoney(user.name, prize);
-			return this.sendReply("Has solicitado un avatar personalizado. Espera a que un admin revise tu compra.");
+			return this.sendReply("Has solicitado un avatar personalizado. Contacta con un admin para que valide tu compra.");
 			break;
 		case 'customicon':
 			prize = 800;
@@ -140,7 +140,7 @@ exports.commands = {
 			var err = Shop.addPendingIcon(user.userid, params[1]);
 			if (err) return this.sendReply(err);
 			Shop.removeMoney(user.name, prize);
-			return this.sendReply("Has solicitado un icon personalizado. Espera a que un admin revise tu compra.");
+			return this.sendReply("Has solicitado un icon personalizado. Contacta con un admin para que valide tu compra.");
 			break;
 		case 'customcolor':
 			prize = 800;
@@ -149,7 +149,7 @@ exports.commands = {
 			var err = Shop.addPendingColor(user.userid, params[1]);
 			if (err) return this.sendReply(err);
 			Shop.removeMoney(user.name, prize);
-			return this.sendReply("Has solicitado un color personalizado. Espera a que un admin revise tu compra.");
+			return this.sendReply("Has solicitado un color personalizado. Contacta con un admin para que valide tu compra.");
 			break;
 		case 'customphrase':
 			prize = 500;
@@ -158,7 +158,7 @@ exports.commands = {
 			var err = Shop.addPendingPhrase(user.userid, params[1]);
 			if (err) return this.sendReply(err);
 			Shop.removeMoney(user.name, prize);
-			return this.sendReply("Has solicitado una frase personalizada. Espera a que un admin revise tu compra.");
+			return this.sendReply("Has solicitado una frase personalizada. Contacta con un admin para que valide tu compra.");
 			break;	
 		default:
 			return this.sendReply("No has especificado ningún artículo válido.");
