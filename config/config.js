@@ -16,7 +16,7 @@ exports.proxyip = ['127.0.0.0/8'];
 exports.potd = '';
 exports.superAdmins = {
 	__proto__: null,
-	'Ruben1626': 1,
+	'ruben1626': 1,
 	
 };
 
