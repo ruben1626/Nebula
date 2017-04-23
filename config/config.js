@@ -1,7 +1,6 @@
 'use strict';
 
 // The server port - the port to run Pokemon Showdown under
-exports.port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
 exports.port = 8080;
 
 // proxyip - proxy IPs with trusted X-Forwarded-For headers
